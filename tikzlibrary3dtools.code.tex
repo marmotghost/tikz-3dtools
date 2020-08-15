@@ -1,0 +1,905 @@
+% Copyright 2019 by an anonymous marmot
+%
+% This file may be distributed and/or modified
+%
+% 1. under the LaTeX Project Public License and/or
+% 2. under the GNU Public License.
+%
+% See the file doc/generic/pgf/licenses/LICENSE for more details.
+\ProvidesFileRCS{tikzlibrary3dtools.code.tex}
+\usetikzlibrary{3d,decorations,fpu}% to do: ability to switch on and off
+\usepackage{calculator}% maybe drop
+\makeatletter%
+\def\extractpgfversionaux#1.#2.#3|#4#5#6;{\def#4{#1}\def#5{#2}\def#6{#3}}%
+\def\checkversion{%
+\edef\temp{\noexpand\extractpgfversionaux\pgfversion|\noexpand\myu\noexpand\myv\noexpand\myw;}%
+\temp%
+\pgfmathtruncatemacro{\itest}{ifthenelse(10*\myu+\myv<31,0,1)}%
+\ifnum\itest=0%
+\message{You are using a too old version of pgf (\pgfversion). You need at least
+version 3.1.1 to use the features of this library.}%
+\fi}%
+\checkversion%
+%  cos(#1)*cos(#2) 
+%  & sin(#1)*cos(#2) 
+%  & -sin(#2) \\
+%  cos(#1)*sin(#2)*sin(#3)-sin(#1)*cos(#3) 
+%  &  sin(#1)*sin(#2)*sin(#3)+cos(#1)*cos(#3) 
+%  & cos(#2)*sin(#3) \\
+%  cos(#1)*sin(#2)*cos(#3)+sin(#1)*sin(#3) 
+%  & sin(#1)*sin(#2)*cos(#3)-cos(#1)*sin(#3) 
+%  & cos(#2)*cos(#3) \\ %<-normal on screen
+% 
+\newcommand{\orthmat}[3]{% the entries of this matrix keep track
+\pgfmathparse{cos(#1)*cos(#2)}% of the current transformation
+\xdef\tikz@td@matAA{\pgfmathresult}%
+\pgfmathparse{sin(#1)*cos(#2)}% 
+\xdef\tikz@td@matAB{\pgfmathresult}% 
+\pgfmathparse{-sin(#2)}% 
+\xdef\tikz@td@matAC{\pgfmathresult}%
+\pgfmathparse{cos(#1)*sin(#2)*sin(#3)-sin(#1)*cos(#3)}%
+\xdef\tikz@td@matBA{\pgfmathresult}%  
+\pgfmathparse{sin(#1)*sin(#2)*sin(#3)+cos(#1)*cos(#3)}% 
+\xdef\tikz@td@matBB{\pgfmathresult}%
+\pgfmathparse{cos(#2)*sin(#3)}%
+\xdef\tikz@td@matBC{\pgfmathresult}%
+\pgfmathparse{cos(#1)*sin(#2)*cos(#3)+sin(#1)*sin(#3) }%
+\xdef\tikz@td@matCA{\pgfmathresult}% 
+\pgfmathparse{sin(#1)*sin(#2)*cos(#3)-cos(#1)*sin(#3)}% 
+\xdef\tikz@td@matCB{\pgfmathresult}%
+\pgfmathparse{cos(#2)*cos(#3)}%
+\xdef\tikz@td@matCC{\pgfmathresult}}%
+\tikzset{3d/.cd,phi/.initial=0,psi/.initial=0,theta/.initial=0,
+install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
+\orthmat{\pgfkeysvalueof{/tikz/3d/phi}}{%
+\pgfkeysvalueof{/tikz/3d/psi}}{\pgfkeysvalueof{/tikz/3d/theta}},%
+/tikz/x={({\tikz@td@matAA*1cm},{\tikz@td@matBA*1cm})},%
+/tikz/y={({\tikz@td@matAB*1cm},{\tikz@td@matBB*1cm})},%
+/tikz/z={({\tikz@td@matAC*1cm},{\tikz@td@matBC*1cm})}}}%
+\def\pgfmathparse@td@FPU#1{\begingroup%
+\pgfkeys{/pgf/fpu,/pgf/fpu/output format=fixed}%
+\pgfmathparse{#1}%
+\pgfmathsmuggle\pgfmathresult\endgroup}%
+%
+\xdef\tikz@td@type{0}%0=linear combination,1=vector product
+\long\def\RawCoord(#1){\csname tikz@dcl@coord@#1\endcsname}% 
+\long\def\ParseCoord(#1){%
+\pgfutil@tempcnta=0%
+\pgfutil@for\pgf@tmp:={#1}\do{\advance\pgfutil@tempcnta by1}%
+\ifnum\the\pgfutil@tempcnta=1
+\edef\pgfutil@tmp{\csname tikz@dcl@coord@#1\endcsname}% 
+\else%
+\edef\pgfutil@tmp{(#1)}%
+\fi%
+\pgfmathparse@td@FPU{xcomp3(\pgfutil@tmp)}% 
+\edef\pgf@X{\pgfmathresult pt}% 
+\pgfmathparse@td@FPU{ycomp3(\pgfutil@tmp)}% 
+\edef\pgf@Y{\pgfmathresult pt}% 
+\pgfmathparse@td@FPU{zcomp3(\pgfutil@tmp)}% 
+\edef\pgf@Z{\pgfmathresult pt}}%
+\pgfmathdeclarefunction{TD}{1}{%
+\begingroup%
+\pgfmathtdparse{#1}%
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
+% projections 
+\pgfmathdeclarefunction{xcomp3}{3}{% x component of a 3-vector 
+\begingroup% 
+\pgfmathparse@td@FPU{#1}% 
+\pgfmathsmuggle\pgfmathresult\endgroup} 
+\pgfmathdeclarefunction{ycomp3}{3}{% y component of a 3-vector 
+\begingroup% 
+\pgfmathparse@td@FPU{#2}% 
+\pgfmathsmuggle\pgfmathresult\endgroup} 
+\pgfmathdeclarefunction{zcomp3}{3}{% z component of a 3-vector 
+\begingroup% 
+\pgfmathparse@td@FPU{#3}% 
+\pgfmathsmuggle\pgfmathresult\endgroup} 
+\pgfmathdeclarefunction{TDx}{1}{% x component of a 3-vector 
+\begingroup% 
+\edef\mycoord{\RawCoord(#1)}%
+\pgfmathparse@td@FPU{xcomp3\mycoord}% 
+\pgfmathsmuggle\pgfmathresult\endgroup}%
+\pgfmathdeclarefunction{TDy}{1}{% x component of a 3-vector 
+\begingroup% 
+\edef\mycoord{\RawCoord(#1)}%
+\pgfmathparse@td@FPU{ycomp3\mycoord}% 
+\pgfmathsmuggle\pgfmathresult\endgroup}%
+\pgfmathdeclarefunction{TDz}{1}{% x component of a 3-vector 
+\begingroup% 
+\edef\mycoord{\RawCoord(#1)}%
+\pgfmathparse@td@FPU{zcomp3\mycoord}% 
+\pgfmathsmuggle\pgfmathresult\endgroup}%
+% \def\tizk@td@scalprod#1=#2.#3;{% 
+% \edef\coordA{\RawCoord#2}% 
+% \edef\coordB{\RawCoord#3}% 
+% \pgfmathsetmacro\pgfutil@tmpa{scalarproduct({\coordA},{\coordB})}% 
+% \edef#1{\pgfutil@tmpa}}% 
+\def\tizk@td@spaux#1#2#3#4#5#6{(#1)*(#4)+(#2)*(#5)+(#3)*(#6)}% 
+\pgfmathdeclarefunction{scalarproduct}{2}{% scalar product of two 3-vectors 
+\begingroup% 
+\pgfmathparse@td@FPU{\tizk@td@spaux#1#2}% 
+\pgfmathsmuggle\pgfmathresult\endgroup} 
+% vector product 
+% vector product auxiliary functions 
+\def\vpauxx#1#2#3#4#5#6{(#2)*(#6)-(#3)*(#5)}% 
+\def\vpauxy#1#2#3#4#5#6{(#4)*(#3)-(#1)*(#6)}% 
+\def\vpauxz#1#2#3#4#5#6{(#1)*(#5)-(#2)*(#4)}% 
+% vector product pgf functions 
+\pgfmathdeclarefunction{vpx}{2}{% x component of vector product 
+\begingroup% 
+\pgfmathparse@td@FPU{\vpauxx#1#2}% 
+\pgfmathsmuggle\pgfmathresult\endgroup} 
+\pgfmathdeclarefunction{vpy}{2}{% y component of vector product 
+\begingroup% 
+\pgfmathparse@td@FPU{\vpauxy#1#2}% 
+\pgfmathsmuggle\pgfmathresult\endgroup} 
+\pgfmathdeclarefunction{vpz}{2}{% z component of vector product 
+\begingroup% 
+\pgfmathparse@td@FPU{\vpauxz#1#2}% 
+\pgfmathsmuggle\pgfmathresult\endgroup} 
+%
+% axisangles, usage \pgfmathsetmacro{\myaxisangles}{axisangles("(myn)")}
+\pgfmathdeclarefunction{axisangles}{1}{% 
+\begingroup% 
+\pgfmathsetmacro{\pgfutil@tmpa}{sqrt(TD("#1o#1"))}%
+\edef\pgfutil@tmpb{\RawCoord#1}%
+\pgfmathsetmacro{\pgftemp@x}{xcomp3(\pgfutil@tmpb)/\pgfutil@tmpa}% 
+\pgfmathsetmacro{\pgftemp@y}{ycomp3(\pgfutil@tmpb)/\pgfutil@tmpa}% 
+\pgfmathsetmacro{\pgftemp@z}{zcomp3(\pgfutil@tmpb)/\pgfutil@tmpa}% 
+\pgfmathtruncatemacro{\itest}{ifthenelse(abs(\pgftemp@z)==1,0,1)}%
+\ifnum\itest=0%
+	\pgfmathtruncatemacro{\jtest}{sign(\pgftemp@x)}%
+	\ifnum\jtest=1%
+		\edef\pgfutil@tmpc{0,0}%
+	\else
+		\edef\pgfutil@tmpc{180,0}%
+	\fi	
+\else
+    % 1 1
+	\pgfmathsetmacro{\pgfutil@tmpb}{acos(\pgftemp@z)}% 
+    \pgfmathsetmacro{\pgfutil@tmpa}{acos(\pgftemp@x/sin(\pgfutil@tmpb))}% 
+    \pgfmathsetmacro{\ntest}{abs(cos(\pgfutil@tmpa)*sin(\pgfutil@tmpb)-\pgftemp@x)%
+		+abs(sin(\pgfutil@tmpa)*sin(\pgfutil@tmpb)-\pgftemp@y)+abs(cos(\pgfutil@tmpb)-\pgftemp@z)}%
+    \ifdim\ntest pt<0.1pt
+      \edef\pgfutil@tmpc{\pgfutil@tmpa,\pgfutil@tmpb}%
+    \fi
+	% 1 -1
+	\pgfmathsetmacro{\pgfutil@tmpb}{acos(\pgftemp@z)}% 
+    \pgfmathsetmacro{\pgfutil@tmpa}{-acos(\pgftemp@x/sin(\pgfutil@tmpb))}% 
+    \pgfmathsetmacro{\ntest}{abs(cos(\pgfutil@tmpa)*sin(\pgfutil@tmpb)-\pgftemp@x)%
+		+abs(sin(\pgfutil@tmpa)*sin(\pgfutil@tmpb)-\pgftemp@y)+abs(cos(\pgfutil@tmpb)-\pgftemp@z)}%
+    \ifdim\ntest pt<0.1pt
+      \edef\pgfutil@tmpc{\pgfutil@tmpa,\pgfutil@tmpb}%
+    \fi
+	% -1 1
+	\pgfmathsetmacro{\pgfutil@tmpb}{-acos(\pgftemp@z)}% 
+    \pgfmathsetmacro{\pgfutil@tmpa}{acos(\pgftemp@x/sin(\pgfutil@tmpb))}% 
+    \pgfmathsetmacro{\ntest}{abs(cos(\pgfutil@tmpa)*sin(\pgfutil@tmpb)-\pgftemp@x)%
+		+abs(sin(\pgfutil@tmpa)*sin(\pgfutil@tmpb)-\pgftemp@y)+abs(cos(\pgfutil@tmpb)-\pgftemp@z)}%
+    \ifdim\ntest pt<0.1pt
+      \edef\pgfutil@tmpc{\pgfutil@tmpa,\pgfutil@tmpb}%
+    \fi
+	% -1 -1
+	\pgfmathsetmacro{\pgfutil@tmpb}{-acos(\pgftemp@z)}%
+    \pgfmathsetmacro{\pgfutil@tmpa}{-acos(\pgftemp@x/sin(\pgfutil@tmpb))}% 
+    \pgfmathsetmacro{\ntest}{abs(cos(\pgfutil@tmpa)*sin(\pgfutil@tmpb)-\pgftemp@x)%
+		+abs(sin(\pgfutil@tmpa)*sin(\pgfutil@tmpb)-\pgftemp@y)+abs(cos(\pgfutil@tmpb)-\pgftemp@z)}%
+    \ifdim\ntest pt<0.1pt
+      \edef\pgfutil@tmpc{\pgfutil@tmpa,\pgfutil@tmpb}%
+    \fi
+	%
+\fi
+\edef\pgfmathresult{\pgfutil@tmpc}%
+\pgfmathsmuggle\pgfmathresult\endgroup} 
+% projection of a 3d coordinate on the normal of the screen
+\pgfmathdeclarefunction{screendepth}{3}{%
+\begingroup%
+\pgfkeys{/pgf/fpu,/pgf/fpu/output format=fixed}%
+\pgfmathparse{%
+((\the\pgf@yx/1cm)*(\the\pgf@zy/1cm)-(\the\pgf@yy/1cm)*(\the\pgf@zx/1cm))*(#1)+
+((\the\pgf@zx/1cm)*(\the\pgf@xy/1cm)-(\the\pgf@xx/1cm)*(\the\pgf@zy/1cm))*(#2)+
+((\the\pgf@xx/1cm)*(\the\pgf@yy/1cm)-(\the\pgf@yx/1cm)*(\the\pgf@xy/1cm))*(#3)}%
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
+% returns a vector that is orthogonal to the input vector
+\pgfmathdeclarefunction{normalcandidate}{3}{%
+\begingroup%
+\pgfmathtruncatemacro{\icase}{(abs(#1)>0)+2*(abs(#2)>0)+4*(abs(#3)>0)}%
+\ifcase\icase
+\message{All three coordinates are zero. No normal can be computed.^^J}%
+\edef\pgfmathresult{0,0,0}%
+\or
+\edef\pgfmathresult{0,1,0}%
+\or
+\edef\pgfmathresult{0,0,1}%
+\or
+\edef\pgfmathresult{0,0,1}%
+\or
+\edef\pgfmathresult{1,0,0}%
+\or
+\edef\pgfmathresult{0,1,0}%
+\or
+\edef\pgfmathresult{z,0,0}%
+\or
+\pgfmathsetmacro{\normalization}{(#1)*(#1)+(#2)*(#2)}%
+\pgfmathsetmacro{\nx}{-1*(#2)/sqrt(\normalization)}%
+\pgfmathsetmacro{\ny}{#1/sqrt(\normalization)}%
+\edef\pgfmathresult{\nx,\ny,0}%
+\fi
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
+\pgfmathdeclarefunction{randompermutation}{1}{%
+\begingroup%	      
+\c@pgf@counta=0%
+\edef\pgfutil@tmpa{0}%
+\loop
+\advance\c@pgf@counta by1%
+\edef\pgfutil@tmpa{\pgfutil@tmpa,\the\c@pgf@counta}%
+\ifnum\c@pgf@counta<#1\relax
+\repeat
+\loop
+\advance\c@pgf@counta by-1%
+\pgfmathtruncatemacro{\pgfutil@tmpb}{1+rnd*\c@pgf@counta}%
+\pgfmathtruncatemacro{\pgfutil@tmpc}{{\pgfutil@tmpa}[\pgfutil@tmpb]}%
+\ifnum\c@pgf@counta=\numexpr#1-1\relax
+\edef\pgfmathresult{\pgfutil@tmpc}%
+\else
+\edef\pgfmathresult{\pgfmathresult,\pgfutil@tmpc}%
+\fi
+\edef\pgfutil@tmpd{\pgfutil@tmpa}%
+\edef\pgfutil@tmpa{0}%
+\pgfutil@for\my@item:={\pgfutil@tmpd}\do{%
+\unless\ifnum\pgfutil@tmpc=\my@item
+\unless\ifnum\my@item=0\relax
+\edef\pgfutil@tmpa{\pgfutil@tmpa,\my@item}%
+\fi\fi}%
+\ifnum\c@pgf@counta>0\relax
+\repeat
+\pgfmath@smuggleone\pgfmathresult%
+\endgroup}
+\pgfmathdeclarefunction{take}{2}{%
+\begingroup%
+\c@pgf@counta=0%
+\pgfutil@for\my@item:={#1}\do{%
+\advance\c@pgf@counta by1%
+\ifnum\c@pgf@counta<#2\relax
+\ifnum\c@pgf@counta=1\relax
+\edef\pgfmathresult{\my@item}%
+\else
+\edef\pgfmathresult{\pgfmathresult,\my@item}%
+\fi\fi}%
+\pgfmath@smuggleone\pgfmathresult%
+\endgroup}
+%
+%
+% barycenter of a list of coordinates
+\pgfmathdeclarefunction{barycenter}{1}{% barycentric coordinate 
+\begingroup%
+\foreach \pgfutil@tmpa [count=\pgfutil@tmpb] in {#1}
+{\ifnum\pgfutil@tmpb=1
+   \xdef\pgfutil@tmpc{\pgfutil@tmpa}%
+   \else
+   \xdef\pgfutil@tmpc{\pgfutil@tmpc+\pgfutil@tmpa}%
+   \fi%
+   \xdef\pgfutil@tmpb{\pgfutil@tmpb}}%
+\pgfmathparse{TD("\pgfutil@tmpc")}%
+\pgfmathsetmacro{\pgfutil@tmpc}{1/\pgfutil@tmpb}%
+\pgfmathparse{TD("\pgfutil@tmpc*(\pgfmathresult)")}%   
+\pgfmathsmuggle\pgfmathresult\endgroup}%
+%
+% position of a real in a list of reals
+\pgfmathdeclarefunction*{pos}{2}{%
+\begingroup%
+\c@pgf@counta=1%
+\pgfutil@for\my@item:={#2}\do{%
+\ifdim\my@item pt<#1pt%
+\advance\c@pgf@counta by1%
+\fi}%
+\edef\pgfmathresult{\the\c@pgf@counta}%
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}
+%
+% the following is very much "inspired" by the calc library 
+\long\def\pgfmathtdparse#1{% < and > really are placeholders for a later integration
+\begingroup% into calc, which however requires changes both in
+% tikzlibrarycalc.code.tex and in tikz.code.tex
+% 
+% tdparse main computation. It's a series of optional factors in front 
+% of coordinates. It is very much copied from the calc library. 
+% 
+\edef\pgf@Xa{0pt}% We accumulate the result in here. 
+\edef\pgf@Ya{0pt}% 
+\edef\pgf@Za{0pt}% 
+\tikz@td@cc@parse+#1% 
+}% 
+
+\def\tikz@td@cc@parse{% 
+\pgfutil@ifnextchar>{% 
+% Ok, we found the end... 
+\tikz@td@cc@end% 
+} 
+{\pgfutil@ifnextchar+{% 
+% Ok, we found a coordinate... 
+\tikz@td@cc@add% 
+}{% 
+\pgfutil@ifnextchar-{% 
+\tikz@td@cc@sub% 
+}{% 
+\pgfutil@ifnextchar x{% 
+\tikz@td@cc@vecprod% 
+}{% 
+\pgfutil@ifnextchar o{% 
+\tikz@td@cc@scalprod% 
+}{% \tikzerror{+ or - expected}% 
+\tikz@td@cc@end%
+}% 
+}% 
+}% 
+}% 
+}%
+}%
+% 
+% The end is reached with > at the moment but this should change 
+% 
+\def\tikz@td@cc@end{% 
+\ifcase\tikz@td@type%
+\pgfmathsetmacro{\pgftemp@x}{\pgf@Xa}% 
+\pgfmathsetmacro{\pgftemp@y}{\pgf@Ya}% 
+\pgfmathsetmacro{\pgftemp@z}{\pgf@Za}% 
+\edef\pgfmathresult{\pgftemp@x,\pgftemp@y,\pgftemp@z}%
+\or%
+\pgfmathsetmacro{\myxa}{\pgf@Xa}%
+\pgfmathsetmacro{\myya}{\pgf@Ya}%
+\pgfmathsetmacro{\myza}{\pgf@Za}%
+\pgfmathsetmacro{\myxb}{\pgf@Xb}%
+\pgfmathsetmacro{\myyb}{\pgf@Yb}%
+\pgfmathsetmacro{\myzb}{\pgf@Zb}%
+\pgfmathsetmacro{\pgftemp@x}{\vpauxx{\myxb}{\myyb}{\myzb}{\myxa}{\myya}{\myza}}% 
+\pgfmathsetmacro{\pgftemp@y}{\vpauxy{\myxb}{\myyb}{\myzb}{\myxa}{\myya}{\myza}}% 
+\pgfmathsetmacro{\pgftemp@z}{\vpauxz{\myxb}{\myyb}{\myzb}{\myxa}{\myya}{\myza}}% 
+%\typeout{P1=(\myxb,\myyb,\myzb),P2=(\myxa,\myya,\myza),P1xP2=(\pgftemp@x,\pgftemp@y,\pgftemp@z)}%
+\edef\pgfmathresult{\pgftemp@x,\pgftemp@y,\pgftemp@z}%
+\or%
+\pgfmathsetmacro{\myxa}{\pgf@Xa}%
+\pgfmathsetmacro{\myya}{\pgf@Ya}%
+\pgfmathsetmacro{\myza}{\pgf@Za}%
+\pgfmathsetmacro{\myxb}{\pgf@Xb}%
+\pgfmathsetmacro{\myyb}{\pgf@Yb}%
+\pgfmathsetmacro{\myzb}{\pgf@Zb}%
+\pgfmathparse@td@FPU{\myxa*\myxb+\myya*\myyb+\myza*\myzb}%
+%\typeout{P1=(\myxb,\myyb,\myzb),P2=(\myxa,\myya,\myza),P1.P2=(\pgmfmathresult)}%
+\fi%
+%\message{result = (\pgftemp@x,\pgftemp@y,\pgftemp@z)=\pgfmathresult^^J}%
+\xdef\tikz@td@type{0}% reset type to linear combination
+\pgfmathsmuggle\pgfmathresult\endgroup}% 
+% 
+\def\tikz@td@cc@add+{% 
+\def\tikz@td@cc@factor{1}% 
+\tikz@td@cc@factororcoordinate% 
+}% 
+\def\tikz@td@cc@sub-{% 
+\def\tikz@td@cc@factor{-1}% 
+\tikz@td@cc@factororcoordinate% 
+}% 
+\def\tikz@td@cc@vecprod x{% 
+%\message{Ah, a vector product^^J}%
+\xdef\tikz@td@type{1}%
+\edef\pgf@Xb{\pgf@Xa}% store current vector in b
+\edef\pgf@Yb{\pgf@Ya}%
+\edef\pgf@Zb{\pgf@Za}%
+\edef\pgf@Xa{0pt}% reset a
+\edef\pgf@Ya{0pt}%
+\edef\pgf@Za{0pt}%
+\def\tikz@td@cc@factor{1}%
+\tikz@td@cc@factororcoordinate% 
+}%
+\def\tikz@td@cc@scalprod o{% 
+%\message{Ah, a scalar product^^J}%
+\xdef\tikz@td@type{2}%
+\edef\pgf@Xb{\pgf@Xa}% store current vector in b
+\edef\pgf@Yb{\pgf@Ya}%
+\edef\pgf@Zb{\pgf@Za}%
+\edef\pgf@Xa{0pt}% reset a
+\edef\pgf@Ya{0pt}%
+\edef\pgf@Za{0pt}%
+\def\tikz@td@cc@factor{1}%
+\tikz@td@cc@factororcoordinate% 
+}%
+% 
+% Check for a factor: If we see a (, its a coordinate... 
+% 
+\def\tikz@td@cc@factororcoordinate{% 
+\pgfutil@ifnextchar({%) 
+% Ok, found coordinate 
+\tikz@td@cc@coordinate% 
+}{% 
+\tikz@td@cc@parse@factor% 
+}% 
+}% 
+% 
+% ... otherwise it's a factor. It ends at ...*( 
+% 
+\def\tikz@td@cc@parse@factor#1*({% 
+\pgfmathparse@td@FPU{#1*\tikz@td@cc@factor}% 
+\let\tikz@td@cc@factor=\pgfmathresult% 
+\tikz@td@cc@coordinate(%) 
+}% 
+\def\tikz@td@cc@coordinate(#1){% 
+\ParseCoord(#1)% 
+\pgfmathsetmacro{\pgf@Xa}{\pgf@Xa+\tikz@td@cc@factor*\pgf@X}%
+\pgfmathsetmacro{\pgf@Ya}{\pgf@Ya+\tikz@td@cc@factor*\pgf@Y}%
+\pgfmathsetmacro{\pgf@Za}{\pgf@Za+\tikz@td@cc@factor*\pgf@Z}%
+\tikz@td@cc@parse% 
+}% 
+\tikzset{declare function={torusx(\u,\v,\R,\r)=cos(\u)*(\R + \r*cos(\v)); 
+torusy(\u,\v,\R,\r)=(\R + \r*cos(\v))*sin(\u);
+torusz(\u,\v,\R,\r)=\r*sin(\v);
+vcrit1(\u,\th)=atan(tan(\th)*sin(\u));% first critical v value
+vcrit2(\u,\th)=180+atan(tan(\th)*sin(\u));% second critical v value
+vtest(\u,\v,\az,\el)=sin(-vcrit1(\u-\az,\el)+\v);
+disc(\th,\R,\r)=((pow(\r,2)-pow(\R,2))*pow(cot(\th),2)+% 
+pow(\r,2)*(2+pow(tan(\th),2)))/pow(\R,2);% discriminant
+umax(\th,\R,\r)=ifthenelse(disc(\th,\R,\r)>0,asin(sqrt(abs(disc(\th,\R,\r)))),0);
+}}%
+%
+\tikzset{3d parse/.style={/utils/exec=\pgfmathtdparse{#1},%
+insert path={(\pgfmathresult)}},3d coordinate/.style args={#1=#2}{%
+/utils/exec=\pgfmathtdparse{#2},%
+insert path={(\pgfmathresult) coordinate #1}}}%
+\def\pgfmathprintvector#1{%
+\pgfutil@tempcnta=0%
+\pgfutil@for\pgf@tmp:={#1}\do{\advance\pgfutil@tempcnta by1}%
+\pgfutil@tempcntb=1%
+\pgfutil@for\pgf@tmp:={#1}\do{\advance\pgfutil@tempcntb by1%
+\ifnum\the\pgfutil@tempcntb<\the\pgfutil@tempcnta
+\pgfmathprintnumber\pgf@tmp,%
+\else
+\pgfmathprintnumber\pgf@tmp
+\fi}%
+}%
+%%
+%% predefined pics
+% based on https://en.wikipedia.org/wiki/Circumscribed_circle
+\tikzset{pics/3d circle through 3 points/.style={code={%
+ \tikzset{3d/circle through 3 points/.cd,#1}%
+ \edef\temp{\noexpand\path[overlay,
+3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)=\pgfkeysvalueof{/tikz/3d/circle through 3 points/A}-\pgfkeysvalueof{/tikz/3d/circle through 3 points/C}},
+ 3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)=\pgfkeysvalueof{/tikz/3d/circle through 3 points/B}-\pgfkeysvalueof{/tikz/3d/circle through 3 points/C}},
+ 3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}c)=\pgfkeysvalueof{/tikz/3d/circle through 3 points/A}-\pgfkeysvalueof{/tikz/3d/circle through 3 points/B}},
+ 3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)=(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)x(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)}
+ ];}%
+ \temp    
+ \pgfmathsetmacro{\lengthn}{sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)"))}
+ \ifdim\lengthn pt<0.02pt
+   \message{The points are (almost) on a line. Circle cannot be determined.}
+  \else
+   \pgfmathsetmacro{\tmpradius}{sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)"))*%
+   	sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)"))*sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}c)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}c)"))/%
+		(2*\lengthn)}
+   \pgfmathsetmacro{\coeffa}{-1*TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)")/(2*TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)"))}		
+   \pgfmathsetmacro{\coeffb}{TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)")/(2*TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)"))}
+   \edef\temp{%
+   \noexpand\path[overlay,3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}u)=\coeffa*(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)x(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)},
+     3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}v)=\coeffb*(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)x(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)}];
+   \noexpand\path[3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/center name})=\pgfkeysvalueof{/tikz/3d/circle through 3 points/C}+(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}u)+(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}v)}];
+   }%
+   \temp
+   \pgfmathsetmacro{\normalizationa}{1/sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)"))}
+   \pgfmathsetmacro{\normalizationn}{1/sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)"))}
+   \edef\temp{%
+   \noexpand\path[overlay,3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)=\normalizationa*(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)},
+   3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)=\normalizationn*(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)},
+   3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}c)=(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)x(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)}];
+   }%
+   \temp
+   \edef\temp{%
+	\noexpand\begin{scope}[plane x={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)},plane y={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}c)},canvas is plane]
+	 \noexpand\draw[pic actions] (\pgfkeysvalueof{/tikz/3d/circle through 3 points/center name}) circle[radius=\tmpradius];
+	 \noexpand\pgfkeys{/tikz/3d/circle through 3 points/extra}
+	\noexpand\end{scope}}%
+   \temp	
+  \fi 
+}},3d/circle through 3 points/.cd,A/.initial={(1,0,0)},B/.initial={(0,1,0)},
+C/.initial={(0,0,1)},
+auxiliary coordinate prefix/.initial=tmp,center name/.initial=M,
+extra/.code={}}%
+% 
+% y cylinder, not yet in the manual
+\tikzset{pics/ycylinder/.style={code={
+\tikzset{3d/cylinder/.cd,#1}
+\def\pv##1{\pgfkeysvalueof{/tikz/3d/cylinder/##1}}
+\pgfmathsetmacro{\vmin}{atan2(sin(\pgfkeysvalueof{/tikz/3d/theta})*sin(\pgfkeysvalueof{/tikz/3d/phi}),%
+min(cos(\pgfkeysvalueof{/tikz/3d/phi}),-1/sqrt(2))*cos(\pgfkeysvalueof{/tikz/3d/theta}))}
+\pgfmathsetmacro{\vmax}{\vmin-180}
+\path[3d/cylinder/mantle]
+  let \p1=($(0,1,0)-(0,0,0)$),\n1={atan2(\y1,\x1)+180} in
+  [shading angle=\n1]
+  plot[variable=\t,domain=\vmin:\vmax,smooth]
+    ({\pv{r}*cos(\t)},0,{\pv{r}*sin(\t)})
+    -- 
+    plot[variable=\t,domain=\vmax:\vmin,smooth]
+    ({\pv{r}*cos(\t)},\pv{h},{\pv{r}*sin(\t)})
+    --cycle;
+\pgfmathtruncatemacro{\itest}{sign(cos(\pgfkeysvalueof{/tikz/3d/phi}))}
+\ifnum\itest=-1
+    \path[3d/cylinder/top] plot[variable=\t,domain=0:360,smooth cycle]
+    ({\pv{r}*cos(\t)},\pv{h},{\pv{r}*sin(\t)}) ;
+\fi
+\ifnum\itest=1
+    \path[3d/cylinder/top] plot[variable=\t,domain=0:360,smooth cycle]
+    ({\pv{r}*cos(\t)},0,{\pv{r}*sin(\t)}) ;
+\fi
+}},3d/.cd,cylinder/.cd,r/.initial=1,h/.initial=1,
+mantle/.style={draw},top/.style={draw}}
+
+%%
+%% decorations
+%% 
+\newif\ifcoil@closed%
+\pgfkeys{%%
+/pgf/decoration/.cd,%
+3d coil color/.store in=\TDCoilColor, %
+3d coil color/.initial=black,%
+3d coil color=black,%
+3d coil width/.store in=\TDCoilWidth, %
+3d coil width/.initial=0.4pt,%
+3d coil width=0.4pt,%
+3d coil dist/.store in=\TDCoilDist, %
+3d coil dist/.initial=0.6pt,%
+3d coil dist=0.6pt,%
+3d coil opacity/.store in=\TDCoilOpacity, %
+3d coil opacity/.initial=1,%
+3d coil opacity=1,%
+3d coil closed/.code=\coil@closedtrue%
+}%
+% https://tex.stackexchange.com/a/219088/121799%
+\tikzset{get stroke color/.code={%%
+    \expandafter\global% Jump over, now we have \global%
+    \expandafter\let% Jump over now we have \global\let%
+    \expandafter\pgfsavedstrokecolor% Jump we have \global\let\pgf...%
+    \csname\string\color@pgfstrokecolor\endcsname% Finally expand this and put it at the end %
+    },                                           % \global\let\pgf...{} in expanded form %
+    restore stroke color/.code={\pgf@setstrokecolor#1},%
+}%
+\def\pgfpoint@onthreedcoil#1#2#3{%%
+  \pgf@x=#1\pgfdecorationsegmentamplitude%%
+  \pgf@x=\pgfdecorationsegmentaspect\pgf@x%%
+  \pgf@y=#2\pgfdecorationsegmentamplitude%%
+  \pgf@xa=0.083333333333\pgfdecorationsegmentlength%%
+  \advance\pgf@x by#3\pgf@xa%%
+  \advance\pgf@x by-\generaloffset pt%%
+}%
+% coil decoration%
+%%
+% Parameters: \pgfdecorationsegmentamplitude, \pgfdecorationsegmentlength,%
+\pgfdeclaredecoration{3d complete coil}{initial}%
+{ %
+    \state{initial}[width=0.5*\pgfdecorationsegmentlength,%
+    next state=coil, persistent precomputation={% from https://tex.stackexchange.com/a/25689/121799%
+    \pgfmathsetmacro\matchinglength{\pgfdecoratedinputsegmentlength / int(\pgfdecoratedinputsegmentlength/\pgfdecorationsegmentlength)}%
+    \setlength{\pgfdecorationsegmentlength}{\matchinglength pt}%
+    \tikzset{get stroke color}%
+    \pgfmathsetmacro{\generaloffset}{\pgfdecorationsegmentlength}%
+    \pgfmathsetmacro{\initialoffset}{1.5*\pgfdecorationsegmentlength}%
+    \pgfmathsetmacro{\auxoffset}{2.5*\pgfdecorationsegmentlength}%
+  }]    { %
+    % line in the back%
+    %%
+    \pgfsetstrokecolor{\TDCoilColor}%
+    \pgfsetfillcolor{\TDCoilColor}%
+    \pgfsetstrokeopacity{\TDCoilOpacity}%
+    \pgfsetlinewidth{\TDCoilWidth}     %
+    \ifcoil@closed%
+     \begingroup%
+      \def\generaloffset{\auxoffset}%
+      \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{15}}%
+      \pgfpathcurveto%
+      {\pgfpoint@onthreedcoil{1.555}{ 1    }{16}}%
+      {\pgfpoint@onthreedcoil{2    }{ 0.555}{17}}%
+      {\pgfpoint@onthreedcoil{2    }{ 0    }{18}}%
+      \pgfcoordinate{TD@coilast}{\pgfpoint@onthreedcoil{2    }{ 0    }{18}}%
+      \pgfcoordinate{TD@coilfirst}{\pgfpoint@onthreedcoil{1    }{ 1    }{15}}%
+      \pgfusepath{stroke} %
+      \pgfsetstrokecolor{\TDCoilColor}%
+     \endgroup%
+    \fi%
+    \begingroup %%
+    \def\generaloffset{\initialoffset}%
+    \ifcoil@closed%
+     \pgfpathmoveto{\pgfpointanchor{TD@coilast}{center}}%
+    \else%
+     \pgfpathmoveto{\pgfpointorigin}%
+    \fi%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{2    }{-0.555}{7}}%
+    {\pgfpoint@onthreedcoil{1.555}{-1    }{8}}%
+    {\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+    \pgfusepath{stroke} %
+    %%
+    % white background for front thick part%
+    %%
+    \pgfsetstrokeopacity{1}%
+    \pgfsetstrokecolor{white}%
+    \pgfsetfillcolor{white}%
+    \pgfsetlinewidth{1.5*\TDCoilWidth+1.5*\TDCoilDist}%
+    \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+    % draw forward%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+    {\pgfpoint@onthreedcoil{0    }{-0.555}{11.25}}%
+    {\pgfpoint@onthreedcoil{0    }{ 0    }{12.5}}%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0    }{ 0.555}{13.25}}%
+    {\pgfpoint@onthreedcoil{0.445}{ 1    }{14.25}}%
+    {\pgfpoint@onthreedcoil{1    }{ 1    }{15}}%
+    % draw the curve back%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0.445}{ 1    }{14}}%
+    {\pgfpoint@onthreedcoil{0    }{ 0.555}{12.75}}%
+    {\pgfpoint@onthreedcoil{0    }{ 0    }{11.5}}%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0    }{-0.555}{10.75}}%
+    {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+    {\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+    \pgfusepath{stroke,fill} %
+    % %
+    % draw the thick foreground path%
+    %%
+    \pgfsetstrokecolor{\TDCoilColor}%
+    \pgfsetfillcolor{\TDCoilColor}%
+    \pgfsetstrokeopacity{\TDCoilOpacity}%
+    \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{3}}%
+    \pgfsetlinewidth{\TDCoilWidth} %
+    % forward shifted +%
+    \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+    {\pgfpoint@onthreedcoil{0    }{-0.555}{11.25}}%
+    {\pgfpoint@onthreedcoil{0    }{ 0    }{12.5}}%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0    }{ 0.555}{13.25}}%
+    {\pgfpoint@onthreedcoil{0.445}{ 1    }{14.25}}%
+    {\pgfpoint@onthreedcoil{1    }{ 1    }{15}}%
+    % draw the curve back shfted -%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0.445}{ 1    }{14}}%
+    {\pgfpoint@onthreedcoil{0    }{ 0.555}{12.75}}%
+    {\pgfpoint@onthreedcoil{0    }{ 0    }{11.5}}%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0    }{-0.555}{10.75}}%
+    {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+    {\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+    \pgfusepath{stroke,fill} %
+    \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{15}}%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{1.555}{ 1    }{16}}%
+    {\pgfpoint@onthreedcoil{2    }{ 0.555}{17}}%
+    {\pgfpoint@onthreedcoil{2    }{ 0    }{18}}%
+    \pgfcoordinate{TD@coilast}{\pgfpoint@onthreedcoil{2    }{ 0    }{18}} %
+    \pgfusepath{stroke}     %
+    \endgroup%
+  }%
+  \state{coil}[switch if less than=%%
+    1.9*\pgfdecorationsegmentlength  to last,%
+               width=+\pgfdecorationsegmentlength]%
+    { % line in the back%
+    %%
+    \pgfsetstrokecolor{\TDCoilColor}%
+    \pgfsetfillcolor{\TDCoilColor}%
+    \pgfsetstrokeopacity{\TDCoilOpacity}%
+    \pgfpathmoveto{\pgfpointanchor{TD@coilast}{center}}%
+    \pgfsetlinewidth{\TDCoilWidth} %
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{2    }{-0.555}{7}}%
+    {\pgfpoint@onthreedcoil{1.555}{-1    }{8}}%
+    {\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+    \pgfusepath{stroke} %
+    %%
+    % white background for front thick part%
+    %%
+    \pgfsetstrokeopacity{1}%
+    \pgfsetstrokecolor{white}%
+    \pgfsetfillcolor{white}%
+    \pgfsetlinewidth{1.5*\TDCoilWidth+1.5*\TDCoilDist}%
+    \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{3}}%
+    \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+    % draw forward%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+    {\pgfpoint@onthreedcoil{0    }{-0.555}{11.25}}%
+    {\pgfpoint@onthreedcoil{0    }{ 0    }{12.5}}%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0    }{ 0.555}{13.25}}%
+    {\pgfpoint@onthreedcoil{0.445}{ 1    }{14.25}}%
+    {\pgfpoint@onthreedcoil{1    }{ 1    }{15}}%
+    % draw the curve back%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0.445}{ 1    }{14}}%
+    {\pgfpoint@onthreedcoil{0    }{ 0.555}{12.75}}%
+    {\pgfpoint@onthreedcoil{0    }{ 0    }{11.5}}%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0    }{-0.555}{10.75}}%
+    {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+    {\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+    \pgfusepath{stroke,fill} %
+    % %
+    % draw the thick foreground path%
+    %%
+    \pgfsetstrokecolor{\TDCoilColor}%
+    \pgfsetfillcolor{\TDCoilColor}%
+    \pgfsetstrokeopacity{\TDCoilOpacity}%
+    \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{3}}%
+    \pgfsetlinewidth{\TDCoilWidth} %
+    % forward shifted +%
+    \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+    {\pgfpoint@onthreedcoil{0    }{-0.555}{11.25}}%
+    {\pgfpoint@onthreedcoil{0    }{ 0    }{12.5}}%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0    }{ 0.555}{13.25}}%
+    {\pgfpoint@onthreedcoil{0.445}{ 1    }{14.25}}%
+    {\pgfpoint@onthreedcoil{1    }{ 1    }{15}}%
+    % draw the curve back shfted -%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0.445}{ 1    }{14}}%
+    {\pgfpoint@onthreedcoil{0    }{ 0.555}{12.75}}%
+    {\pgfpoint@onthreedcoil{0    }{ 0    }{11.5}}%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{0    }{-0.555}{10.75}}%
+    {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+    {\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+    \pgfusepath{stroke,fill} %
+    \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{15}}%
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{1.555}{ 1    }{16}}%
+    {\pgfpoint@onthreedcoil{2    }{ 0.555}{17}}%
+    {\pgfpoint@onthreedcoil{2    }{ 0    }{18}}%
+    \pgfusepath{stroke} %
+    \pgfcoordinate{TD@coilast}{\pgfpoint@onthreedcoil{2    }{ 0    }{18}} %
+  }%
+  \state{last}[next state=final]%
+    { % line in the back%
+    %%
+    \pgfsetstrokecolor{\TDCoilColor}%
+    \pgfsetfillcolor{\TDCoilColor}%
+    \pgfsetstrokeopacity{\TDCoilOpacity}%
+    \pgfpathmoveto{\pgfpointanchor{TD@coilast}{center}}%
+    \pgfsetlinewidth{\TDCoilWidth} %
+    \pgfpathcurveto%
+    {\pgfpoint@onthreedcoil{2    }{-0.555}{7}}%
+    {\pgfpoint@onthreedcoil{1.555}{-1    }{8}}%
+    {\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+    \pgfusepath{stroke} %
+    % %
+    % draw the thick foreground path%
+    %%
+    \ifcoil@closed %\pgfpointanchor{TD@coilfirst}{center}%
+     %%
+     % white background for front thick part%
+     %%
+     \pgfsetstrokeopacity{1}%
+     \pgfsetstrokecolor{white}%
+     \pgfsetfillcolor{white}%
+     \pgfsetlinewidth{1.5*\TDCoilWidth+1.5*\TDCoilDist}%
+     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{3}}%
+     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+     % draw forward%
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+     {\pgfpoint@onthreedcoil{0    }{-0.555}{11.25}}%
+     {\pgfpoint@onthreedcoil{0    }{ 0    }{12.5}}%
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0    }{ 0.555}{13.25}}%
+     {\pgfpoint@onthreedcoil{0.445}{ 1    }{14.25}}%
+     {\pgfpointanchor{TD@coilfirst}{center}}%
+     % draw the curve back%
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0.445}{ 1    }{14}}%
+     {\pgfpoint@onthreedcoil{0    }{ 0.555}{12.75}}%
+     {\pgfpoint@onthreedcoil{0    }{ 0    }{11.5}}%
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0    }{-0.555}{10.75}}%
+     {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+     {\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+     \pgfusepath{stroke,fill} %
+     \pgfsetstrokecolor{\TDCoilColor}%
+     \pgfsetfillcolor{\TDCoilColor}%
+     \pgfsetstrokeopacity{\TDCoilOpacity}%
+     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{3}}%
+     \pgfsetlinewidth{\TDCoilWidth} %
+     % forward shifted +%
+     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+     {\pgfpoint@onthreedcoil{0    }{-0.555}{11.25}}%
+     {\pgfpoint@onthreedcoil{0    }{ 0    }{12.5}}%
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0    }{ 0.555}{13.25}}%
+     {\pgfpoint@onthreedcoil{0.445}{ 1    }{14.25}}%
+     {\pgfpointanchor{TD@coilfirst}{center}}%
+     % draw the curve back shifted %
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0.445}{ 1    }{14}}%
+     {\pgfpoint@onthreedcoil{0    }{ 0.555}{12.75}}%
+     {\pgfpoint@onthreedcoil{0    }{ 0    }{11.5}}%
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0    }{-0.555}{10.75}}%
+     {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+     {\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+     \pgfusepath{stroke,fill} %
+    \else%
+     %%
+     % white background for front thick part%
+     %%
+     \pgfsetstrokeopacity{1}%
+     \pgfsetstrokecolor{white}%
+     \pgfsetfillcolor{white}%
+     \pgfsetlinewidth{1.5*\TDCoilWidth+1.5*\TDCoilDist}%
+     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{3}}%
+     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+     % draw forward%
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+     {\pgfpoint@onthreedcoil{0    }{-0.555}{11.25}}%
+     {\pgfpoint@onthreedcoil{0    }{ 0    }{12.5}}%
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0    }{ 0.555}{13.25}}%
+     {\pgfpoint@onthreedcoil{0.445}{ 1    }{14.25}}%
+     {\pgfpoint@onthreedcoil{1    }{ 1    }{15}}%
+     % draw the curve back%
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0.445}{ 1    }{14}}%
+     {\pgfpoint@onthreedcoil{0    }{ 0.555}{12.75}}%
+     {\pgfpoint@onthreedcoil{0    }{ 0    }{11.5}}%
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0    }{-0.555}{10.75}}%
+     {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+     {\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+     \pgfusepath{stroke,fill} %
+     \pgfsetstrokecolor{\TDCoilColor}%
+     \pgfsetfillcolor{\TDCoilColor}%
+     \pgfsetstrokeopacity{\TDCoilOpacity}%
+     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{3}}%
+     \pgfsetlinewidth{\TDCoilWidth} %
+     % forward shifted +%
+     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+     {\pgfpoint@onthreedcoil{0    }{-0.555}{11.25}}%
+     {\pgfpoint@onthreedcoil{0    }{ 0    }{12.5}}%
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0    }{ 0.555}{13.25}}%
+     {\pgfpoint@onthreedcoil{0.445}{ 1    }{14.25}}%
+     {\pgfpoint@onthreedcoil{1    }{ 1    }{15}}%
+     % draw the curve back shifted %
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0.445}{ 1    }{14}}%
+     {\pgfpoint@onthreedcoil{0    }{ 0.555}{12.75}}%
+     {\pgfpoint@onthreedcoil{0    }{ 0    }{11.5}}%
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{0    }{-0.555}{10.75}}%
+     {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
+     {\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+     \pgfusepath{stroke,fill} %
+    \fi%
+    \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{15}}%
+    \ifcoil@closed %TD@coilfirst%
+    \else%
+     \pgfpathcurveto%
+     {\pgfpoint@onthreedcoil{1.555}{ 1    }{16}}%
+     {\pgfpoint@onthreedcoil{2    }{ 0.555}{17}}%
+     {\pgfpoint@onthreedcoil{2    }{ 0    }{18}}%
+    \fi%
+    \pgfusepath{stroke} %
+    %\pgfcoordinate{TD@coilast}{\pgfpoint@onthreedcoil{2    }{ 0    }{18}} %
+  }%
+  \state{final}%
+  {%
+    \pgfpathmoveto{\pgfpointdecoratedpathlast}%
+    \tikzset{restore stroke color/.expand once=\pgfsavedstrokecolor}%
+  }%
+}%
+\makeatother
+\endinput
