@@ -33,9 +33,10 @@
 \end{tikzlibrary}
 
 \tikzname\ has the |3d| and |tpp| libraries which deal with the projections of
-three-dimensional drawings. This library provides some means to manipulate
-the coordinates. It supports linear combinations of vectors, vector and scalar
-products.
+three-dimensional drawings. In addition there exist excellent packages like
+\href{https://ctan.org/pkg/tikz-3dplot?lang=en}{|tikz-3dplot|}. The purpose of
+this library is to provide some means to manipulate the coordinates. It supports
+linear combinations of vectors, vector and scalar products.
 
 \noindent\textbf{Note:} Hopefully this library is only temporary and its
 contents will be absorbed in slightly extended versions of the |3d| and |calc|
@@ -44,7 +45,25 @@ coordinate with \tikzname. However, this would require changes at the level of
 |tikz.code.tex| and can only be done consistently if the maintainer(s) of
 \tikzname\ support this. Note also that it is quite conceivable that the viewers
 will in the future will be able to achieve 3d ordering, so, in a way, recording
-the screen depth will become almost mandatory at a given point. 
+the screen depth (see the |screendepth| function below) will become almost
+mandatory at a given point. 
+
+\noindent\textbf{Filing a bug report or placing a feature request.} This library
+is currently hosted under
+\href{https://github.com/marmotghost/tikz-3dtools}{\texttt{https://github.com/marmotghost/tikz-3dtools}}.
+The author is also active at the \emph{noncommercial} Q \& A site
+\href{https://topanswers.xyz/tex}{\texttt{https://topanswers.xyz/tex}}, which offers, apart from the possibility of
+asking questions and browsing through the posts a chat in which one can discuss
+problems. 
+
+\noindent\textbf{Why is this library not on CTAN?} First of all, ideally this
+library is only temporary. Secondly, the author does not have a law degree, and
+finds it very hard to select the appropriate license for submitting the library
+to \href{https://ctan.org/}{CTAN}. The library is written as a fun project,
+everyone is free to use it, and trying to understand all the legal stuff that
+seems to be required to perform a successful submission to CTAN is not the kind
+of fun the author is after. This is not to say that CTAN does not have a point
+in requiring all these data.
 
 \subsection{Coordinate computations}
 \label{sec:3DCoordinateComputations}
@@ -113,6 +132,21 @@ to parse 3d expressions. The supported vector operations are |+| (addition $+$),
    Yields the $z$-component of a 3d expression.
 \end{math-function}
 
+
+\begin{math-function}{screendepth("\mvar{vector}")}
+   Yields distance a coordinate is above (positive) or below (negative) the
+   screen. The values are only really meaningful if the user has installed some
+   reasonable view. The larger the screen depth of a point is, the closer is the
+   point to the observer. The function reconstructs the 3-bein\footnote{A 3-bein
+   or dreibein is a German word that stands for a local frame, its literal
+   translation is something like three-leg. Like the term eigenvector this is a
+   foreign word that, to the best of my knowledge, has no commonly used English
+   counterpart.} from lengths like  |\textbackslash pgf@xy| and so on, so the
+   function is independent of the tool that is employed to install a view (cf.\
+   section~\ref{sec:3DOrthonormalProjections}). The screen depth is crucial to
+   decide which objects are in front of other objects. 
+\end{math-function}
+
 In order to pretty-print the result one may want to use |\pgfmathprintvector|,
 and use the math function |TD| for parsing.
 
@@ -136,7 +170,7 @@ what the coordinates $A$, $B$ and $C$ are. It works because the coordinates in
 be evaluated when they are retrieved. So, if you use, say, random numbers, you
 will get each time a \emph{different} result.
 
-\begin{codeexample}[width=4cm]
+\begin{codeexample}[width=4.5cm]
 \begin{tikzpicture}
  \path[overlay] (rnd,rnd,rnd) 
  	coordinate (R);
@@ -148,6 +182,9 @@ will get each time a \emph{different} result.
   $\vec R=(\pgfmathprintvector\pgfmathresult)$};	
 \end{tikzpicture}
 \end{codeexample}
+
+Its main usage is to strip off unnecessary zeros, which emerge since the
+internal computations are largely done with the |fpu| library.
 
 \begin{codeexample}[width=5.2cm]
 \pgfmathparse{TD("(1,0,0)x(0,1,0)")}%
@@ -240,14 +277,15 @@ section~\ref{sec:3DOrthonormalProjections}.
 \subsection{Orthonormal projections}
 \label{sec:3DOrthonormalProjections}
 
-This library can be used together with the |tikz-3dplot| package. It also has
-its own means to install orthonormal projections. Orthonormal projections emerge
-from subjecting 3-dimensional vectors to orthogonal transformations and
-projecting them to 2 dimensions. They are not to be confused with the
-perspective projections, which are more realistic and supported by the |tpp|
-library. Orthonormal projections may be thought of a limit of perspective
-projections at large distances, where large means that the distance of the
-observer is much larger than the dimensions of the objects that get depicted. 
+This library can be used together with the |tikz-3dplot| package and/or the
+|tpp| library. It also has its own means to install orthonormal projections.
+Orthonormal projections emerge from subjecting 3-dimensional vectors to
+orthogonal transformations and projecting them to 2 dimensions. They are not to
+be confused with the perspective projections, which are more realistic and
+supported by the |tpp| library. Orthonormal projections may be thought of a
+limit of perspective projections at large distances, where large means that the
+distance of the observer is much larger than the dimensions of the objects that
+get depicted. 
 
 \begin{key}{/tikz/3d/install view}
         Installs a 3d orthonormal projection.
