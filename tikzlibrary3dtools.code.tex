@@ -110,6 +110,24 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \edef\mycoord{\RawCoord(#1)}%
 \pgfmathparse@td@FPU{zcomp3\mycoord}% 
 \pgfmathsmuggle\pgfmathresult\endgroup}%
+\pgfmathdeclarefunction{TDX}{1}{% x component of a 3-vector 
+\begingroup% 
+\edef\pgfmathresult{0}%
+% \typeout{#1}
+% \edef\temp{\noexpand\pgfmathparse@td@FPU{TDx#1}}%
+% \temp
+\typeout{\pgfmathresult}%
+\pgfmathsmuggle\pgfmathresult\endgroup}%
+\pgfmathdeclarefunction{TDY}{1}{% x component of a 3-vector 
+\begingroup% 
+\edef\mycoord{\RawCoord#1}%
+\pgfmathparse@td@FPU{ycomp3\mycoord}% 
+\pgfmathsmuggle\pgfmathresult\endgroup}%
+\pgfmathdeclarefunction{TDZ}{1}{% x component of a 3-vector 
+\begingroup% 
+\edef\mycoord{\RawCoord#1}%
+\pgfmathparse@td@FPU{zcomp3\mycoord}% 
+\pgfmathsmuggle\pgfmathresult\endgroup}%
 % \def\tizk@td@scalprod#1=#2.#3;{% 
 % \edef\coordA{\RawCoord#2}% 
 % \edef\coordB{\RawCoord#3}% 
@@ -458,6 +476,15 @@ insert path={(\pgfmathresult) coordinate #1}}}%
 \pgfmathprintnumber\pgf@tmp
 \fi}%
 }%
+% 
+% projection of a point on a line
+\tikzset{3d/projection precomputations/.code n args={3}{%
+\pgfmathsetmacro{\pgfutil@tmpa}{TD("#2-#3o#1-#3")/TD("#2-#3o#2-#3")}%
+\pgfmathsetmacro{\pgfutil@tmpb}{TD("#3+\pgfutil@tmpa*#2-\pgfutil@tmpa*#3")}%
+},3d/projection of/.style args={#1 on #2--#3}{%
+3d/projection precomputations={#1}{#2}{#3},%
+insert path={[3d parse={(\pgfutil@tmpb)}]}
+}}
 %%
 %% predefined pics
 % based on https://en.wikipedia.org/wiki/Circumscribed_circle
@@ -505,6 +532,60 @@ C/.initial={(0,0,1)},
 auxiliary coordinate prefix/.initial=tmp,center name/.initial=M,
 extra/.code={}}%
 % 
+% incircle
+\tikzset{pics/3d incircle/.style={code={%
+\tikzset{3d/incircle/.cd,#1}%
+\pgfmathsetmacro{\pgfutil@tmpa}{tddistance("\pgfkeysvalueof{/tikz/3d/incircle/B}","\pgfkeysvalueof{/tikz/3d/incircle/C}")}%
+\pgfmathsetmacro{\pgfutil@tmpb}{tddistance("\pgfkeysvalueof{/tikz/3d/incircle/A}","\pgfkeysvalueof{/tikz/3d/incircle/C}")}%
+\pgfmathsetmacro{\pgfutil@tmpc}{tddistance("\pgfkeysvalueof{/tikz/3d/incircle/A}","\pgfkeysvalueof{/tikz/3d/incircle/B}")}%
+\pgfmathsetmacro{\pgfutil@tmpd}{(\pgfutil@tmpa+\pgfutil@tmpb+\pgfutil@tmpc)/2}%
+\pgfmathsetmacro{\pgfutil@tmparea}{sqrt(\pgfutil@tmpd*(\pgfutil@tmpd-\pgfutil@tmpa)*(\pgfutil@tmpd-\pgfutil@tmpb)*(\pgfutil@tmpd-\pgfutil@tmpc))}%
+\pgfmathsetmacro{\pgfutil@tmpr}{\pgfutil@tmparea/\pgfutil@tmpd}%
+\edef\pgfutil@tmpt{\noexpand\ParseCoord\pgfkeysvalueof{/tikz/3d/incircle/A}}%
+\pgfutil@tmpt
+\pgfmathsetmacro{\pgfutil@tmp@Ax}{\pgf@X}%
+\pgfmathsetmacro{\pgfutil@tmp@Ay}{\pgf@Y}%
+\pgfmathsetmacro{\pgfutil@tmp@Az}{\pgf@Z}%
+\edef\pgfutil@tmpt{\noexpand\ParseCoord\pgfkeysvalueof{/tikz/3d/incircle/B}}%
+\pgfutil@tmpt
+\pgfmathsetmacro{\pgfutil@tmp@Bx}{\pgf@X}%
+\pgfmathsetmacro{\pgfutil@tmp@By}{\pgf@Y}%
+\pgfmathsetmacro{\pgfutil@tmp@Bz}{\pgf@Z}%
+\edef\pgfutil@tmpt{\noexpand\ParseCoord\pgfkeysvalueof{/tikz/3d/incircle/C}}%
+\pgfutil@tmpt
+\pgfmathsetmacro{\pgfutil@tmp@Cx}{\pgf@X}%
+\pgfmathsetmacro{\pgfutil@tmp@Cy}{\pgf@Y}%
+\pgfmathsetmacro{\pgfutil@tmp@Cz}{\pgf@Z}%
+\pgfmathsetmacro{\pgfutil@tmpIx}{\pgfutil@tmp@Ax*\pgfutil@tmpa+\pgfutil@tmp@Bx*\pgfutil@tmpb+\pgfutil@tmp@Cx*\pgfutil@tmpc)/\pgfutil@tmpd/2}%
+\pgfmathsetmacro{\pgfutil@tmpIy}{\pgfutil@tmp@Ay*\pgfutil@tmpa+\pgfutil@tmp@By*\pgfutil@tmpb+\pgfutil@tmp@Cy*\pgfutil@tmpc)/\pgfutil@tmpd/2}%
+\pgfmathsetmacro{\pgfutil@tmpIz}{\pgfutil@tmp@Az*\pgfutil@tmpa+\pgfutil@tmp@Bz*\pgfutil@tmpb+\pgfutil@tmp@Cz*\pgfutil@tmpc)/\pgfutil@tmpd/2}%
+\path (\pgfutil@tmpIx,\pgfutil@tmpIy,\pgfutil@tmpIz) 
+  coordinate (\pgfkeysvalueof{/tikz/3d/incircle/center name})
+  [3d/projection of={(\pgfkeysvalueof{/tikz/3d/incircle/center name}) on 
+	\pgfkeysvalueof{/tikz/3d/incircle/A}--\pgfkeysvalueof{/tikz/3d/incircle/B}}] 
+ coordinate (\pgfkeysvalueof{/tikz/3d/incircle/projection prefix}c)
+ [3d/projection of={(\pgfkeysvalueof{/tikz/3d/incircle/center name}) on 
+	\pgfkeysvalueof{/tikz/3d/incircle/A}--\pgfkeysvalueof{/tikz/3d/incircle/C}}] 
+ coordinate (\pgfkeysvalueof{/tikz/3d/incircle/projection prefix}b)
+ [3d/projection of={(\pgfkeysvalueof{/tikz/3d/incircle/center name}) on 
+	\pgfkeysvalueof{/tikz/3d/incircle/B}--\pgfkeysvalueof{/tikz/3d/incircle/C}}] 
+ coordinate (\pgfkeysvalueof{/tikz/3d/incircle/projection prefix}a);
+ \path[pic actions] pic{3d circle through 3 points={%
+   	A={(\pgfkeysvalueof{/tikz/3d/incircle/projection prefix}c)},%
+   	B={(\pgfkeysvalueof{/tikz/3d/incircle/projection prefix}b)},%
+  	C={(\pgfkeysvalueof{/tikz/3d/incircle/projection prefix}a)},%
+  	center name=\pgfkeysvalueof{/tikz/3d/incircle/center name}}}
+	;
+}},3d/incircle/.cd,
+center name/.initial=I,
+A/.initial={(1,0,0)},B/.initial={(0,1,0)},C/.initial={(0,0,1)},
+projection prefix/.initial=tmpp}
+\pgfmathdeclarefunction{tddistance}{2}{%
+\begingroup%
+\pgfmathparse@td@FPU{sqrt(TD("#1-#2o#1-#2"))}%
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
+%
 % y cylinder, not yet in the manual
 \tikzset{pics/ycylinder/.style={code={
 \tikzset{3d/cylinder/.cd,#1}

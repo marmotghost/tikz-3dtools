@@ -200,6 +200,43 @@ $\sphericalangle(\vec A)=
 \pgfmathprintvector\pgfmathresult$
 \end{codeexample}
 
+\begin{codeexample}[width=5.2cm]
+\pgfmathparse{axisangles("(A)")}%
+$\sphericalangle(\vec A)=
+\pgfmathprintvector\pgfmathresult$
+\end{codeexample}
+
+
+% \tikzset{3d/projection precomputations/.code n args={3}{%
+% \pgfmathsetmacro{\pgfutil@tmpa}{TD("#2-#3o#1-#3")/TD("#2-#3o#2-#3")}%
+% \pgfmathsetmacro{\pgfutil@tmpb}{TD("#3+\pgfutil@tmpa*#2-\pgfutil@tmpa*#3")}%
+% },3d/projection of/.style args={#1 on #2--#3}{%
+% 3d/projection precomputations={#1}{#2}{#3},%
+% insert path={[3d parse={(\pgfutil@tmpb)}]}
+% }}
+% 
+
+\begin{key}{/tikz/3d/projection of}
+    Allows one to compute the projection of a point on a line.
+\end{key}
+
+The following code example illustrates the usage. It also makes use of the
+|install view| key, which we describe in
+section~\ref{sec:3DOrthonormalProjections}. 
+
+\begin{codeexample}[width=4.5cm]
+\begin{tikzpicture}[3d/install view={%
+	phi=110,psi=0,theta=60}]
+ \draw
+   (2,1,2) coordinate[label=above:{$A$}] (A) 
+   (1,2,1) coordinate[label=below:{$B$}] (B) --
+   (2,0,0) coordinate[label=below:{$C$}] (C);
+ \path[3d/projection of={(A) on (B)--(C)}] 
+   coordinate (P);
+ \draw[dashed] (A) -- (P);
+\end{tikzpicture}
+\end{codeexample}
+
 \subsection{Orthonormal projections}
 \label{sec:3DOrthonormalProjections}
 
@@ -346,6 +383,42 @@ package. Note, however, that there seems to be an inconsistency in equation
   node[above]{$\X$};}
 \end{tikzpicture}
 \end{codeexample}
+
+
+\begin{key}{/tikz/pics/3d incircle=\meta{options} (initially empty)}
+        Inscribes a circle in a triangle in 3 dimensions.
+\end{key}
+\begin{key}{/tikz/3d incircle/A (initially {(1,0,0)})}
+        First coordinate. Can be either symbolic or explicit. 
+\end{key}
+\begin{key}{/tikz/3d incircle/B (initially {(0,1,0)})}
+        Second coordinate, like above.
+\end{key}
+\begin{key}{/tikz/3d incircle/C (initially {(0,0,1)})}
+        Third coordinate, like above.
+\end{key}
+\begin{key}{/tikz/3d incircle/center name (initially {I})}
+        Name of the center coordinate that will be derived.
+\end{key}
+\begin{key}{/tikz/3d incircle/auxiliary coordinate prefix (initially {tmpp})}
+		In \tikzname\ the coordinates are global. The code for the circle is
+		more comprehensible if named coordinates are introduced. Their names
+		will begin with this prefix. Changing the prefix will allow users to
+		avoid overwriting existing coordinates.
+\end{key}
+
+\begin{codeexample}[width=2.5cm]
+\begin{tikzpicture}[3d/install view={phi=110,psi=0,theta=70}]
+ \draw
+   (8,5,5) coordinate[label=above:{$A$}] (A) --
+   (1,2,0) coordinate[label=below:{$B$}] (B) --
+   (5,-5,0) coordinate[label=below:{$C$}] (C) -- cycle;
+ \path pic[red,dashed]{3d incircle={% 
+ A={(A)},B={(B)},C={(C)},center name=I}};  
+ \draw (I) -- (tmppa) (I) -- (tmppb) (I)  -- (tmppc);
+\end{tikzpicture}
+\end{codeexample}
+
 
 \begin{key}{/tikz/pics/ycylinder (initially empty)}
  A cylinder in the $y$-direction. This pic requires the |calc| library. 
