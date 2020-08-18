@@ -1,4 +1,4 @@
-\documentclass[a4paper]{ltxdoc}
+\documentclass[a4paper,fleqn]{ltxdoc}
 %\input{pgfmanual-dvipdfm.cfg}
 %\input{../../text-en/pgfmanual-en-main-preamble}
 \usepackage[version=latest]{pgf}
@@ -227,8 +227,8 @@ these. Expressions with more of these can be accidentally right.
    this axis, only two angles are required, and thus returned. In the
    conventions of section~\ref{sec:3DOrthonormalProjections}, these are the
    angles $\phi$ and $\psi$. It corresponds to the macro
-   |\tdplotgetpolarcoords{\marg{x}}{\marg{y}}{\marg{z}}| from the |tikz-3dplot|
-   package.
+   |\tdplotgetpolarcoords{\marg{x}}{\marg{y}}{\marg{z}}| from the 
+   \href{https://ctan.org/pkg/tikz-3dplot?lang=en}{|tikz-3dplot|} package.
 \end{math-function}
 
 \begin{codeexample}[width=5.2cm]
@@ -277,8 +277,9 @@ section~\ref{sec:3DOrthonormalProjections}.
 \subsection{Orthonormal projections}
 \label{sec:3DOrthonormalProjections}
 
-This library can be used together with the |tikz-3dplot| package and/or the
-|tpp| library. It also has its own means to install orthonormal projections.
+This library can be used together with the
+\href{https://ctan.org/pkg/tikz-3dplot?lang=en}{|tikz-3dplot|} package and/or
+the |tpp| library. It also has its own means to install orthonormal projections.
 Orthonormal projections emerge from subjecting 3-dimensional vectors to
 orthogonal transformations and projecting them to 2 dimensions. They are not to
 be confused with the perspective projections, which are more realistic and
@@ -307,10 +308,11 @@ third direction.
 
 
 
-The 3d-like picture emerge by rotating the view. The conventions for the
+The 3d-like pictures emerge by rotating the view. The conventions for the
 parametrization of the orthogonal rotations in terms of three rotation angles
 $\phi$, $\psi$ and $\theta$ are
-\[ O(\phi,\psi,\theta)=\begin{pmatrix}
+\begin{equation}
+ O(\phi,\psi,\theta)=\begin{pmatrix}
  c_{\phi}\,c_{\psi} & s_{\phi}\,c_{\psi} & -s_{\psi} \\
  c_{\phi}\,s_{\psi}\,s_{\theta}-s_{\phi}\,c_{\theta} & 
  s_{\phi}\,s_{\psi}\,s_{\theta}+c_{\phi}\,c_{\theta} 
@@ -326,8 +328,8 @@ $\phi$, $\psi$ and $\theta$ are
 %   -c_{\phi}\,s_{\psi}\,c_{\theta}+s_{\phi}\,s_{\theta} 
 % &  c_{\psi}\,c_{\theta}
 % & c_{\psi}\,c_{\theta}
-\end{pmatrix}\;.
-\]
+\end{pmatrix}\;.\label{eq:O3}
+\end{equation}
 Here, $c_\phi:=\cos\phi$, $s_\phi:=\sin\phi$ and so on.
 \begin{key}{/tikz/3d/phi (initially 0)}
         3d rotation angle.
@@ -339,8 +341,9 @@ Here, $c_\phi:=\cos\phi$, $s_\phi:=\sin\phi$ and so on.
         3d rotation angle.
 \end{key}
 The rotation angles can be used to define the view. The conventions are chosen
-in such a way that they resemble those of the |tikz-3dplot| package, which gets
-widely used. This matrix can be written as 
+in such a way that they resemble those of the
+\href{https://ctan.org/pkg/tikz-3dplot?lang=en}{|tikz-3dplot|} package, which
+gets widely used. This matrix can be written as 
 \[O(\phi,\psi,\theta)=R_x(\theta)\cdot R_y(\psi)\cdot R_z(\phi)\;,\]
 where 
 \begin{align*}
@@ -363,10 +366,11 @@ where
   0 & -\sin (\phi ) & \cos (\phi ) \\
  \end{pmatrix}
 \end{align*}
-are rotations about the $x$, $y$ and $z$ axis, respectively. 
-For $\psi=0$, $O(\phi,0,\theta)=R^d(\theta_d,\phi_d)$ from the `tikz-3dplot`
-package. Note, however, that there seems to be an inconsistency in equation
-(2.1) of that package.\footnote{I do not know how to contact the author.}
+are rotations about the $x$, $y$ and $z$ axis, respectively.  For $\psi=0$,
+$O(\phi,0,\theta)=R^d(\theta_d,\phi_d)$ from the
+\href{https://ctan.org/pkg/tikz-3dplot?lang=en}{|tikz-3dplot|} package. Note,
+however, that there seems to be an inconsistency in equation (2.1) of that
+package.\footnote{I do not know how to contact the author.}
 
 \begin{codeexample}[width=2.5cm]
 \begin{tikzpicture}[3d/install view={phi=110,psi=0,theta=70}]
@@ -378,6 +382,193 @@ package. Note, however, that there seems to be an inconsistency in equation
   node[pos=1.2] {$z$};
 \end{tikzpicture}
 \end{codeexample}
+
+\subsection{Visibility considerations}
+
+When drawing objects in 3d, some parts are ``visible'', i.e.\ in the foreground,
+while other parts are hidden, i.e.\ in the background. In what follows, we
+discuss some basic means that allow one to determine whether some stretch is
+visible or hidden. Very often this amounts to find critical values of some
+parameter(s) (such as angles) at which some curve changes from visible to
+hidden, or vice versa. One of the major players in this game is the normal on
+the screen, which is given by the last row of the orthogonal matrix $O$ of
+\eqref{eq:O3}. For $\psi=0$, this normal is also the normal in the so-called
+``main'' coordinates of 
+\href{https://ctan.org/pkg/tikz-3dplot?lang=en}{|tikz-3dplot|} with the
+identifications $\theta=\mathtt{\textbackslash tdplotmaintheta}$ and
+$\phi=\mathtt{\textbackslash tdplotmainphi}$.
+
+Here is an example. Suppose we wish to draw a latitude circle on a sphere for
+$\psi=0$. Since the system has a rotational symmetry around the $z$ axis, we can
+set $\phi=0$ as well. The normal on the screen then becomes
+\[
+ n_\mathrm{screen}=
+ \bigl(0,-\sin(\theta),\cos(\theta)\bigr)^T\;.
+\]
+The latitude circle can be parametrized as
+\[
+ \gamma_\mathrm{lat}(\beta)=
+ \bigl(r\,\cos(\beta),r\,\sin(\beta),h\bigr)^T\;,
+\]
+where $r=R\,\cos(\lambda)$ and $h=R\,\sin(\lambda)$ with $R$ being the radius of
+the sphere and $\lambda$ the latitude angle of the latitude circle. The critical
+angles $\beta_\mathrm{crit}$ at which the curve transitions from hidden to
+visible are then given by the solutions of
+\[
+ n_\mathrm{screen}\cdot\gamma_\mathrm{lat}(\beta_\mathrm{crit})
+ =-r\,\sin(\beta)\,\sin(\theta)+h\,\cos(\theta)
+ \overset{!}{=}0\;.
+\]
+Since $-1\le\sin(\beta)\le1$, this equation only has solutions if 
+\begin{equation}\label{eq:disclat}
+ \left\vert\frac{h}{r}\cot(\theta)\right\vert\le1\;.
+\end{equation} 
+The solutions are then given by 
+\[
+ \beta_\mathrm{crit}^{(1)}=\arcsin\left(\frac{h}{r}\cot(\theta)\right)
+ \quad\text{and}\quad
+ \beta_\mathrm{crit}^{(2)}=180-\beta_\mathrm{crit}^{(1)}\;,
+\]
+and $\beta_\mathrm{crit}^{(1)}=\beta_\mathrm{crit}^{(2)}$ if the inequality 
+\eqref{eq:disclat} is saturated. The following code example illustrates this.
+Notice that it could be made more concise with the |3d| library.
+
+\begin{codeexample}[width=5.6cm]
+\begin{tikzpicture}[declare function={%
+	R=2.5;lambda=20;theta=60;
+	r=R*cos(lambda);h=R*sin(lambda);
+	betacrit=asin(h/r*cot(theta));}]
+ \draw (0,0) circle[radius=R];	
+ \begin{scope}[smooth,
+ 	3d/install view={phi=0,psi=0,theta=theta}]
+  \draw[dashed] 
+   plot[variable=\t,
+   	domain=betacrit:180-betacrit]
+   ({r*cos(\t)},{r*sin(\t)},h);
+  \draw 
+   plot[variable=\t,
+   	domain=betacrit:-180-betacrit]
+   ({r*cos(\t)},{r*sin(\t)},h);
+ \end{scope}
+\end{tikzpicture}
+\end{codeexample}
+
+
+Another type of visibility considerations concerns the contours of shapes. To be
+specific, consider a surface parametrized by
+\begin{equation}\label{eq:f}
+ f(u,v)=\begin{pmatrix}
+ u\\ R(u)\,\cos (v)\\ R(u)\,\sin (v)
+ \end{pmatrix}
+\end{equation}
+with some function $R(u)$. What is the contour of an orthonormal projection of the
+surface on the screen? It is the boundary between the hidden and visible parts.
+What distinguishes the visible from the hidden parts? It is the projection of
+the normal of the surface on the screen, $F(u,v):=\vec n_S(u,v)\cdot \vec
+n_\mathrm{screen}$. The hidden and visible stretches are separated by the zeros
+of this projection. In the case of our surface \eqref{eq:f},
+\begin{equation}
+ \vec n_S(u,v)=\vec\nabla_u f(u,v)\times \vec\nabla_v f(u,v)
+ =R(u)\,\begin{pmatrix}
+ 	-R'(u)\\ \cos (v)\\ \sin (v)
+ \end{pmatrix}\;,
+\end{equation}
+and for $\psi=0$
+\begin{equation}
+ n_\mathrm{screen}=\begin{pmatrix}
+ 	\sin(\theta)\,\sin (\phi)\\
+	-\sin (\theta )\,\cos(\phi)\\
+	\cos (\theta)
+  \end{pmatrix}\;.
+\end{equation}
+So we need to find the zeros of 
+\begin{align}
+ F(u,v)={}&{}-\cos (\theta)\,\sin (v)+
+ \sin (\theta )\,\cos(\phi)\,\cos (v)+ R'(u)\,\sin(\theta)\,\sin (\phi)\notag\\
+ =:{}&{}a\,\sin (v)+b\,\cos(v)+c\;.\label{eq:vcrit}
+\end{align} 
+This equation can be solved for $x:=\sin (v)$ using 
+$\cos(v)=\pm\sqrt{1-\sin^2(v)}=\pm\sqrt{1-x^2}$. It is clear that, since  $\sin
+(v)$ is bounded (and so is $\cos(v)$), this equation does not always have a
+solution. In particular, if $R'(u)$ is too large, there might not be a solution.
+This just means that for a given $u$ all points are hidden or visible. This
+happens e.g.\ when you look at a cone from the top or bottom. A more advanced
+code could deal with these cases, the one presented below does not. Note also
+that these are local visibility conditions, a seemingly visible stretch can
+always be covered by some other stretch that is a finite distance away in $u$
+direction.
+
+However, for ``reasonable'' configurations, there are two solutions of the
+quadratic equation, as they should, they correspond to the upper and lower
+contour in figure~\ref{fig:example}. They are a bit unilluminating and given by
+\begin{subequations}\label{eq:cvandsv}
+\begin{align}
+ [\sin(v)]_{1,2}&=-\frac{a \sqrt{a^2+b^2-c^2}\pm b\,c}{a^2+b^2}\;,\\
+ [\cos(v)]_{1,2}&=-\frac{b \sqrt{a^2+b^2-c^2}\mp a\,c}{a^2+b^2}\;,
+\end{align}
+\end{subequations}
+where $a$, $b$ and $c$ are implicitly defined in \eqref{eq:vcrit}. Hence, for
+``reasonable'' configurations, it is very easy to plot the contour of the
+surface with \LaTeX.
+
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[declare function={phi=30;theta=70;},
+	3d/install view={phi=phi,psi=0,theta=theta},
+	line cap=butt,line join=round,
+	declare function={%
+	  R(\u)=1.5+sin(\u*45)/(2+\u/8);%<- input
+	  Rprime(\u)=(R(\u+0.01)-R(\u-0.01))/0.02;%<- numerical derivative
+	  a=cos(phi)*sin(theta);% see equation {eq:vcrit}
+	  b=-1*cos(theta);%	
+	  c(\u)=sin(theta)*sin(phi)*Rprime(\u);%
+      sv1(\u)=-((b*c(\u)+sqrt(a*a+b*b-c(\u)*c(\u))*abs(a))/(a*a+b*b));% see equation {eq:cvandsv}
+	  sv2(\u)=(-(b*c(\u))+sqrt(a*a+b*b-c(\u)*c(\u))*abs(a))/(a*a+b*b);%
+	  cv1(\u)=-((a*c(\u)+sqrt(a*a+b*b-c(\u)*c(\u))*abs(b))/(a*a+b*b));%
+	  cv2(\u)=(-(a*c(\u))+sqrt(a*a+b*b-c(\u)*c(\u))*abs(b))/(a*a+b*b);%
+	},
+	icircle/.style={thick},
+	iplane/.style={fill=white,fill opacity=0.8},
+	iline/.style={semithick},
+ 	extra/.code={},annot/.code={\tikzset{extra/.code={#1}}}]
+ \newcommand\DrawIntersectingPlane[2][]{%
+  \begin{scope}[canvas is yz plane at x=#2,transform shape,#1]
+	 \draw[iplane] (3,3) -- (-3,3) -- (-3,-3)-- (3,-3) -- cycle;
+	 \draw[icircle]  (0,0) circle[radius={R(#2)}];
+	 \tikzset{extra}
+  \end{scope}}
+ %
+ \DrawIntersectingPlane[annot={%
+ 	\path (2.9,2.9) node[below left,transform shape]{$P$};
+	\draw (2,3) arc[start angle=180,end angle=270,radius=1];
+	\draw[dashed] (0,-2.25) node[below,transform shape=false]{$a$} -- (0,0);
+	}]{0}
+ \draw[iline] (0,0,-2.25) -- (4,0,-2.25);
+ \draw[thick,smooth,variable=\u,domain=0:4] 
+ 	plot  (\u,{R(\u)*cv1(\u)},{R(\u)*sv1(\u)})
+ 	plot  (\u,{R(\u)*cv2(\u)},{R(\u)*sv2(\u)});
+ \DrawIntersectingPlane[icircle/.append style={fill=gray,fill opacity=0.5},
+   annot={%
+	\draw[dashed] (0,-2.25) node[below,transform shape=false]{$x$} -- (0,-1.5);
+	}]{4}
+ \draw[iline] (4,0,-2.25) -- (8,0,-2.25);
+ \draw[thick,smooth,variable=\u,domain=4:8] 
+ 	plot  (\u,{R(\u)*cv1(\u)},{R(\u)*sv1(\u)})
+ 	plot  (\u,{R(\u)*cv2(\u)},{R(\u)*sv2(\u)});
+ ;
+ \DrawIntersectingPlane[annot={%
+ 	\path (2.9,2.9) node[below left,transform shape]{$Q$};
+	\draw (2,3) arc[start angle=180,end angle=270,radius=1];
+	\draw[dashed] (0,-2.25) node[below,transform shape=false]{$b$} -- (0,0);
+	}]{8}
+ \draw[iline] (8,0,-2.25) -- (9,0,-2.25) ;
+\end{tikzpicture}
+\caption{Example of a screen projection of a surface of revolution. 
+Taken from \href{https://topanswers.xyz/tex?q=1218\#a1447}{topanswers.xyz}.}
+\label{fig:example}
+\end{figure}
+
 
 \subsection{Predefined pics}
 
