@@ -278,6 +278,12 @@ named \mvar{name}}
 	\mvar{point 1} and \mvar{point 1}.   
 \end{key}
 
+\begin{key}{/tikz/3d/intersection of=\mvar{object 1} with \mvar{object 2}}
+    Computes the intersection of a named object \mvar{object 1} with another
+	object \mvar{object 2}. Currently only intersections of planes with lines
+	are supported.	
+\end{key}
+
 These extended objects can be used in projections.
 
 \begin{key}{/tikz/3d/project=\mvar{point} on \mvar{named object}}
@@ -298,19 +304,26 @@ section~\ref{sec:3DOrthonormalProjections}.
    (2,1,2) coordinate[label=above:{$A$}] (A) -- 
    (1,2,1) coordinate[label=below:{$B$}] (B) --
    (2,0,0) coordinate[label=below:{$C$}] (C) -- cycle
-   (0,0,0) coordinate[label=above:{$O$}] (O);
+   (0,0,0) coordinate[label=above:{$O$}] (O)
+   (3,-2,1) coordinate[label=below:{$D$}] (D);
  \path[3d/plane through={(A) and (B) and (C) named pABC},
 	3d/plane with normal={(1,1,1) through (C) named ptwo},
-	3d/line through={(A) and (B) named lAB}];
+	3d/line through={(A) and (B) named lAB},
+	3d/line through={(O) and (D) named lOD}];
  % project point on plane
  \path[3d/project={(O) on pABC}] coordinate (O');	
  % project point on line
- \path[3d/project={(C) on lAB}] coordinate (C');		  
+ \path[3d/project={(C) on lAB}] coordinate (C');
+ % intersection of plane and line
+ \path[3d/intersection of={lOD with pABC}] coordinate (I);		  
  \draw[dashed] (C) -- (C')
   coordinate[dot,label=above right:{$C'=\pgfmathparse{TD("(C')")}%
   (\pgfmathprintvector\pgfmathresult)^T$}];
  \path (O') coordinate[dot,label=right:{$O'=\pgfmathparse{TD("(O')")}%
   (\pgfmathprintvector\pgfmathresult)^T$}];
+ \path (I) coordinate[dot,label=above:{$I=\pgfmathparse{TD("(I)")}%
+  (\pgfmathprintvector\pgfmathresult)^T
+  $}]; 
 \end{tikzpicture}
 \end{codeexample}
 

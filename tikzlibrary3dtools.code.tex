@@ -545,6 +545,46 @@ project/.code args={#1 on #2}{%
 \fi
 }}
 %%
+%% intersections in 3d (so far: intersection of line with plane)
+\tikzset{3d/intersection of/.code args={#1 with #2}{%
+\expandafter\edef\expandafter\pgfutil@tmpd{\csname tikz@td@dim@#1\endcsname}%
+\expandafter\edef\expandafter\pgfutil@tmpe{\csname tikz@td@dim@#2\endcsname}%
+\edef\pgfutil@tmpde{\pgfutil@tmpd\pgfutil@tmpe}%
+\edef\pgfutil@tmpf{0}% flag
+\ifnum\pgfutil@tmpde=21\relax% plane with line
+\expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@line@A@#2\endcsname}%
+\expandafter\edef\expandafter\pgfutil@tmpb{\csname tikz@td@line@B@#2\endcsname}%
+\expandafter\edef\expandafter\pgfutil@tmpn{\csname tikz@td@plane@normal@#1\endcsname}%
+\expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@plane@point@#1\endcsname}%
+\edef\pgfutil@tmpf{1}%
+\else
+ \ifnum\pgfutil@tmpde=12\relax% line with plane
+  \expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@line@A@#1\endcsname}%
+  \expandafter\edef\expandafter\pgfutil@tmpb{\csname tikz@td@line@B@#1\endcsname}%
+  \expandafter\edef\expandafter\pgfutil@tmpn{\csname tikz@td@plane@normal@#2\endcsname}%
+  \expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@plane@point@#2\endcsname}%
+  \edef\pgfutil@tmpf{1}% flag
+ \else
+  \typeout{Currently, one intersection object has to be a plane and the other 
+  	one a line. However, #1 has dimension \pgfutil@tmpd\space and 
+	#2 has dimension \pgfutil@tmpe.}%
+ \fi
+\fi
+\ifnum\pgfutil@tmpf=1\relax% reasonable input, stored in a, b, c and n
+%\typeout{debug: A=(\pgfutil@tmpa), B=(\pgfutil@tmpb), C=(\pgfutil@tmpc), n=(\pgfutil@tmpn)}%
+\pgfmathsetmacro{\pgfutil@tmpg}{TD("(\pgfutil@tmpn)o(\pgfutil@tmpb)-(\pgfutil@tmpa)")}%
+\pgfmathtruncatemacro{\pgfutil@tmph}{abs(\pgfutil@tmpg)>0.01?1:0}% 
+\ifnum\pgfutil@tmph=1\relax%
+\pgfmathsetmacro{\pgfutil@tmpi}{TD("(\pgfutil@tmpn)o(\pgfutil@tmpc)-(\pgfutil@tmpa)")/\pgfutil@tmpg}%
+\pgfmathsetmacro{\pgfutil@tmpj}{TD("(\pgfutil@tmpa)+\pgfutil@tmpi*(\pgfutil@tmpb)-\pgfutil@tmpi*(\pgfutil@tmpa)")}%
+\tikzset{insert path={(\pgfutil@tmpj)}}%
+%\typeout{debug: intersection is at (\pgfutil@tmpj)}%
+\else
+\typeout{The plane and line do not intersect within the uncertainties.}%
+\fi
+\fi
+}}
+%%
 %% predefined pics
 % based on https://en.wikipedia.org/wiki/Circumscribed_circle
 \tikzset{pics/3d circle through 3 points/.style={code={%
