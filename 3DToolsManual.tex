@@ -19,17 +19,17 @@
 \input{pgfmanual.code} % 
 \makeatother           % 
 \input{pgfmanual-en-macros.tex} % link from
-% /usr/local/texlive/2019/texmf-dist/doc/generic/pgf/macros/pgfmanual-en-macros.tex
+% /usr/local/texlive/2020/texmf-dist/doc/generic/pgf/macros/pgfmanual-en-macros.tex
 % or the equivalent on your installation
 \def\pgfautoxrefs{1}
 \usetikzlibrary{3dtools,calc}
 \begin{document}
 \section{3D Tools}
 \begin{tikzlibrary}{3dtools}
-    This library provides additional tools to create 3d-like pictures. It is a
+	This library provides additional tools to create 3d-like pictures. It is a
 	collection of reasonably working tools, which however is not streamlined,
 	and may be subject to substantial changes if the library ever happens to get
-	further developed.
+	further developed or published.
 \end{tikzlibrary}
 
 \tikzname\ has the |3d| and |tpp| libraries which deal with the projections of
@@ -237,12 +237,6 @@ $\sphericalangle(\vec A)=
 \pgfmathprintvector\pgfmathresult$
 \end{codeexample}
 
-\begin{codeexample}[width=5.2cm]
-\pgfmathparse{axisangles("(A)")}%
-$\sphericalangle(\vec A)=
-\pgfmathprintvector\pgfmathresult$
-\end{codeexample}
-
 
 % \tikzset{3d/projection precomputations/.code n args={3}{%
 % \pgfmathsetmacro{\pgfutil@tmpa}{TD("#2-#3o#1-#3")/TD("#2-#3o#2-#3")}%
@@ -253,31 +247,77 @@ $\sphericalangle(\vec A)=
 % }}
 % 
 
-\begin{key}{/tikz/3d/projection of}
-    Allows one to compute the projection of a point on a line.
+% \begin{key}{/tikz/3d/projection of}
+%     Allows one to compute the projection of a point on a line.
+% \end{key}
+
+Computations in 3d sometimes involve projections of a point on a line or a
+plane. In 2d, projections of a point on a line can be conveniently done with the
+|calc| library, but this does in general not yield the correct projection in 3d.
+In order to make these projections more user friendly, |3dtools| offers the
+possibility to define extended objects such as lines or planes. This is the same
+concept as what is offered by plain \tikzname, where  the user can name
+coordinates and nodes, and, if the |intersections| library is loaded, also
+paths.
+
+\begin{key}{/tikz/3d/plane through=\mvar{point 1} and \mvar{point 2} and \mvar{point 3}
+named \mvar{name}}
+    Defines a plane of name \mvar{name} by the requirement that it goes through
+	the three specified points. Internally the plane is stored in terms of its
+	normal and a point it goes through. 
 \end{key}
+
+\begin{key}{/tikz/3d/plane with normal=\mvar{normal} through \mvar{point 1} named \mvar{name}}
+	Defines a plane of name \mvar{name} by the requirement that it goes through
+	\mvar{point 1} and has the normal \mvar{normal}.  Internally the plane is
+	stored in terms of this normal and point. 
+\end{key}
+
+\begin{key}{/tikz/3d/line through=\mvar{point 1} and \mvar{point 2} named \mvar{name}}
+	Defines a line of name \mvar{name} by the requirement that it goes through
+	\mvar{point 1} and \mvar{point 1}.   
+\end{key}
+
+These extended objects can be used in projections.
+
+\begin{key}{/tikz/3d/project=\mvar{point} on \mvar{named object}}
+	Computes the projection of a point on some extended object, and inserts the
+	projection in the path.   
+\end{key}
+
 
 The following code example illustrates the usage. It also makes use of the
 |install view| key, which we describe in
 section~\ref{sec:3DOrthonormalProjections}. 
 
 \begin{codeexample}[width=4.5cm]
-\begin{tikzpicture}[3d/install view={%
-	phi=110,psi=0,theta=60}]
- \draw
-   (2,1,2) coordinate[label=above:{$A$}] (A) 
+\begin{tikzpicture}[3d/install view={phi=110,psi=0,theta=60},
+	dot/.style={circle,inner sep=0pt,
+		minimum size=2pt,fill}]
+ \draw[every coordinate node/.append style={dot}]
+   (2,1,2) coordinate[label=above:{$A$}] (A) -- 
    (1,2,1) coordinate[label=below:{$B$}] (B) --
-   (2,0,0) coordinate[label=below:{$C$}] (C);
- \path[3d/projection of={(A) on (B)--(C)}] 
-   coordinate (P);
- \draw[dashed] (A) -- (P);
+   (2,0,0) coordinate[label=below:{$C$}] (C) -- cycle
+   (0,0,0) coordinate[label=above:{$O$}] (O);
+ \path[3d/plane through={(A) and (B) and (C) named pABC},
+	3d/plane with normal={(1,1,1) through (C) named ptwo},
+	3d/line through={(A) and (B) named lAB}];
+ % project point on plane
+ \path[3d/project={(O) on pABC}] coordinate (O');	
+ % project point on line
+ \path[3d/project={(C) on lAB}] coordinate (C');		  
+ \draw[dashed] (C) -- (C')
+  coordinate[dot,label=above right:{$C'=\pgfmathparse{TD("(C')")}%
+  (\pgfmathprintvector\pgfmathresult)^T$}];
+ \path (O') coordinate[dot,label=right:{$O'=\pgfmathparse{TD("(O')")}%
+  (\pgfmathprintvector\pgfmathresult)^T$}];
 \end{tikzpicture}
 \end{codeexample}
 
 \subsection{Orthonormal projections}
 \label{sec:3DOrthonormalProjections}
 
-This library can be used together with the
+The |3dtools| library can be used together with the
 \href{https://ctan.org/pkg/tikz-3dplot?lang=en}{|tikz-3dplot|} package and/or
 the |tpp| library. It also has its own means to install orthonormal projections.
 Orthonormal projections emerge from subjecting 3-dimensional vectors to
@@ -367,7 +407,7 @@ where
  \end{pmatrix}
 \end{align*}
 are rotations about the $x$, $y$ and $z$ axis, respectively.  For $\psi=0$,
-$O(\phi,0,\theta)=R^d(\theta_d,\phi_d)$ from the
+$O(\phi=\phi_d,\psi=0,\theta=\theta_d)=R^d(\theta_d,\phi_d)$ from the
 \href{https://ctan.org/pkg/tikz-3dplot?lang=en}{|tikz-3dplot|} package. Note,
 however, that there seems to be an inconsistency in equation (2.1) of that
 package.\footnote{I do not know how to contact the author.}
@@ -395,19 +435,19 @@ the screen, which is given by the last row of the orthogonal matrix $O$ of
 \eqref{eq:O3}. For $\psi=0$, this normal is also the normal in the so-called
 ``main'' coordinates of 
 \href{https://ctan.org/pkg/tikz-3dplot?lang=en}{|tikz-3dplot|} with the
-identifications $\theta=\mathtt{\textbackslash tdplotmaintheta}$ and
-$\phi=\mathtt{\textbackslash tdplotmainphi}$.
+identifications $\theta=\texttt{\textbackslash tdplotmaintheta}$ and
+$\phi=\texttt{\textbackslash tdplotmainphi}$.
 
 Here is an example. Suppose we wish to draw a latitude circle on a sphere for
 $\psi=0$. Since the system has a rotational symmetry around the $z$ axis, we can
 set $\phi=0$ as well. The normal on the screen then becomes
 \[
- n_\mathrm{screen}=
+ \vec n_\mathrm{screen}=
  \bigl(0,-\sin(\theta),\cos(\theta)\bigr)^T\;.
 \]
 The latitude circle can be parametrized as
 \[
- \gamma_\mathrm{lat}(\beta)=
+ \vec\gamma_\mathrm{lat}(\beta)=
  \bigl(r\,\cos(\beta),r\,\sin(\beta),h\bigr)^T\;,
 \]
 where $r=R\,\cos(\lambda)$ and $h=R\,\sin(\lambda)$ with $R$ being the radius of
@@ -415,7 +455,7 @@ the sphere and $\lambda$ the latitude angle of the latitude circle. The critical
 angles $\beta_\mathrm{crit}$ at which the curve transitions from hidden to
 visible are then given by the solutions of
 \[
- n_\mathrm{screen}\cdot\gamma_\mathrm{lat}(\beta_\mathrm{crit})
+ \vec n_\mathrm{screen}\cdot\vec\gamma_\mathrm{lat}(\beta_\mathrm{crit})
  =-r\,\sin(\beta)\,\sin(\theta)+h\,\cos(\theta)
  \overset{!}{=}0\;.
 \]
@@ -457,25 +497,25 @@ Notice that it could be made more concise with the |3d| library.
 Another type of visibility considerations concerns the contours of shapes. To be
 specific, consider a surface parametrized by
 \begin{equation}\label{eq:f}
- f(u,v)=\begin{pmatrix}
+ \vec f(u,v)=\begin{pmatrix}
  u\\ R(u)\,\cos (v)\\ R(u)\,\sin (v)
  \end{pmatrix}
 \end{equation}
 with some function $R(u)$. What is the contour of an orthonormal projection of the
 surface on the screen? It is the boundary between the hidden and visible parts.
 What distinguishes the visible from the hidden parts? It is the projection of
-the normal of the surface on the screen, $F(u,v):=\vec n_S(u,v)\cdot \vec
+the normal of the surface on the screen, $F(u,v):=n_S(u,v)\cdot 
 n_\mathrm{screen}$. The hidden and visible stretches are separated by the zeros
 of this projection. In the case of our surface \eqref{eq:f},
 \begin{equation}
- \vec n_S(u,v)=\vec\nabla_u f(u,v)\times \vec\nabla_v f(u,v)
+  \vec n_S(u,v)=\vec\nabla_u f(u,v)\times \vec\nabla_v f(u,v)
  =R(u)\,\begin{pmatrix}
  	-R'(u)\\ \cos (v)\\ \sin (v)
  \end{pmatrix}\;,
 \end{equation}
 and for $\psi=0$
 \begin{equation}
- n_\mathrm{screen}=\begin{pmatrix}
+ \vec n_\mathrm{screen}=\begin{pmatrix}
  	\sin(\theta)\,\sin (\phi)\\
 	-\sin (\theta )\,\cos(\phi)\\
 	\cos (\theta)
@@ -508,7 +548,7 @@ contour in figure~\ref{fig:example}. They are a bit unilluminating and given by
 \end{align}
 \end{subequations}
 where $a$, $b$ and $c$ are implicitly defined in \eqref{eq:vcrit}. Hence, for
-``reasonable'' configurations, it is very easy to plot the contour of the
+``reasonable'' configurations, it is straightforward to plot the contour of the
 surface with \LaTeX.
 
 
@@ -569,6 +609,8 @@ Taken from \href{https://topanswers.xyz/tex?q=1218\#a1447}{topanswers.xyz}.}
 \label{fig:example}
 \end{figure}
 
+There are some special cases that may be of particular interest: $R'(u)=0$ for a
+cylinder and $R'(u)=-r/h$ for a cone of height $h$ and base radius $r$. 
 
 \subsection{Predefined pics}
 

@@ -485,6 +485,65 @@ insert path={(\pgfmathresult) coordinate #1}}}%
 3d/projection precomputations={#1}{#2}{#3},%
 insert path={[3d parse={(\pgfutil@tmpb)}]}
 }}
+%
+% define extended objects and project point on line or plane
+\tikzset{3d/.cd,
+plane through/.code args={#1 and #2 and #3 named #4}{%
+%\typeout{#2-#1x#3-#1}%
+\pgfmathsetmacro{\pgfutil@tmpa}{TD("#2-#1x#3-#1")}%
+\pgfmathsetmacro{\pgfutil@tmpb}{TD("(\pgfutil@tmpa)o(\pgfutil@tmpa)")}%
+\ifdim\pgfutil@tmpb pt<0.01pt\relax
+\typeout{The points #1 and #2 and #3 are either too close to each other or almost
+on one line, so not suited to define a plane.}%
+\else
+\pgfmathsetmacro{\pgfutil@tmpc}{1/sqrt(\pgfutil@tmpb)}%
+\pgfmathsetmacro{\pgfutil@tmpd}{TD("\pgfutil@tmpc*(\pgfutil@tmpa)")}%
+\pgfmathsetmacro{\pgfutil@tmpe}{TD("#1")}%
+%\typeout{normal=(\pgfutil@tmpd),point=(\pgfutil@tmpe),name=#4}%
+\expandafter\xdef\csname tikz@td@plane@normal@#4\endcsname{\pgfutil@tmpd}%
+\expandafter\xdef\csname tikz@td@plane@point@#4\endcsname{\pgfutil@tmpe}%
+\expandafter\xdef\csname tikz@td@dim@#4\endcsname{2}%
+\fi
+},%
+plane with normal/.code args={#1 through #2 named #3}{%
+\pgfmathsetmacro{\pgfutil@tmpd}{TD("#1")}%
+\pgfmathsetmacro{\pgfutil@tmpe}{TD("#2")}%
+\expandafter\xdef\csname tikz@td@plane@normal@#3\endcsname{\pgfutil@tmpd}%
+\expandafter\xdef\csname tikz@td@plane@point@#3\endcsname{\pgfutil@tmpe}%
+\expandafter\xdef\csname tikz@td@dim@#3\endcsname{2}%
+},%
+line through/.code args={#1 and #2 named #3}{%
+\pgfmathsetmacro{\pgfutil@tmpd}{TD("#1")}%
+\pgfmathsetmacro{\pgfutil@tmpe}{TD("#2")}%
+\pgfmathsetmacro{\pgfutil@tmpf}{TD("#1-#2o#1-#2")}%
+\ifdim\pgfutil@tmpf pt<0.001pt\relax
+\typeout{The points #1 and #2 are too close to each other. No line defined.}%
+\else
+\expandafter\xdef\csname tikz@td@line@A@#3\endcsname{\pgfutil@tmpd}%
+\expandafter\xdef\csname tikz@td@line@B@#3\endcsname{\pgfutil@tmpe}%
+\expandafter\xdef\csname tikz@td@dim@#3\endcsname{1}%
+\fi
+},%
+project/.code args={#1 on #2}{%
+\expandafter\edef\expandafter\pgfutil@tmpd{\csname tikz@td@dim@#2\endcsname}%
+\ifcase\pgfutil@tmpd
+\typeout{It is not particularly meaningful to project a point on a point.}
+\or% line
+\expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@line@A@#2\endcsname}%
+\expandafter\edef\expandafter\pgfutil@tmpb{\csname tikz@td@line@B@#2\endcsname}%
+\pgfmathsetmacro{\pgfutil@tmpd}{TD("(\pgfutil@tmpa)-(\pgfutil@tmpb)o#1-(\pgfutil@tmpb)")/TD("(\pgfutil@tmpa)-(\pgfutil@tmpb)o(\pgfutil@tmpa)-(\pgfutil@tmpb)")}%
+\pgfmathsetmacro{\pgfutil@tmpc}{TD("(\pgfutil@tmpb)+\pgfutil@tmpd*(\pgfutil@tmpa)-\pgfutil@tmpd*(\pgfutil@tmpb)")}%
+%\typeout{alpha=\pgfutil@tmpd,projection=(\pgfutil@tmpc)}%
+\tikzset{insert path={(\pgfutil@tmpc)}}%
+\or% plane
+\expandafter\edef\expandafter\pgfutil@tmpn{\csname tikz@td@plane@normal@#2\endcsname}%
+\expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@plane@point@#2\endcsname}%
+\pgfmathsetmacro{\pgfutil@tmpb}{TD("(\pgfutil@tmpn)o(\pgfutil@tmpa)-#1")}%
+\pgfmathsetmacro{\pgfutil@tmpc}{TD("#1+\pgfutil@tmpb*(\pgfutil@tmpn)")}%
+%\typeout{alpha=\pgfutil@tmpb,projection=(\pgfutil@tmpc)}%
+\tikzset{insert path={(\pgfutil@tmpc)}}%
+\fi
+}}
 %%
 %% predefined pics
 % based on https://en.wikipedia.org/wiki/Circumscribed_circle
