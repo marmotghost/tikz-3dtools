@@ -627,6 +627,32 @@ cylinder and $R'(u)=-r/h$ for a cone of height $h$ and base radius $r$.
 
 \subsection{Predefined pics}
 
+\begin{key}{/tikz/3d/circumsphere center=\meta{options} (initially empty)}
+		Computes the center of a sphere for a given set of four points. The
+		initial choice of these points are |A=(A)|, |B=(B)|, |C=(C)|, |D=(D)|.
+		The underlying maths can be found at
+		\href{https://topanswers.xyz/tex?q=1233#a1467}{https://topanswers.xyz/tex?q=1233\#a1467}.
+\end{key}
+
+\begin{codeexample}[width=2.5cm]
+\begin{tikzpicture}[dot/.style={circle,inner sep=1pt,fill}]
+ \begin{scope}[3d/install view={phi=100,psi=0,theta=70}]	
+  \path (1,0,0) coordinate (X)
+   (0,1,0) coordinate (Y)
+   (0,1,1) coordinate (Z)
+   (1,-1,1) coordinate (P);
+  \path[3d/circumsphere center={A={(X)},B={(Y)},C={(Z)},D={(P)}}] 
+  coordinate (I); 
+ \end{scope}
+  \pgfmathsetmacro{\csr}{sqrt(TD("(X)-(I)o(X)-(I)"))}
+  \draw (I) circle[radius=\csr];  
+  \path foreach \X in {X,Y,Z,P}
+ {(\X) coordinate[dot,label=below:{$\X$}]}
+ (I) (I) coordinate[dot,label=above:{$I=\pgfmathparse{TD("(I)")}%
+  (\pgfmathprintvector\pgfmathresult)^T$}];
+\end{tikzpicture}
+\end{codeexample}
+
 \begin{key}{/tikz/pics/3d circle through 3 points=\meta{options} (initially empty)}
         Draws a circle through 3 points in 3 dimensions. If the three
 		coordinates are close to linearly dependent, the circle will not be

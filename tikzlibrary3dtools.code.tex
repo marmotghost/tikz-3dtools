@@ -585,6 +585,38 @@ project/.code args={#1 on #2}{%
 \fi
 }}
 %%
+%% circumsphere center
+\tikzset{3d/circumsphere center/.code={%
+\tikzset{3d/aux keys/.cd,#1}%
+\edef\pgfutil@tmpA{\pgfkeysvalueof{/tikz/3d/aux keys/A}}%
+\edef\pgfutil@tmpB{\pgfkeysvalueof{/tikz/3d/aux keys/B}}%
+\edef\pgfutil@tmpC{\pgfkeysvalueof{/tikz/3d/aux keys/C}}%
+\edef\pgfutil@tmpD{\pgfkeysvalueof{/tikz/3d/aux keys/D}}%
+% shifting to A=0 by redefining B, C and D
+\pgfmathsetmacro{\pgfutil@tmpB}{TD("\pgfutil@tmpB-\pgfutil@tmpA")}%
+\pgfmathsetmacro{\pgfutil@tmpC}{TD("\pgfutil@tmpC-\pgfutil@tmpA")}%
+\pgfmathsetmacro{\pgfutil@tmpD}{TD("\pgfutil@tmpD-\pgfutil@tmpA")}%
+% 
+\pgfmathsetmacro{\pgfutil@tmpBxC}{TD("(\pgfutil@tmpB)x(\pgfutil@tmpC)")}%
+\pgfmathsetmacro{\pgfutil@tmpCxD}{TD("(\pgfutil@tmpC)x(\pgfutil@tmpD)")}%
+\pgfmathsetmacro{\pgfutil@tmpDxB}{TD("(\pgfutil@tmpD)x(\pgfutil@tmpB)")}%
+% determinant (times 2)
+\pgfmathsetmacro{\pgfutil@tmpd}{2*TD("(\pgfutil@tmpB)o(\pgfutil@tmpCxD)")}%
+%\typeout{Determinant is \pgfutil@tmpd.}
+\pgfmathtruncatemacro{\pgfutil@tmpi}{abs(\pgfutil@tmpd)>0.02?1:0}%
+\ifnum\pgfutil@tmpi=0\relax
+\typeout{The points approximately sit on a common plane. The circumsphere cannot
+be determined.}%
+\else
+\pgfmathsetmacro{\pgfutil@tmpnB}{TD("(\pgfutil@tmpB)o(\pgfutil@tmpB)")/\pgfutil@tmpd}%
+\pgfmathsetmacro{\pgfutil@tmpnC}{TD("(\pgfutil@tmpC)o(\pgfutil@tmpC)")/\pgfutil@tmpd}%
+\pgfmathsetmacro{\pgfutil@tmpnD}{TD("(\pgfutil@tmpD)o(\pgfutil@tmpD)")/\pgfutil@tmpd}%
+\pgfmathsetmacro{\pgfutil@tmpI}{TD("\pgfutil@tmpA+\pgfutil@tmpnB*(\pgfutil@tmpCxD)+\pgfutil@tmpnC*(\pgfutil@tmpDxB)+\pgfutil@tmpnD*(\pgfutil@tmpBxC)")}%
+\tikzset{insert path={(\pgfutil@tmpI)}}%
+\fi
+},3d/aux keys/.cd,A/.initial={(A)},B/.initial={(B)},
+C/.initial={(C)},D/.initial={(D)}}
+%%
 %% predefined pics
 % based on https://en.wikipedia.org/wiki/Circumscribed_circle
 \tikzset{pics/3d circle through 3 points/.style={code={%
