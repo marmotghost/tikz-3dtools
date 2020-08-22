@@ -625,10 +625,10 @@ Taken from \href{https://topanswers.xyz/tex?q=1218\#a1447}{topanswers.xyz}.}
 There are some special cases that may be of particular interest: $R'(u)=0$ for a
 cylinder and $R'(u)=-r/h$ for a cone of height $h$ and base radius $r$. 
 
-\subsection{Predefined pics}
+\subsection{Predefined path constructions and pics}
 
 \begin{key}{/tikz/3d/circumsphere center=\meta{options} (initially empty)}
-		Computes the center of a sphere for a given set of four points. The
+		Computes the center of a sphere for a given set of four non-coplanar points. The
 		initial choice of these points are |A=(A)|, |B=(B)|, |C=(C)|, |D=(D)|.
 		The underlying maths can be found at
 		\href{https://topanswers.xyz/tex?q=1233#a1467}{https://topanswers.xyz/tex?q=1233\#a1467}.
@@ -652,6 +652,13 @@ cylinder and $R'(u)=-r/h$ for a cone of height $h$ and base radius $r$.
   (\pgfmathprintvector\pgfmathresult)^T$}];
 \end{tikzpicture}
 \end{codeexample}
+
+\begin{key}{/tikz/3d/circumcircpe center=\meta{options} (initially empty)}
+		Computes the center of a circle for a given set of three non-collinear
+		points. The initial choice of these points are |A=(A)|, |B=(B)|,
+		|C=(C)|.
+\end{key}
+
 
 \begin{key}{/tikz/pics/3d circle through 3 points=\meta{options} (initially empty)}
         Draws a circle through 3 points in 3 dimensions. If the three

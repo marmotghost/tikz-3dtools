@@ -614,6 +614,33 @@ be determined.}%
 \pgfmathsetmacro{\pgfutil@tmpI}{TD("\pgfutil@tmpA+\pgfutil@tmpnB*(\pgfutil@tmpCxD)+\pgfutil@tmpnC*(\pgfutil@tmpDxB)+\pgfutil@tmpnD*(\pgfutil@tmpBxC)")}%
 \tikzset{insert path={(\pgfutil@tmpI)}}%
 \fi
+},3d/circumcircle center/.code={%
+\tikzset{3d/aux keys/.cd,#1}%
+\edef\pgfutil@tmpA{\pgfkeysvalueof{/tikz/3d/aux keys/A}}%
+\edef\pgfutil@tmpB{\pgfkeysvalueof{/tikz/3d/aux keys/B}}%
+\edef\pgfutil@tmpC{\pgfkeysvalueof{/tikz/3d/aux keys/C}}%
+% shifting to A=0 by redefining B and C
+\pgfmathsetmacro{\pgfutil@tmpB}{TD("\pgfutil@tmpB-\pgfutil@tmpA")}%
+\pgfmathsetmacro{\pgfutil@tmpC}{TD("\pgfutil@tmpC-\pgfutil@tmpA")}%
+% 
+\pgfmathsetmacro{\pgfutil@tmpBB}{TD("(\pgfutil@tmpB)o(\pgfutil@tmpB)")}%
+\pgfmathsetmacro{\pgfutil@tmpBC}{TD("(\pgfutil@tmpB)o(\pgfutil@tmpC)")}%
+\pgfmathsetmacro{\pgfutil@tmpCC}{TD("(\pgfutil@tmpC)o(\pgfutil@tmpC)")}%
+% determinant (times 2)
+\pgfmathsetmacro{\pgfutil@tmpd}{2*(\pgfutil@tmpBB*\pgfutil@tmpCC-\pgfutil@tmpBC*\pgfutil@tmpBC)}%
+%\typeout{Determinant is \pgfutil@tmpd.}
+\pgfmathtruncatemacro{\pgfutil@tmpi}{abs(\pgfutil@tmpd)>0.02?1:0}%
+\ifnum\pgfutil@tmpi=0\relax
+\typeout{The points approximately sit on a common line. The circumcircle cannot
+be determined.}%
+\else
+\pgfmathsetmacro{\pgfutil@tmpb}{(\pgfutil@tmpBB-\pgfutil@tmpBC)*\pgfutil@tmpCC/\pgfutil@tmpd}%
+\pgfmathsetmacro{\pgfutil@tmpc}{(\pgfutil@tmpCC-\pgfutil@tmpBC)*\pgfutil@tmpBB/\pgfutil@tmpd}%
+%\typeout{debug: b=\pgfutil@tmpb,c=\pgfutil@tmpc,(B)=(\pgfutil@tmpB),(C)=(\pgfutil@tmpC)}%
+\pgfmathsetmacro{\pgfutil@tmpI}{TD("\pgfutil@tmpA+\pgfutil@tmpb*(\pgfutil@tmpB)+\pgfutil@tmpc*(\pgfutil@tmpC)")}%
+%\typeout{debug: (I)=((\pgfutil@tmpI))}%
+\tikzset{insert path={(\pgfutil@tmpI)}}%
+\fi
 },3d/aux keys/.cd,A/.initial={(A)},B/.initial={(B)},
 C/.initial={(C)},D/.initial={(D)}}
 %%
