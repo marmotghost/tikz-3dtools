@@ -36,7 +36,7 @@
 three-dimensional drawings. In addition there exist excellent packages like
 \href{https://ctan.org/pkg/tikz-3dplot?lang=en}{|tikz-3dplot|}. The purpose of
 this library is to provide some means to manipulate the coordinates. It supports
-linear combinations of vectors, vector and scalar products.
+linear combinations of vectors, vector and scalar products. 
 
 \noindent\textbf{Note:} Hopefully this library is only temporary and its
 contents will be absorbed in slightly extended versions of the |3d| and |calc|
@@ -44,9 +44,9 @@ libraries. The cleanest way will be to record a screen depth when ``saving'' a
 coordinate with \tikzname. However, this would require changes at the level of
 |tikz.code.tex| and can only be done consistently if the maintainer(s) of
 \tikzname\ support this. Note also that it is quite conceivable that the viewers
-will in the future will be able to achieve 3d ordering, so, in a way, recording
-the screen depth (see the |screendepth| function below) will become almost
-mandatory at a given point. 
+in the future will be able to achieve 3d ordering, so, in a way, recording the
+screen depth (see the |screendepth| function below) will become almost mandatory
+at a given point. 
 
 \noindent\textbf{Filing a bug report or placing a feature request.} This library
 is currently hosted under
@@ -65,11 +65,12 @@ seems to be required to perform a successful submission to CTAN is not the kind
 of fun the author is after. This is not to say that CTAN does not have a point
 in requiring all these data.
 
+
 \subsection{Coordinate computations}
 \label{sec:3DCoordinateComputations}
 
-
-The |3dtools| library has some options and styles for coordinate computations.
+The |3dtools| library has some options and styles for coordinate computations
+and manipulations. 
 \begin{key}{/tikz/3d parse}
         Parses an expression and inserts the result in form of a coordinate.
 \end{key}
@@ -174,12 +175,13 @@ will get each time a \emph{different} result.
 \begin{tikzpicture}
  \path[overlay] (rnd,rnd,rnd) 
  	coordinate (R);
+ \def\ppv{\pgfmathprintvector\pgfmathresult}	
  \node at (0,1)
   {\pgfmathparse{TD("(R)")}%
-  $\vec R=(\pgfmathprintvector\pgfmathresult)$};	
+  $\vec R=(\ppv)$};	
  \node at (0,0)
   {\pgfmathparse{TD("(R)")}%
-  $\vec R=(\pgfmathprintvector\pgfmathresult)$};	
+  $\vec R=(\ppv)$};	
 \end{tikzpicture}
 \end{codeexample}
 
@@ -227,7 +229,7 @@ these. Expressions with more of these can be accidentally right.
    this axis, only two angles are required, and thus returned. In the
    conventions of section~\ref{sec:3DOrthonormalProjections}, these are the
    angles $\phi$ and $\psi$. It corresponds to the macro
-   |\tdplotgetpolarcoords{\marg{x}}{\marg{y}}{\marg{z}}| from the 
+   |\tdplotgetpolarcoords|\marg{x}\marg{y}\marg{z} from the 
    \href{https://ctan.org/pkg/tikz-3dplot?lang=en}{|tikz-3dplot|} package.
 \end{math-function}
 
@@ -436,6 +438,17 @@ package.\footnote{I do not know how to contact the author.}
 \end{tikzpicture}
 \end{codeexample}
 
+\begin{key}{/tikz/3d/define orthonormal dreibein=\meta{options} (initially empty)}
+		Defines a local dreibein from three input points. The initial choice of
+		these points are |A=(A)|, |B=(B)|, |C=(C)|, and the initial choice for
+		the basis vectors is |ex=(ex)|, |ey=(ey)|, |ez=(ez)|. In terms of these
+		points, $(ex)$ is parallel to $(B)-(A)$, $(ey)$ is in the plane that
+		contains $(A)$, $(B)$ and $(C)$, and is orthogonal to $(ex)$, and $(ez)$
+		is orthogonal to $(ex)$ and $(ey)$. All the basis vectors are normalized
+		to length 1.
+\end{key}
+
+
 \subsection{Visibility considerations}
 
 When drawing objects in 3d, some parts are ``visible'', i.e.\ in the foreground,
@@ -546,14 +559,15 @@ $\cos(v)=\pm\sqrt{1-\sin^2(v)}=\pm\sqrt{1-x^2}$. It is clear that, since  $\sin
 solution. In particular, if $R'(u)$ is too large, there might not be a solution.
 This just means that for a given $u$ all points are hidden or visible. This
 happens e.g.\ when you look at a cone from the top or bottom. A more advanced
-code could deal with these cases, the one presented below does not. Note also
+code could deal with these cases, the one presented below (which is taken from
+\href{https://topanswers.xyz/tex?q=1218\#a1447}{topanswers.xyz}) does not. Note also
 that these are local visibility conditions, a seemingly visible stretch can
 always be covered by some other stretch that is a finite distance away in $u$
 direction.
 
 However, for ``reasonable'' configurations, there are two solutions of the
 quadratic equation, as they should, they correspond to the upper and lower
-contour in figure~\ref{fig:example}. They are a bit unilluminating and given by
+contour in the code example below. They are a bit unilluminating and given by
 \begin{subequations}\label{eq:cvandsv}
 \begin{align}
  [\sin(v)]_{1,2}&=-\frac{a \sqrt{a^2+b^2-c^2}\pm b\,c}{a^2+b^2}\;,\\
@@ -565,8 +579,7 @@ where $a$, $b$ and $c$ are implicitly defined in \eqref{eq:vcrit}. Hence, for
 surface with \LaTeX.
 
 
-\begin{figure}[h]
-\centering
+\begin{codeexample}[width=2.5cm]
 \begin{tikzpicture}[declare function={phi=30;theta=70;},
 	3d/install view={phi=phi,psi=0,theta=theta},
 	line cap=butt,line join=round,
@@ -576,7 +589,7 @@ surface with \LaTeX.
 	  a=cos(phi)*sin(theta);% see equation {eq:vcrit}
 	  b=-1*cos(theta);%	
 	  c(\u)=sin(theta)*sin(phi)*Rprime(\u);%
-      sv1(\u)=-((b*c(\u)+sqrt(a*a+b*b-c(\u)*c(\u))*abs(a))/(a*a+b*b));% see equation {eq:cvandsv}
+      sv1(\u)=-((b*c(\u)+sqrt(a*a+b*b-c(\u)*c(\u))*abs(a))/(a*a+b*b));% 
 	  sv2(\u)=(-(b*c(\u))+sqrt(a*a+b*b-c(\u)*c(\u))*abs(a))/(a*a+b*b);%
 	  cv1(\u)=-((a*c(\u)+sqrt(a*a+b*b-c(\u)*c(\u))*abs(b))/(a*a+b*b));%
 	  cv2(\u)=(-(a*c(\u))+sqrt(a*a+b*b-c(\u)*c(\u))*abs(b))/(a*a+b*b);%
@@ -617,10 +630,11 @@ surface with \LaTeX.
 	}]{8}
  \draw[iline] (8,0,-2.25) -- (9,0,-2.25) ;
 \end{tikzpicture}
-\caption{Example of a screen projection of a surface of revolution. 
-Taken from \href{https://topanswers.xyz/tex?q=1218\#a1447}{topanswers.xyz}.}
-\label{fig:example}
-\end{figure}
+\end{codeexample}
+% \caption{Example of a screen projection of a surface of revolution. 
+% Taken from \href{https://topanswers.xyz/tex?q=1218\#a1447}{topanswers.xyz}.}
+% \label{fig:example}
+% \end{figure}
 
 There are some special cases that may be of particular interest: $R'(u)=0$ for a
 cylinder and $R'(u)=-r/h$ for a cone of height $h$ and base radius $r$. 
@@ -653,17 +667,41 @@ cylinder and $R'(u)=-r/h$ for a cone of height $h$ and base radius $r$.
 \end{tikzpicture}
 \end{codeexample}
 
-\begin{key}{/tikz/3d/circumcircpe center=\meta{options} (initially empty)}
+\begin{key}{/tikz/3d/circumcircle center=\meta{options} (initially empty)}
 		Computes the center of a circle for a given set of three non-collinear
 		points. The initial choice of these points are |A=(A)|, |B=(B)|,
 		|C=(C)|.
 \end{key}
 
+\begin{codeexample}[width=5.4cm]
+\begin{tikzpicture}[declare function={a=3;},
+   dot/.style={circle,inner sep=1pt,fill},
+   3d/install view={phi=100,psi=0,theta=70}]	
+  \path (a,0,0) coordinate (A)
+   (0,a,0) coordinate (B)
+   (0,0,a) coordinate (C);
+  \path[3d/circumcircle center] 
+  	coordinate (I); 
+  \pgfmathsetmacro{\myr}{%
+     sqrt(TD("(A)-(I)o(A)-(I)"))}
+  \tikzset{3d/define orthonormal dreibein}
+  \begin{scope}[x={(ex)},y={(ey)}]
+   \draw (I) circle[radius=\myr];
+  \end{scope}
+  \path foreach \X in {A,B,C}
+  {(\X) coordinate[dot,label=above:{$\X$}]}
+  (I) (I) coordinate[dot,label=above:{$I=%
+  	\pgfmathparse{TD("(I)")}%
+   (\pgfmathprintvector\pgfmathresult)^T$}];
+\end{tikzpicture}
+\end{codeexample}
+
 
 \begin{key}{/tikz/pics/3d circle through 3 points=\meta{options} (initially empty)}
         Draws a circle through 3 points in 3 dimensions. If the three
 		coordinates are close to linearly dependent, the circle will not be
-		drawn.
+		drawn. \emph{This pic will most likely be removed from the documentation
+		and no longer be supported/developed.}
 \end{key}
 \begin{key}{/tikz/3d circle through 3 points/A (initially {(1,0,0)})}
         First coordinate. Can be either symbolic or explicit. Symbolic
@@ -686,8 +724,9 @@ cylinder and $R'(u)=-r/h$ for a cone of height $h$ and base radius $r$.
 		avoid overwriting existing coordinates.
 \end{key}
 
-\begin{codeexample}[width=2.5cm]
-\begin{tikzpicture}[3d/install view={phi=30,psi=0,theta=70}]
+\begin{codeexample}[width=4.5cm]
+\begin{tikzpicture}[3d/install view={%
+    phi=30,psi=0,theta=70}]
  \foreach \X in {A,B,C}
  {\pgfmathsetmacro{\myx}{3*(rnd-1/2)}
  \pgfmathsetmacro{\myy}{3*(rnd-1/2)}
