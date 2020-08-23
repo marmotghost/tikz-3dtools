@@ -66,9 +66,12 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \long\def\ParseCoord(#1){%
 \pgfutil@tempcnta=0%
 \pgfutil@for\pgf@tmp:={#1}\do{\advance\pgfutil@tempcnta by1}%
-\ifnum\the\pgfutil@tempcnta=1
+\ifcase\pgfutil@tempcnta
+\or
 \edef\pgfutil@tmp{\csname tikz@dcl@coord@#1\endcsname}% 
-\else%
+\or
+\edef\pgfutil@tmp{(#1,0)}%
+\or
 \edef\pgfutil@tmp{(#1)}%
 \fi%
 \pgfmathparse@td@FPU{xcomp3(\pgfutil@tmp)}% 
@@ -128,6 +131,61 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \edef\mycoord{\RawCoord#1}%
 \pgfmathparse@td@FPU{zcomp3\mycoord}% 
 \pgfmathsmuggle\pgfmathresult\endgroup}%
+\tikzset{3d/record physical components/.code={%
+\tikzset{every coordinate node/.append style={3d/store components}}},
+3d/store components/.code={%
+\edef\pgf@Z{\relax}%
+\edef\pgfutil@tmpz{\relax}%
+\expandafter\ParseCoord\tikz@scan@point@coordinate%
+\pgfmathsetmacro\pgfutil@tmpx{\the\pgf@x/1cm}%
+\pgfmathsetmacro\pgfutil@tmpy{\the\pgf@y/1cm}%
+\ifx\pgf@Z\pgfutil@tmpz
+\pgfmathsetmacro\pgfutil@tmpz{screendepth(\pgfutil@tmpx,\pgfutil@tmpy,0)}%
+\else
+\pgfmathsetmacro\pgfutil@tmpz{screendepth(\pgf@X,\pgf@Y,\pgf@Z)}%
+\fi
+\expandafter\xdef\csname tikz@td@physical@x@\tikz@fig@name\endcsname{\pgfutil@tmpx}%
+\expandafter\xdef\csname tikz@td@physical@y@\tikz@fig@name\endcsname{\pgfutil@tmpy}%
+\expandafter\xdef\csname tikz@td@physical@z@\tikz@fig@name\endcsname{\pgfutil@tmpz}%
+}}
+\pgfmathdeclarefunction{TDphysx}{1}{%
+\begingroup%
+\ifcsname tikz@td@physical@x@#1\endcsname
+\expandafter\edef\expandafter\pgfmathresult\expandafter{\csname tikz@td@physical@x@#1\endcsname}%
+\else
+\typeout{Physical x component of #1 not stored. Setting it to 0.}
+\edef\pgfmathresult{0}%
+\fi
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
+\pgfmathdeclarefunction{TDphysy}{1}{%
+\begingroup%
+\ifcsname tikz@td@physical@y@#1\endcsname
+\expandafter\edef\expandafter\pgfmathresult\expandafter{\csname tikz@td@physical@y@#1\endcsname}%
+\else
+\typeout{Physical y component of #1 not stored. Setting it to 0.}
+\edef\pgfmathresult{0}%
+\fi
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
+\pgfmathdeclarefunction{TDphysz}{1}{%
+\begingroup%
+\ifcsname tikz@td@physical@z@#1\endcsname
+\expandafter\edef\expandafter\pgfmathresult\expandafter{\csname tikz@td@physical@z@#1\endcsname}%
+\else
+\typeout{Physical y component of #1 not stored. Setting it to 0.}
+\edef\pgfmathresult{0}%
+\fi
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
+\pgfmathdeclarefunction{TDphys}{1}{%
+\begingroup%
+\pgfmathsetmacro{\pgfutil@tmpx}{TDphysx("#1")}%
+\pgfmathsetmacro{\pgfutil@tmpy}{TDphysy("#1")}%
+\pgfmathsetmacro{\pgfutil@tmpz}{TDphysz("#1")}%
+\edef\pgfmathresult{\pgfutil@tmpx,\pgfutil@tmpy,\pgfutil@tmpz}%
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
 % \def\tizk@td@scalprod#1=#2.#3;{% 
 % \edef\coordA{\RawCoord#2}% 
 % \edef\coordB{\RawCoord#3}% 

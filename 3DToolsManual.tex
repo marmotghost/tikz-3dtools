@@ -36,17 +36,21 @@
 three-dimensional drawings. In addition there exist excellent packages like
 \href{https://ctan.org/pkg/tikz-3dplot?lang=en}{|tikz-3dplot|}. The purpose of
 this library is to provide some means to manipulate the coordinates. It supports
-linear combinations of vectors, vector and scalar products. 
+linear combinations of vectors, vector products and scalar products. 
 
 \noindent\textbf{Note:} Hopefully this library is only temporary and its
 contents will be absorbed in slightly extended versions of the |3d| and |calc|
 libraries. The cleanest way will be to record a screen depth when ``saving'' a
-coordinate with \tikzname. However, this would require changes at the level of
-|tikz.code.tex| and can only be done consistently if the maintainer(s) of
-\tikzname\ support this. Note also that it is quite conceivable that the viewers
-in the future will be able to achieve 3d ordering, so, in a way, recording the
-screen depth (see the |screendepth| function below) will become almost mandatory
-at a given point. 
+coordinate with \tikzname. Some limited support of such a functionality is
+provided in this library, see section~\ref{sec:PhysicalCoordinates}. However, a
+full-fledged realization would require changes at the level of |tikz.code.tex|
+and can only be done consistently if the maintainer(s) of \tikzname\ make some
+fundamental changes. Even then dealing with node anchors and so on, which so far
+are intrinsically two-dimensional (see, however,
+\href{https://tex.stackexchange.com/q/516316}{https://tex.stackexchange.com/q/516316}).
+Note also that it is quite conceivable that the viewers in the future will be
+able to achieve 3d ordering, so, in a way, recording the screen depth (see the
+|screendepth| function below) will become almost mandatory at a given point. 
 
 \noindent\textbf{Filing a bug report or placing a feature request.} This library
 is currently hosted under
@@ -169,16 +173,23 @@ what the coordinates $A$, $B$ and $C$ are. It works because the coordinates in
 
 \paragraph{Warning.} The expressions that are used in the coordinates will only
 be evaluated when they are retrieved. So, if you use, say, random numbers, you
-will get each time a \emph{different} result.
+will get each time a \emph{different} result. This is because this library is
+working with |\tikz@dcl@coord@|\mvar{coord}, where \mvar{coord} is the name of
+the coordinate, say |A|. This is the string with which the coordinate was
+generatated, e.g.\ |(1,2,3)|. However, the coordinate will always be at the same location. So
+you may want to avoid using functions that change their values when declaring
+coordinates that get used later in coordinate calculations. 
 
 \begin{codeexample}[width=4.5cm]
 \begin{tikzpicture}
- \path[overlay] (rnd,rnd,rnd) 
+ \path[overlay] (0.1+rnd,0.1+rnd,0.1+rnd) 
  	coordinate (R);
- \def\ppv{\pgfmathprintvector\pgfmathresult}	
+ \def\ppv{\pgfmathprintvector\pgfmathresult}
+ \draw[red] (R) circle[radius=0.1];	
  \node at (0,1)
   {\pgfmathparse{TD("(R)")}%
   $\vec R=(\ppv)$};	
+ \draw[blue] (R) circle[radius=0.2];	
  \node at (0,0)
   {\pgfmathparse{TD("(R)")}%
   $\vec R=(\ppv)$};	
@@ -452,7 +463,7 @@ package.\footnote{I do not know how to contact the author.}
 \subsection{Visibility considerations}
 
 When drawing objects in 3d, some parts are ``visible'', i.e.\ in the foreground,
-while other parts are hidden, i.e.\ in the background. In what follows, we
+while other parts are ``hidden'', i.e.\ in the background. In what follows, we
 discuss some basic means that allow one to determine whether some stretch is
 visible or hidden. Very often this amounts to find critical values of some
 parameter(s) (such as angles) at which some curve changes from visible to
@@ -638,6 +649,82 @@ surface with \LaTeX.
 
 There are some special cases that may be of particular interest: $R'(u)=0$ for a
 cylinder and $R'(u)=-r/h$ for a cone of height $h$ and base radius $r$. 
+
+\subsection{``Physical'' coordinates}
+\label{sec:PhysicalCoordinates}
+
+It is quite conceivable that users may want to use different coordinate systems
+for defining different coordinates. The following functions aim at supporting
+this. It should be said, though, that these functions are even more
+``experimental'' than what has been discussed thus far. The main point is that,
+apart from the ``physical'' $x$ and $y$ coordinates, i.e.\ the coordinates of an
+point on the screen, one can also keep track of the physical $z$ coordinate, or
+screen depth, which indicates how far a given point is above  ($z>0$) or below
+($z<0$) the screen. To accomplish this, one needs to swich on the recording of
+physical components.
+
+\begin{key}{/tikz/3d/record physical components}
+        Switches on recording of physical components of coordinates.
+\end{key}
+
+The physical components can then be retrieved with various functions.
+
+\begin{math-function}{TDphysx("\mvar{vector}")}
+   Yields the physical $x$-component of a 3d named coordinate.
+\end{math-function}
+
+\begin{math-function}{TDphysy("\mvar{vector}")}
+   Yields the physical $y$-component of a 3d named coordinate.
+\end{math-function}
+
+\begin{math-function}{TDphysz("\mvar{vector}")}
+   Yields the physical $z$-component of a 3d named coordinate.
+\end{math-function}
+
+\begin{math-function}{TDphys("\mvar{vector}")}
+   Yields an array containgin physical $x$, $y$ and $z$-components of a 3d named coordinate.
+\end{math-function}
+
+\begin{codeexample}[width=5.2cm]
+\begin{tikzpicture}[3d/record physical components,
+	dot/.style={circle,inner sep=1pt,fill}] 
+ \begin{scope}[3d/install view={phi=0,psi=0,theta=70}]	
+  \path (0,0,3) coordinate (A);
+  \path[3d/install view={phi=30}] (3,0,0) coordinate (B);
+  \path[3d/install view={phi=150}] (3,0,0) coordinate (C);
+  \path[3d/install view={phi=270}] (3,0,0) coordinate (D);
+ \end{scope}
+ \draw[dashed] foreach \X [remember=\X as \Y (initially D)]
+ 	in {B,C,D}
+  {(A) -- (\X) (\Y) -- (\X) 
+ coordinate[dot,label=below:{$\X=\pgfmathparse{TDphys("\X")}%
+ (\pgfmathprintvector\pgfmathresult)^T
+ $}]}
+ (A) coordinate[dot,label=above:{$A=\pgfmathparse{TDphys("A")}%
+ (\pgfmathprintvector\pgfmathresult)^T
+ $}]; 
+\end{tikzpicture}
+\end{codeexample}
+
+Once one has defined physical coordinates, one can use them to compute e.g.\
+distances between coordinates defined in different frames.
+\begin{codeexample}[width=4.6cm]
+$\pgfmathsetmacro{\vecA}{TDphys("A")}%
+\pgfmathsetmacro{\vecB}{TDphys("B")}%
+\pgfmathsetmacro{\physdist}{%
+sqrt(TD("(\vecA)-(\vecB)o(\vecA)-(\vecB)"))}%
+\begin{array}{l}
+\vec A_\mathrm{phys}=(\pgfmathprintvector\vecA),\\
+\vec B_\mathrm{phys}=(\pgfmathprintvector\vecB),\\
+d_\mathrm{phys}(\vec A,\vec B)=%
+\pgfmathprintnumber\physdist
+\end{array}$
+\end{codeexample}
+
+These are the things that work. However, there are, unfortunately, more than
+enough things that do not work. They include shifted frames, other coordinate
+systems such as spherical ones, all coordinates that are defined in 
+|canvas is xy plane at z=0| or relatives, etc.
 
 \subsection{Predefined path constructions and pics}
 
