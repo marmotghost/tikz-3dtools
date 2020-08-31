@@ -29,7 +29,8 @@
 	This library provides additional tools to create 3d-like pictures. It is a
 	collection of reasonably working tools, which however is not streamlined,
 	and may be subject to substantial changes if the library ever happens to get
-	further developed or published.
+	further developed or published. This library loads the |3d|, |decorations|
+	and |fpu| libraries.
 \end{tikzlibrary}
 
 \tikzname\ has the |3d| and |tpp| libraries which deal with the projections of
@@ -45,20 +46,22 @@ coordinate with \tikzname. Some limited support of such a functionality is
 provided in this library, see section~\ref{sec:PhysicalCoordinates}. However, a
 full-fledged realization would require changes at the level of |tikz.code.tex|
 and can only be done consistently if the maintainer(s) of \tikzname\ make some
-fundamental changes. Even then dealing with node anchors and so on, which so far
-are intrinsically two-dimensional (see, however,
-\href{https://tex.stackexchange.com/q/516316}{https://tex.stackexchange.com/q/516316}).
-Note also that it is quite conceivable that the viewers in the future will be
-able to achieve 3d ordering, so, in a way, recording the screen depth (see the
-|screendepth| function below) will become almost mandatory at a given point. 
+fundamental changes. Even if this happens, dealing with node anchors and so on,
+which so far are intrinsically two-dimensional (see, however,
+\href{https://github.com/ZhiyuanLck/dnnplot}{https://github.com/ZhiyuanLck/dnnplot}
+for an impressive counterexample) will be nontrivial because one will have to
+specify the orientation in 3d as far as supported. Note also that it is quite
+conceivable that the viewers in the future will be able to achieve 3d ordering,
+so, in a way, recording the screen depth (see the |screendepth| function below)
+will become almost mandatory at a given point. 
 
 \noindent\textbf{Filing a bug report or placing a feature request.} This library
 is currently hosted under
 \href{https://github.com/marmotghost/tikz-3dtools}{\texttt{https://github.com/marmotghost/tikz-3dtools}}.
 The author is also active at the \emph{noncommercial} Q \& A site
-\href{https://topanswers.xyz/tex}{\texttt{https://topanswers.xyz/tex}}, which offers, apart from the possibility of
-asking questions and browsing through the posts a chat in which one can discuss
-problems. 
+\href{https://topanswers.xyz/tex}{\texttt{https://topanswers.xyz/tex}}, which
+offers, apart from the possibility of asking questions and browsing through the
+posts a chat in which one can discuss problems. 
 
 \noindent\textbf{Why is this library not on CTAN?} First of all, ideally this
 library is only temporary. Secondly, the author does not have a law degree, and
@@ -83,7 +86,7 @@ and manipulations.
 \end{key}
 Both keys support both symbolic and explicit coordinates.
 
-\begin{codeexample}[width=6cm]
+\begin{codeexample}[width=6cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}
  \path (1,2,3) coordinate (A) 
   (2,3,-1) coordinate (B) 
@@ -102,7 +105,7 @@ Notice that, as of now, only the syntax |\path (1,2,3) coordinate (A);| works,
 i.e.\ |\coordinate (A) at (1,2,3);| does \emph{not} work, but leads to error
 messages.
 
-\begin{codeexample}[width=6cm]
+\begin{codeexample}[width=6cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}
  \path (1,2,3) coordinate (A) 
   (2,3,-1) coordinate (B) 
@@ -160,7 +163,7 @@ and use the math function |TD| for parsing.
 \end{command}
 
 
-\begin{codeexample}[width=6.5cm]
+\begin{codeexample}[width=6.5cm,preamble={\usetikzlibrary{3dtools}}]
 \pgfmathparse{TD("0.2*(A)
 -0.3*(B)+0.6*(C)")}%
 $0.2\,\vec A-0.3\,\vec B+0.6\,\vec C
@@ -171,16 +174,17 @@ The alert reader may wonder why this works, i.e.\ how would \tikzname\ ``know''
 what the coordinates $A$, $B$ and $C$ are. It works because the coordinates in
 \tikzname\ are global, so they get remembered from the above example.
 
+
 \paragraph{Warning.} The expressions that are used in the coordinates will only
 be evaluated when they are retrieved. So, if you use, say, random numbers, you
 will get each time a \emph{different} result. This is because this library is
-working with |\tikz@dcl@coord@|\mvar{coord}, where \mvar{coord} is the name of
+working with |\tikz@dcl@coord@|\meta{coord}, where \meta{coord} is the name of
 the coordinate, say |A|. This is the string with which the coordinate was
 generatated, e.g.\ |(1,2,3)|. However, the coordinate will always be at the same location. So
 you may want to avoid using functions that change their values when declaring
 coordinates that get used later in coordinate calculations. 
 
-\begin{codeexample}[width=4.5cm]
+\begin{codeexample}[width=4.5cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}
  \path[overlay] (0.1+rnd,0.1+rnd,0.1+rnd) 
  	coordinate (R);
@@ -199,13 +203,13 @@ coordinates that get used later in coordinate calculations.
 Its main usage is to strip off unnecessary zeros, which emerge since the
 internal computations are largely done with the |fpu| library.
 
-\begin{codeexample}[width=5.2cm]
+\begin{codeexample}[width=5.2cm,preamble={\usetikzlibrary{3dtools}}]
 \pgfmathparse{TD("(1,0,0)x(0,1,0)")}%
 $(1,0,0)^T\times(0,1,0)^T=
 (\pgfmathprintvector\pgfmathresult)^T$
 \end{codeexample}
 
-\begin{codeexample}[width=5.2cm]
+\begin{codeexample}[width=5.2cm,preamble={\usetikzlibrary{3dtools}}]
 \pgfmathparse{TD("(A)o(B)")}%
 $\vec A\cdot \vec B=
 \pgfmathprintnumber\pgfmathresult$
@@ -219,13 +223,13 @@ precedence than vector products |x| and scalar products |o|. That is,
 
 
 
-\begin{codeexample}[width=5.2cm]
+\begin{codeexample}[width=5.2cm,preamble={\usetikzlibrary{3dtools}}]
 \pgfmathparse{TD("(A)+(B)o(C)")}%
 $(\vec A+\vec B)\cdot\vec C=
 \pgfmathprintnumber\pgfmathresult$
 \end{codeexample}
 
-\begin{codeexample}[width=5.2cm]
+\begin{codeexample}[width=5.2cm,preamble={\usetikzlibrary{3dtools}}]
 \pgfmathparse{TD("(A)+(B)x(C)")}%
 $(\vec A+\vec B)\times\vec C=
 (\pgfmathprintvector\pgfmathresult)$
@@ -244,7 +248,7 @@ these. Expressions with more of these can be accidentally right.
    \href{https://ctan.org/pkg/tikz-3dplot?lang=en}{|tikz-3dplot|} package.
 \end{math-function}
 
-\begin{codeexample}[width=5.2cm]
+\begin{codeexample}[width=5.2cm,preamble={\usetikzlibrary{3dtools}}]
 \pgfmathparse{axisangles("(A)")}%
 $\sphericalangle(\vec A)=
 \pgfmathprintvector\pgfmathresult$
@@ -309,7 +313,7 @@ The following code example illustrates the usage. It also makes use of the
 |install view| key, which we describe in
 section~\ref{sec:3DOrthonormalProjections}. 
 
-\begin{codeexample}[width=4.5cm]
+\begin{codeexample}[width=4.5cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}[3d/install view={phi=110,psi=0,theta=60},
 	dot/.style={circle,inner sep=0pt,
 		minimum size=2pt,fill}]
@@ -361,7 +365,7 @@ get depicted.
 The initial projection is such that $x$ is right an $y$ is up, as if we had no
 third direction.
 
-\begin{codeexample}[width=2cm]
+\begin{codeexample}[width=2cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}[3d/install view]
  \draw[-stealth] (0,0,0) -- (1,0,0) 
   node[pos=1.2] {$x$};
@@ -438,7 +442,7 @@ $O(\phi=\phi_d,\psi=0,\theta=\theta_d)=R^d(\theta_d,\phi_d)$ from the
 however, that there seems to be an inconsistency in equation (2.1) of that
 package.\footnote{I do not know how to contact the author.}
 
-\begin{codeexample}[width=2.5cm]
+\begin{codeexample}[width=2.5cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}[3d/install view={phi=110,psi=0,theta=70}]
  \draw[-stealth] (0,0,0) -- (1,0,0) 
   node[pos=1.2] {$x$};
@@ -510,7 +514,7 @@ and $\beta_\mathrm{crit}^{(1)}=\beta_\mathrm{crit}^{(2)}$ if the inequality
 \eqref{eq:disclat} is saturated. The following code example illustrates this.
 Notice that it could be made more concise with the |3d| library.
 
-\begin{codeexample}[width=5.6cm]
+\begin{codeexample}[width=5.6cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}[declare function={%
 	R=2.5;lambda=20;theta=60;
 	r=R*cos(lambda);h=R*sin(lambda);
@@ -590,7 +594,7 @@ where $a$, $b$ and $c$ are implicitly defined in \eqref{eq:vcrit}. Hence, for
 surface with \LaTeX.
 
 
-\begin{codeexample}[width=2.5cm]
+\begin{codeexample}[width=2.5cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}[declare function={phi=30;theta=70;},
 	3d/install view={phi=phi,psi=0,theta=theta},
 	line cap=butt,line join=round,
@@ -682,10 +686,11 @@ The physical components can then be retrieved with various functions.
 \end{math-function}
 
 \begin{math-function}{TDphys("\mvar{vector}")}
-   Yields an array containgin physical $x$, $y$ and $z$-components of a 3d named coordinate.
+   Yields an array containing physical $x$, $y$ and $z$-components of a 3d named
+   coordinate.
 \end{math-function}
 
-\begin{codeexample}[width=5.2cm]
+\begin{codeexample}[width=5.2cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}[3d/record physical components,
 	dot/.style={circle,inner sep=1pt,fill}] 
  \begin{scope}[3d/install view={phi=0,psi=0,theta=70}]	
@@ -708,7 +713,7 @@ The physical components can then be retrieved with various functions.
 
 Once one has defined physical coordinates, one can use them to compute e.g.\
 distances between coordinates defined in different frames.
-\begin{codeexample}[width=4.6cm]
+\begin{codeexample}[width=4.6cm,preamble={\usetikzlibrary{3dtools}}]
 $\pgfmathsetmacro{\vecA}{TDphys("A")}%
 \pgfmathsetmacro{\vecB}{TDphys("B")}%
 \pgfmathsetmacro{\physdist}{%
@@ -735,7 +740,7 @@ systems such as spherical ones, all coordinates that are defined in
 		\href{https://topanswers.xyz/tex?q=1233#a1467}{https://topanswers.xyz/tex?q=1233\#a1467}.
 \end{key}
 
-\begin{codeexample}[width=2.5cm]
+\begin{codeexample}[width=2.5cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}[dot/.style={circle,inner sep=1pt,fill}]
  \begin{scope}[3d/install view={phi=100,psi=0,theta=70}]	
   \path (1,0,0) coordinate (X)
@@ -760,7 +765,7 @@ systems such as spherical ones, all coordinates that are defined in
 		|C=(C)|.
 \end{key}
 
-\begin{codeexample}[width=5.4cm]
+\begin{codeexample}[width=5.4cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}[declare function={a=3;},
    dot/.style={circle,inner sep=1pt,fill},
    3d/install view={phi=100,psi=0,theta=70}]	
@@ -811,7 +816,7 @@ systems such as spherical ones, all coordinates that are defined in
 		avoid overwriting existing coordinates.
 \end{key}
 
-\begin{codeexample}[width=4.5cm]
+\begin{codeexample}[width=4.5cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}[3d/install view={%
     phi=30,psi=0,theta=70}]
  \foreach \X in {A,B,C}
@@ -850,7 +855,7 @@ systems such as spherical ones, all coordinates that are defined in
 		avoid overwriting existing coordinates.
 \end{key}
 
-\begin{codeexample}[width=2.5cm]
+\begin{codeexample}[width=2.5cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}[3d/install view={phi=110,psi=0,theta=70}]
  \draw
    (8,5,5) coordinate[label=above:{$A$}] (A) --
@@ -884,7 +889,7 @@ systems such as spherical ones, all coordinates that are defined in
 %     {-1*sin(\tdplotmaintheta)*cos(\tdplotmainphi)},
 %     {cos(\tdplotmaintheta)})
 
-\begin{codeexample}[width=3cm]
+\begin{codeexample}[width=3cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}[3d/install view={phi=30,psi=0,theta=80}]
  \pic{ycylinder={r=0.4,h=3,
  top/.style={fill=blue}}};
@@ -909,7 +914,7 @@ To do:
 \end{key}
 
 
-\begin{codeexample}[width=8cm]
+\begin{codeexample}[width=8cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}
 \draw[decoration={3d coil color=red,aspect=0.35, segment length=3.1mm, 
 amplitude=3mm,3d complete  coil},
