@@ -788,6 +788,35 @@ systems such as spherical ones, all coordinates that are defined in
 \end{tikzpicture}
 \end{codeexample}
 
+\begin{key}{/tikz/3d/intersection of three spheres=\meta{options} (initially empty)}
+		Computes the intersection intersections of three spheres around
+		|A=(A)|, |B=(B)|, and |C=(C)|. The radii are stored in |rA|, |rB| and
+		|rC|, respectively. The names of the intersection solutions are stored
+		in the keys |i1| and |i2|, the initial values of which are |i1| and
+		|i2|.
+\end{key}
+
+\begin{codeexample}[width=5.4cm,preamble={\usetikzlibrary{3dtools}}]
+\begin{tikzpicture}[declare function={a=1.5;},
+   dot/.style={circle,inner sep=1pt,fill},
+   3d/install view={phi=100,psi=0,theta=70}]	
+  \path (a,0,0) coordinate (A)
+   (0,a,0) coordinate (B)
+   (0,0,a) coordinate (C);
+  \path[3d/intersection of three spheres=
+  	{rA=2,rB=2.5,rC=3}];
+  \path (i1) 
+    coordinate[dot,label=above:{$%
+  	\pgfmathparse{TD("(i1)")}%
+   (\pgfmathprintvector\pgfmathresult)^T$}];
+  \path (i2) 
+    coordinate[dot,label=above:{$%
+  	\pgfmathparse{TD("(i2)")}%
+   (\pgfmathprintvector\pgfmathresult)^T$}];
+  \path foreach \X in {A,B,C}
+  {(\X) coordinate[dot,label=above:{$\X$}]};
+\end{tikzpicture}
+\end{codeexample}
 
 \begin{key}{/tikz/pics/3d circle through 3 points=\meta{options} (initially empty)}
         Draws a circle through 3 points in 3 dimensions. If the three
@@ -885,9 +914,6 @@ systems such as spherical ones, all coordinates that are defined in
  Style for cylinder top. 
 \end{key}
 
-% ({sin(\tdplotmaintheta)*sin(\tdplotmainphi)},
-%     {-1*sin(\tdplotmaintheta)*cos(\tdplotmainphi)},
-%     {cos(\tdplotmaintheta)})
 
 \begin{codeexample}[width=3cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}[3d/install view={phi=30,psi=0,theta=80}]
@@ -926,6 +952,15 @@ decorate] (5,3.5) circle[radius=3cm];
 \end{tikzpicture}
 \end{codeexample}
 
+
+\subsection{Remarks on the implementation}
+
+When the library gets loaded, the version gets checked. If the version is
+earlier than 3.1.1, a warning is issued. In this case, one cannot use the
+library unless one updates the pgf installation. If you have an earlier version
+than 3.1.3, some elaborate pics may not work as they use  |\pgfutil@pushmacro|
+and |\pgfutil@popmacro|, which were added in version 3.1.3. If the version is
+earlier than 3.1.6, the internal macro |\pgfutil@pushmacro| will be fixed.  
 
 \end{document}
 
