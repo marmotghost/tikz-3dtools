@@ -13,14 +13,13 @@
 \def\tikz@td@extractpgfversionaux#1.#2.#3|#4#5#6;{\def#4{#1}\def#5{#2}\def#6{#3}}%
 \def\tikz@td@checkversion{%
 \edef\pgfutil@tmp{\noexpand\tikz@td@extractpgfversionaux\pgfversion|\noexpand\pgfutil@tmpa\noexpand\pgfutil@tmpb\noexpand\pgfutil@tmpc;}%
-\pgfutil@tmp%
+\pgfutil@tmp%\typeout{a=\pgfutil@tmpa,b=\pgfutil@tmpb,c=\pgfutil@tmpc}%
 \pgfmathtruncatemacro{\pgfutil@tmpe}{ifthenelse(10*\pgfutil@tmpa+\pgfutil@tmpb<31,0,1)}%
 \ifnum\pgfutil@tmpe=0%
 \message{You are using a too old version of pgf (\pgfversion). You need at least
 version 3.1.1 to use the features of this library.}%
 \fi
-\edef\pgfutil@tmp{\noexpand\def\noexpand\pgfutil@tmpd{\expandafter\@firstoftwo\pgfutil@tmpc}}%
-\pgfutil@tmp%
+\edef\pgfutil@tmpd{\expandafter\@firstoftwo\pgfutil@tmpc\empty}%
 \pgfmathtruncatemacro{\pgfutil@tmpe}{ifthenelse(100*\pgfutil@tmpa+10*\pgfutil@tmpb+\pgfutil@tmpd<313,0,1)}%
 \ifnum\pgfutil@tmpe=0%
 \message{Some routines of 3dtools may not work because they rely on the pushing
