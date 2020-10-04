@@ -1016,18 +1016,10 @@ mantle/.style={draw},top/.style={draw}}
 \newif\ifcoil@closed%
 \pgfkeys{%%
 /pgf/decoration/.cd,%
-3d coil color/.store in=\TDCoilColor, %
 3d coil color/.initial=black,%
-3d coil color=black,%
-3d coil width/.store in=\TDCoilWidth, %
 3d coil width/.initial=0.4pt,%
-3d coil width=0.4pt,%
-3d coil dist/.store in=\TDCoilDist, %
 3d coil dist/.initial=0.6pt,%
-3d coil dist=0.6pt,%
-3d coil opacity/.store in=\TDCoilOpacity, %
 3d coil opacity/.initial=1,%
-3d coil opacity=1,%
 3d coil closed/.code=\coil@closedtrue%
 }%
 % https://tex.stackexchange.com/a/219088/121799%
@@ -1063,10 +1055,14 @@ mantle/.style={draw},top/.style={draw}}
   }]    { %
     % line in the back%
     %%
-    \pgfsetstrokecolor{\TDCoilColor}%
-    \pgfsetfillcolor{\TDCoilColor}%
-    \pgfsetstrokeopacity{\TDCoilOpacity}%
-    \pgfsetlinewidth{\TDCoilWidth}     %
+	\edef\TDCoilColor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
+	\edef\TDCoilOpacity{\pgfkeysvalueof{/pgf/decoration/3d coil opacity}}%
+	\edef\TDCoilWidth{\pgfkeysvalueof{/pgf/decoration/3d coil width}}%
+	\edef\TDCoilDist{\pgfkeysvalueof{/pgf/decoration/3d coil dist}}%
+    \pgfsetstrokecolor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
+    \pgfsetfillcolor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
+    \pgfsetstrokeopacity{\pgfkeysvalueof{/pgf/decoration/3d coil opacity}}%
+    \pgfsetlinewidth{\pgfkeysvalueof{/pgf/decoration/3d coil width}}     %
     \ifcoil@closed%
      \begingroup%
       \def\generaloffset{\auxoffset}%
@@ -1078,7 +1074,7 @@ mantle/.style={draw},top/.style={draw}}
       \pgfcoordinate{TD@coilast}{\pgfpoint@onthreedcoil{2    }{ 0    }{18}}%
       \pgfcoordinate{TD@coilfirst}{\pgfpoint@onthreedcoil{1    }{ 1    }{15}}%
       \pgfusepath{stroke} %
-      \pgfsetstrokecolor{\TDCoilColor}%
+      \pgfsetstrokecolor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
      \endgroup%
     \fi%
     \begingroup %%
@@ -1099,7 +1095,7 @@ mantle/.style={draw},top/.style={draw}}
     \pgfsetstrokeopacity{1}%
     \pgfsetstrokecolor{white}%
     \pgfsetfillcolor{white}%
-    \pgfsetlinewidth{1.5*\TDCoilWidth+1.5*\TDCoilDist}%
+    \pgfsetlinewidth{1.5*\pgfkeysvalueof{/pgf/decoration/3d coil width}+1.5*\pgfkeysvalueof{/pgf/decoration/3d coil dist}}%
     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
     % draw forward%
     \pgfpathcurveto%
@@ -1123,11 +1119,11 @@ mantle/.style={draw},top/.style={draw}}
     % %
     % draw the thick foreground path%
     %%
-    \pgfsetstrokecolor{\TDCoilColor}%
-    \pgfsetfillcolor{\TDCoilColor}%
-    \pgfsetstrokeopacity{\TDCoilOpacity}%
+    \pgfsetstrokecolor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
+    \pgfsetfillcolor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
+    \pgfsetstrokeopacity{\pgfkeysvalueof{/pgf/decoration/3d coil opacity}}%
     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{3}}%
-    \pgfsetlinewidth{\TDCoilWidth} %
+    \pgfsetlinewidth{\pgfkeysvalueof{/pgf/decoration/3d coil width}} %
     % forward shifted +%
     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
     \pgfpathcurveto%
@@ -1162,11 +1158,11 @@ mantle/.style={draw},top/.style={draw}}
                width=+\pgfdecorationsegmentlength]%
     { % line in the back%
     %%
-    \pgfsetstrokecolor{\TDCoilColor}%
-    \pgfsetfillcolor{\TDCoilColor}%
-    \pgfsetstrokeopacity{\TDCoilOpacity}%
+    \pgfsetstrokecolor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
+    \pgfsetfillcolor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
+    \pgfsetstrokeopacity{\pgfkeysvalueof{/pgf/decoration/3d coil opacity}}%
     \pgfpathmoveto{\pgfpointanchor{TD@coilast}{center}}%
-    \pgfsetlinewidth{\TDCoilWidth} %
+    \pgfsetlinewidth{\pgfkeysvalueof{/pgf/decoration/3d coil width}} %
     \pgfpathcurveto%
     {\pgfpoint@onthreedcoil{2    }{-0.555}{7}}%
     {\pgfpoint@onthreedcoil{1.555}{-1    }{8}}%
@@ -1178,7 +1174,7 @@ mantle/.style={draw},top/.style={draw}}
     \pgfsetstrokeopacity{1}%
     \pgfsetstrokecolor{white}%
     \pgfsetfillcolor{white}%
-    \pgfsetlinewidth{1.5*\TDCoilWidth+1.5*\TDCoilDist}%
+    \pgfsetlinewidth{1.5*\pgfkeysvalueof{/pgf/decoration/3d coil width}+1.5*\pgfkeysvalueof{/pgf/decoration/3d coil dist}}%
     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{3}}%
     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
     % draw forward%
@@ -1203,11 +1199,11 @@ mantle/.style={draw},top/.style={draw}}
     % %
     % draw the thick foreground path%
     %%
-    \pgfsetstrokecolor{\TDCoilColor}%
-    \pgfsetfillcolor{\TDCoilColor}%
-    \pgfsetstrokeopacity{\TDCoilOpacity}%
+    \pgfsetstrokecolor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
+    \pgfsetfillcolor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
+    \pgfsetstrokeopacity{\pgfkeysvalueof{/pgf/decoration/3d coil opacity}}%
     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{3}}%
-    \pgfsetlinewidth{\TDCoilWidth} %
+    \pgfsetlinewidth{\pgfkeysvalueof{/pgf/decoration/3d coil width}} %
     % forward shifted +%
     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
     \pgfpathcurveto%
@@ -1239,11 +1235,11 @@ mantle/.style={draw},top/.style={draw}}
   \state{last}[next state=final]%
     { % line in the back%
     %%
-    \pgfsetstrokecolor{\TDCoilColor}%
-    \pgfsetfillcolor{\TDCoilColor}%
-    \pgfsetstrokeopacity{\TDCoilOpacity}%
+    \pgfsetstrokecolor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
+    \pgfsetfillcolor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
+    \pgfsetstrokeopacity{\pgfkeysvalueof{/pgf/decoration/3d coil opacity}}%
     \pgfpathmoveto{\pgfpointanchor{TD@coilast}{center}}%
-    \pgfsetlinewidth{\TDCoilWidth} %
+    \pgfsetlinewidth{\pgfkeysvalueof{/pgf/decoration/3d coil width}} %
     \pgfpathcurveto%
     {\pgfpoint@onthreedcoil{2    }{-0.555}{7}}%
     {\pgfpoint@onthreedcoil{1.555}{-1    }{8}}%
@@ -1259,7 +1255,7 @@ mantle/.style={draw},top/.style={draw}}
      \pgfsetstrokeopacity{1}%
      \pgfsetstrokecolor{white}%
      \pgfsetfillcolor{white}%
-     \pgfsetlinewidth{1.5*\TDCoilWidth+1.5*\TDCoilDist}%
+     \pgfsetlinewidth{1.5*\pgfkeysvalueof{/pgf/decoration/3d coil width}+1.5*\pgfkeysvalueof{/pgf/decoration/3d coil dist}}%
      \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{3}}%
      \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
      % draw forward%
@@ -1281,11 +1277,11 @@ mantle/.style={draw},top/.style={draw}}
      {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
      {\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
      \pgfusepath{stroke,fill} %
-     \pgfsetstrokecolor{\TDCoilColor}%
-     \pgfsetfillcolor{\TDCoilColor}%
-     \pgfsetstrokeopacity{\TDCoilOpacity}%
+     \pgfsetstrokecolor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
+     \pgfsetfillcolor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
+     \pgfsetstrokeopacity{\pgfkeysvalueof{/pgf/decoration/3d coil opacity}}%
      \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{3}}%
-     \pgfsetlinewidth{\TDCoilWidth} %
+     \pgfsetlinewidth{\pgfkeysvalueof{/pgf/decoration/3d coil width}} %
      % forward shifted +%
      \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
      \pgfpathcurveto%
@@ -1313,9 +1309,9 @@ mantle/.style={draw},top/.style={draw}}
      \pgfsetstrokeopacity{1}%
      \pgfsetstrokecolor{white}%
      \pgfsetfillcolor{white}%
-     \pgfsetlinewidth{1.5*\TDCoilWidth+1.5*\TDCoilDist}%
-     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{3}}%
-     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+     \pgfsetlinewidth{1.5*\pgfkeysvalueof{/pgf/decoration/3d coil width}+1.5*\pgfkeysvalueof{/pgf/decoration/3d coil dist}}%
+     \pgfpathmoveto{\pgfpoint@onthreedcoil{1}{1}{3}}%
+     \pgfpathmoveto{\pgfpoint@onthreedcoil{1}{-1}{9}}%
      % draw forward%
      \pgfpathcurveto%
      {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
@@ -1335,13 +1331,13 @@ mantle/.style={draw},top/.style={draw}}
      {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
      {\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
      \pgfusepath{stroke,fill} %
-     \pgfsetstrokecolor{\TDCoilColor}%
-     \pgfsetfillcolor{\TDCoilColor}%
-     \pgfsetstrokeopacity{\TDCoilOpacity}%
-     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{ 1    }{3}}%
-     \pgfsetlinewidth{\TDCoilWidth} %
+     \pgfsetstrokecolor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
+     \pgfsetfillcolor{\pgfkeysvalueof{/pgf/decoration/3d coil color}}%
+     \pgfsetstrokeopacity{\pgfkeysvalueof{/pgf/decoration/3d coil opacity}}%
+     \pgfpathmoveto{\pgfpoint@onthreedcoil{1}{1}{3}}%
+     \pgfsetlinewidth{\pgfkeysvalueof{/pgf/decoration/3d coil width}} %
      % forward shifted +%
-     \pgfpathmoveto{\pgfpoint@onthreedcoil{1    }{-1    }{9}}%
+     \pgfpathmoveto{\pgfpoint@onthreedcoil{1}{-1}{9}}%
      \pgfpathcurveto%
      {\pgfpoint@onthreedcoil{0.445}{-1    }{10}}%
      {\pgfpoint@onthreedcoil{0    }{-0.555}{11.25}}%

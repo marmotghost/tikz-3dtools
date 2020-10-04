@@ -930,6 +930,37 @@ systems such as spherical ones, all coordinates that are defined in
  		Color of the polyhedron.
 \end{key}
 
+\begin{key}{/tikz/3d/polyhedron/fore=\meta{style} (initially {draw,solid})}
+ 		Style for visible faces. One can turn of the fill by adding |fill=none|.
+\end{key}
+
+
+\begin{key}{/tikz/3d/polyhedron/back=\meta{style} (initially {draw,dashed,fill opacity=0})}
+ 		Style for visible faces.
+\end{key}
+
+\begin{codeexample}[width=4.5cm,preamble={\usetikzlibrary{3dtools}}]
+\pgfdeclarelayer{background} 
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+\begin{tikzpicture}
+\begin{scope}[3d/install view={phi=110,psi=10,%
+	theta=70},scale=2]
+  \path (0,0,1) coordinate (v1) 
+	  ({sqrt(8/9)},0,-1/3) coordinate (v2)
+	  ({-sqrt(2/9)},{sqrt(2/3)},-1/3) coordinate (v3)
+	  ({-sqrt(2/9)},{-sqrt(2/3)},-1/3) coordinate (v4);
+  \tikzset{3d/polyhedron/.cd,
+	fore layer=foreground,back layer=background,
+	fore/.append style={opacity=0.4,thick},
+	back/.append style={opacity=0.4},
+ 	draw face with corners={{(v1)},{(v2)},{(v3)}},
+ 	draw face with corners={{(v1)},{(v2)},{(v4)}},
+ 	draw face with corners={{(v1)},{(v3)},{(v4)}},
+ 	draw face with corners={{(v2)},{(v3)},{(v4)}}}	  
+\end{scope}
+\end{tikzpicture}
+\end{codeexample}
 
 \begin{key}{/tikz/pics/ycylinder (initially empty)}
  A cylinder in the $y$-direction. This pic requires the |calc| library. 
@@ -973,23 +1004,18 @@ To do:
         Indicates that the coil is closed.
 \end{key}
 
-The new version of pgf seems to break this. Not sure I understand why.
+\begin{codeexample}[width=8cm,preamble={\usetikzlibrary{3dtools}}]
+\begin{tikzpicture}
+\draw[decoration={3d coil color=red,aspect=0.35, segment length=3.1mm, 
+amplitude=3mm,3d complete  coil},
+decorate] (0,1) -- (0,6);
+\draw[decoration={3d coil color=blue,3d coil opacity=0.9,aspect=0.5, 
+segment length={2*pi*3cm/50}, amplitude=5mm,3d complete coil,
+3d coil closed},
+decorate] (5,3.5) circle[radius=3cm];
+\end{tikzpicture}
+\end{codeexample}
 
-% 
-% 
-% 
-% \begin{codeexample}[width=8cm,preamble={\usetikzlibrary{3dtools}}]
-% \begin{tikzpicture}
-% \draw[decoration={3d coil color=red,aspect=0.35, segment length=3.1mm, 
-% amplitude=3mm,3d complete  coil},
-% decorate] (0,1) -- (0,6);
-% \draw[decoration={3d coil color=blue,3d coil opacity=0.9,aspect=0.5, 
-% segment length={2*pi*3cm/50}, amplitude=5mm,3d complete coil,
-% 3d coil closed},
-% decorate] (5,3.5) circle[radius=3cm];
-% \end{tikzpicture}
-% \end{codeexample}
-% 
 
 \subsection{Remarks on the implementation}
 
