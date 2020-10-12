@@ -302,6 +302,25 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 ((\the\pgf@xx/1cm)*(\the\pgf@yy/1cm)-(\the\pgf@yx/1cm)*(\the\pgf@xy/1cm))*(#3)}%
 \pgfmathsmuggle\pgfmathresult\endgroup%
 }%
+% returns the x, y and z coordinates of the normal on the screen
+\pgfmathdeclarefunction*{nscreenx}{0}{%
+\begingroup%
+\pgfkeys{/pgf/fpu,/pgf/fpu/output format=fixed}%
+\pgfmathparse{((\the\pgf@yx/1cm)*(\the\pgf@zy/1cm)-(\the\pgf@yy/1cm)*(\the\pgf@zx/1cm))}%
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
+\pgfmathdeclarefunction*{nscreeny}{0}{%
+\begingroup%
+\pgfkeys{/pgf/fpu,/pgf/fpu/output format=fixed}%
+\pgfmathparse{((\the\pgf@zx/1cm)*(\the\pgf@xy/1cm)-(\the\pgf@xx/1cm)*(\the\pgf@zy/1cm))}%
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
+\pgfmathdeclarefunction*{nscreenz}{0}{%
+\begingroup%
+\pgfkeys{/pgf/fpu,/pgf/fpu/output format=fixed}%
+\pgfmathparse{((\the\pgf@xx/1cm)*(\the\pgf@yy/1cm)-(\the\pgf@yx/1cm)*(\the\pgf@xy/1cm))}%
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
 % returns a vector that is orthogonal to the input vector
 \pgfmathdeclarefunction{normalcandidate}{3}{%
 \begingroup%
