@@ -418,6 +418,82 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \edef\pgfmathresult{\the\c@pgf@counta}%
 \pgfmathsmuggle\pgfmathresult\endgroup%
 }
+\pgfmathdeclarefunction*{x2d}{1}{%
+\begingroup%
+\pgf@process{\pgfpointanchor{#1}{center}}%
+\pgfmathparse{\pgf@x}%
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
+\pgfmathdeclarefunction*{y2d}{1}{%
+\begingroup%
+\pgf@process{\pgfpointanchor{#1}{center}}%
+\pgfmathparse{\pgf@y}%
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
+%
+\tikzset{convex hull of/.code={% expects a list of points
+\edef\pgfutil@tmpl{#1}% store the list for manipulations
+\edef\pgfutil@tmpp{}% path to be constructed
+\c@pgf@counta1%
+\pgfutil@for\pgfutil@tmpa:={\pgfutil@tmpl}\do{%
+\ifnum\c@pgf@counta=1\relax
+\pgfmathsetmacro{\pgfutil@tmpb}{x2d("\pgfutil@tmpa")}% min
+\edef\pgfutil@tmpd{\pgfutil@tmpa}% leftmost point
+\else
+\pgfmathsetmacro{\pgfutil@tmpc}{x2d("\pgfutil@tmpa")}% x coordinate
+\ifdim\pgfutil@tmpc pt<\pgfutil@tmpb pt\relax
+\edef\pgfutil@tmpb{\pgfutil@tmpc}% new min
+\edef\pgfutil@tmpd{\pgfutil@tmpa}% new leftmost point
+\fi
+\fi
+\advance\c@pgf@counta by1%
+}
+\edef\pgfutil@tmpp{(\pgfutil@tmpd)}%
+\edef\pgfutil@tmpj{\pgfutil@tmpd}%
+\edef\pgfutil@tmpe{90}% slope correction
+\edef\pgfutil@tmpk{1}% first round flag
+\loop
+%\typeout{Removing  \pgfutil@tmpd}%
+\edef\pgfutil@tmph{\noexpand\@removeelement{\pgfutil@tmpd}{\pgfutil@tmpl}{\noexpand\pgfutil@tmpl}}%
+\pgfutil@tmph
+%\typeout{List is now \pgfutil@tmpl}%
+\c@pgf@countb1%
+\pgfutil@for\pgfutil@tmpa:={\pgfutil@tmpl}\do{%
+\pgfmathsetmacro{\pgfutil@tmpf}{Mod(atan2(y2d("\pgfutil@tmpa")-y2d("\pgfutil@tmpd"),
+x2d("\pgfutil@tmpa")-x2d("\pgfutil@tmpd"))+\pgfutil@tmpe,360)}%
+%\typeout{\the\c@pgf@countb: \pgfutil@tmpa\space has angle \pgfutil@tmpf.}%
+\ifnum\c@pgf@countb=1\relax
+\edef\pgfutil@tmpg{\pgfutil@tmpf}%
+\edef\pgfutil@tmpi{\pgfutil@tmpa}%
+\else
+%\unless\ifdim\pgfutil@tmpf pt>180pt\relax
+\ifdim\pgfutil@tmpf pt>\pgfutil@tmpg pt\relax
+\edef\pgfutil@tmpg{\pgfutil@tmpf}%
+\edef\pgfutil@tmpi{\pgfutil@tmpa}%
+\fi
+%\fi
+\fi
+\advance\c@pgf@countb by1%
+}
+%
+\ifx\pgfutil@tmpi\pgfutil@tmpj\relax
+\c@pgf@counta=2\relax
+\else
+\edef\pgfutil@tmpd{\pgfutil@tmpi}%
+\edef\pgfutil@tmpp{\pgfutil@tmpp--(\pgfutil@tmpd)}%
+\pgfmathsetmacro{\pgfutil@tmpe}{180+\pgfutil@tmpe-\pgfutil@tmpf}%
+%\typeout{offset angle=\pgfutil@tmpe}%
+\advance\c@pgf@counta by-1%
+\fi
+\ifnum\pgfutil@tmpk=1\relax
+\edef\pgfutil@tmpl{\pgfutil@tmpl,\pgfutil@tmpj}% add the first point again
+\edef\pgfutil@tmpk{0}%
+\fi
+\ifnum\c@pgf@counta>2\relax
+\repeat
+\edef\pgfutil@tmpp{\pgfutil@tmpp--cycle}%
+\tikzset{insert path=\pgfutil@tmpp}%
+}}
 %
 % the following is very much "inspired" by the calc library 
 \long\def\pgfmathtdparse#1{% < and > really are placeholders for a later integration

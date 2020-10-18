@@ -357,6 +357,21 @@ section~\ref{sec:3DOrthonormalProjections}.
 \end{tikzpicture}
 \end{codeexample}
 
+\begin{key}{/tikz/convex hull of=\marg{list of coordinates}}
+		Style that inserts a path for the 2-dimensional convex hull of a list of
+		named coordinates.
+\end{key}
+
+
+\begin{codeexample}[width=4.5cm,preamble={\usetikzlibrary{3dtools}}]
+\begin{tikzpicture}
+\path foreach \X in {1,...,10}
+{ (rnd*360:rnd*3) coordinate (p\X)
+node[circle,inner sep=1pt,fill,label={below:$p_{\X}$}]{}};
+\draw[convex hull of={p1,p2,p3,p4,p5,p6,p7,p8,p9,p10}];
+\end{tikzpicture}
+\end{codeexample}
+
 \subsection{Orthonormal projections}
 \label{sec:3DOrthonormalProjections}
 
