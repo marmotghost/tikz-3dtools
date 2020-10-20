@@ -167,6 +167,14 @@ to parse 3d expressions. The supported vector operations are |+| (addition $+$),
    Yields the $z$-component of the normal on the screen. 
 \end{math-function}
 
+\begin{math-function}{x2d}
+   Yields the $x$-component of a symbolic coordinate on the screen. 
+\end{math-function}
+
+\begin{math-function}{y2d}
+   Yields the $y$-component of a symbolic coordinate on the screen. 
+\end{math-function}
+
 
 In order to pretty-print the result one may want to use |\pgfmathprintvector|,
 and use the math function |TD| for parsing.
@@ -965,6 +973,17 @@ systems such as spherical ones, all coordinates that are defined in
 
 \begin{key}{/tikz/3d/polyhedron/back=\meta{style} (initially {draw,dashed,fill opacity=0})}
  		Style for visible faces.
+\end{key}
+
+\begin{key}{/tikz/3d/polyhedron/complete dashes=\meta{style} (initially {on 2pt off 2pt})}
+ 	    Switches on dashes for the edges which start and end with an 
+		on phase.
+\end{key}
+
+
+\begin{key}{/tikz/cheating dash=\meta{style} (initially {on 2pt off 2pt})}
+ 	    Switches on dashes with an on phase.
+		Taken from \href{https://tex.stackexchange.com/a/133357}{Mark Wibrow's answer}.
 \end{key}
 
 \begin{codeexample}[width=4.5cm,preamble={\usetikzlibrary{3dtools}}]

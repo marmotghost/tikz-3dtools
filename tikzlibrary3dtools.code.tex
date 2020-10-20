@@ -492,6 +492,7 @@ x2d("\pgfutil@tmpa")-x2d("\pgfutil@tmpd"))+\pgfutil@tmpe,360)}%
 \ifnum\c@pgf@counta>2\relax
 \repeat
 \edef\pgfutil@tmpp{\pgfutil@tmpp--cycle}%
+%\typeout{hull path=\pgfutil@tmpp}%
 \tikzset{insert path=\pgfutil@tmpp}%
 }}
 %
@@ -1014,7 +1015,28 @@ projection prefix/.initial=tmpp}
 \fi
 }}%
 %
+\newif\if@tikz@td@complete@dashes
+\@tikz@td@complete@dashesfalse
+\tikzset{cheating dash/.code args={on #1 off #2}{% from https://tex.stackexchange.com/a/133357
+        % Use csname so catcode of @ doesn't have do be changed.		
+        \csname tikz@addoption\endcsname{%
+            \pgfgetpath\currentpath%
+            \pgfprocessround{\currentpath}{\currentpath}%
+            \csname pgf@decorate@parsesoftpath\endcsname{\currentpath}{\currentpath}%
+            \pgfmathparse{\csname pgf@decorate@totalpathlength\endcsname-#1}\let\rest=\pgfmathresult%
+            \pgfmathparse{#1+#2}\let\onoff=\pgfmathresult%
+            \pgfmathparse{max(floor(\rest/\onoff), 1)}\let\nfullonoff=\pgfmathresult%
+            \pgfmathparse{max((\rest-\onoff*\nfullonoff)/\nfullonoff+#2, #2)}\let\offexpand=\pgfmathresult%
+            \pgfsetdash{{#1}{\offexpand}}{0pt}}%
+    },cheating dash/.default={on 2pt off 2pt}}%
 \tikzset{3d/.cd,polyhedron/.cd,
+face edges/.style={},
+edges have complete dashes/.is if=@tikz@td@complete@dashes,
+edges have complete dashes/.default=true,
+complete dashes/.code args={on #1 off #2}{\tikzset{3d/.cd,polyhedron/.cd,
+edges have complete dashes=true,
+face edges/.append style={cheating dash=on #1 off #2}}},
+complete dashes/.default={on 2pt off 2pt},
 draw face with corners/.code={\begingroup\c@pgf@counta0\relax
 \pgfutil@for\pgfutil@tmpa:={#1}\do{%
 \pgfmathsetmacro\pgfutil@tmpT{TD("\pgfutil@tmpa")}%
@@ -1027,9 +1049,13 @@ draw face with corners/.code={\begingroup\c@pgf@counta0\relax
 \fi
 \advance\c@pgf@counta by1\relax
 \ifnum\c@pgf@counta=1\relax
-\edef\pgfutil@tmpl{(\pgfutil@tmpT)}%
+\edef\pgfutil@tmpl{(\pgfutil@tmpT)}% regular list
+\edef\pgfutil@tmplf{(\pgfutil@tmpT)}% first
+\edef\pgfutil@tmple{(\pgfutil@tmpT)}% edge list
 \else
 \edef\pgfutil@tmpl{\pgfutil@tmpl -- (\pgfutil@tmpT)}%
+\edef\pgfutil@tmple{\pgfutil@tmple\space edge (\pgfutil@tmpT)
+(\pgfutil@tmpT)}%
 \fi
 }%
 \ifnum\c@pgf@counta<3\relax
@@ -1053,14 +1079,30 @@ draw face with corners/.code={\begingroup\c@pgf@counta0\relax
 \pgfmathtruncatemacro{\pgfutil@tmpi}{\pgfkeysvalueof{/tikz/3d/polyhedron/shading function}(\pgfutil@tmph)}%
 \ifdim\pgfutil@tmpe pt<0pt\relax
 \begin{pgfonlayer}{\pgfkeysvalueof{/tikz/3d/polyhedron/back layer}}
-\tikzset{3d/polyhedron/before hidden}%
+\tikzset{3d/polyhedron/before hidden,3d/polyhedron/back}%
+\if@tikz@td@complete@dashes
+\path[fill=tikz@td@face@color!\pgfutil@tmpi!black,3d/polyhedron/back,draw=none] 
+	\pgfutil@tmpl -- cycle;
+\edef\pgfutil@tmplg{\pgfutil@tmple\space edge \pgfutil@tmplf}%
+\draw[3d/polyhedron/back,every edge/.append style={/tikz/3d/polyhedron/face edges}]
+	\pgfutil@tmplg;
+\else
 \draw[fill=tikz@td@face@color!\pgfutil@tmpi!black,3d/polyhedron/back] \pgfutil@tmpl -- cycle;
-\tikzset{3d/polyhedron/before hidden}%
+\fi
+\tikzset{3d/polyhedron/after hidden}%
 \end{pgfonlayer}
 \else
 \begin{pgfonlayer}{\pgfkeysvalueof{/tikz/3d/polyhedron/fore layer}}
-\tikzset{3d/polyhedron/before visible}%
+\tikzset{3d/polyhedron/before visible,3d/polyhedron/fore}%
+\if@tikz@td@complete@dashes
+\path[fill=tikz@td@face@color!\pgfutil@tmpi!black,3d/polyhedron/fore,draw=none]
+ \pgfutil@tmpl -- cycle;
+\edef\pgfutil@tmplg{\pgfutil@tmple\space edge \pgfutil@tmplf}%
+\draw[3d/polyhedron/fore,every edge/.append style={/tikz/3d/polyhedron/face edges}]
+	\pgfutil@tmplg;
+\else
 \draw[fill=tikz@td@face@color!\pgfutil@tmpi!black,3d/polyhedron/fore] \pgfutil@tmpl -- cycle;
+\fi
 \tikzset{3d/polyhedron/after visible}%
 \end{pgfonlayer}
 \fi
