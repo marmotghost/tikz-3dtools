@@ -10,6 +10,17 @@
 \usetikzlibrary{3d,decorations,fpu}% to do: ability to switch on and off
 \usepackage{calculator}% maybe drop
 \makeatletter%
+\ifnum\month>10\relax
+\typeout{Hibernation season has just started.}%
+\fi
+\ifnum\month<5\relax
+\typeout{Hibernation season has not yet ended.}%
+\fi
+\ifnum\month=2\relax
+\ifnum\day=2
+\typeout{Yay! Groundhog Day!}%
+\fi
+\fi
 \def\tikz@td@extractpgfversionaux#1.#2.#3|#4#5#6;{\def#4{#1}\def#5{#2}\def#6{#3}}%
 \def\tikz@td@checkversion{%
 \edef\pgfutil@tmp{\noexpand\tikz@td@extractpgfversionaux\pgfversion|\noexpand\pgfutil@tmpa\noexpand\pgfutil@tmpb\noexpand\pgfutil@tmpc;}%
