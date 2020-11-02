@@ -759,7 +759,7 @@ project/.code args={#1 on #2}{%
 \tikzset{insert path={(\pgfutil@tmpj)}}%
 %\typeout{debug: intersection is at (\pgfutil@tmpj)}%
 \else
-\typeout{The plane and line do not intersect within the uncertainties.}%
+\PackageWarning{3dtools}{The plane and line do not intersect within the uncertainties. Returning (0,0,0) instead.}%
 \fi
 \fi
 }}
@@ -784,7 +784,7 @@ project/.code args={#1 on #2}{%
 %\typeout{Determinant is \pgfutil@tmpd.}
 \pgfmathtruncatemacro{\pgfutil@tmpi}{abs(\pgfutil@tmpd)>0.02?1:0}%
 \ifnum\pgfutil@tmpi=0\relax
-\typeout{The points approximately sit on a common plane. The circumsphere cannot
+\PackageWarning{3dtools}{The points approximately sit on a common plane. The circumsphere cannot
 be determined.}%
 \else
 \pgfmathsetmacro{\pgfutil@tmpnB}{TD("(\pgfutil@tmpB)o(\pgfutil@tmpB)")/\pgfutil@tmpd}%
@@ -810,7 +810,7 @@ be determined.}%
 %\typeout{Determinant is \pgfutil@tmpd.}
 \pgfmathtruncatemacro{\pgfutil@tmpi}{abs(\pgfutil@tmpd)>0.02?1:0}%
 \ifnum\pgfutil@tmpi=0\relax
-\typeout{The points approximately sit on a common line. The circumcircle cannot
+\PackageWarning{3dtools}{The points approximately sit on a common line. The circumcircle cannot
 be determined.}%
 \else
 \pgfmathsetmacro{\pgfutil@tmpb}{(\pgfutil@tmpBB-\pgfutil@tmpBC)*\pgfutil@tmpCC/\pgfutil@tmpd}%
@@ -830,7 +830,7 @@ be determined.}%
 \pgfmathsetmacro{\pgfutil@tmpD}{TD("(\pgfutil@tmpB)x(\pgfutil@tmpC)")}%
 \pgfmathsetmacro{\pgfutil@tmpd}{TD("(\pgfutil@tmpD)o(\pgfutil@tmpD)")}%
 \ifdim\pgfutil@tmpd pt<0.01pt\relax
-\typeout{The vectors \pgfutil@tmpA, \pgfutil@tmpB\space and 
+\PackageWarning{3dtools}{The vectors \pgfutil@tmpA, \pgfutil@tmpB\space and 
 \pgfutil@tmpC are too collinear. Cannot determine appropriate plane.}%
 \else
 \pgfmathsetmacro{\pgfutil@tmpb}{1/sqrt(TD("(\pgfutil@tmpB)o(\pgfutil@tmpB)"))}%
@@ -980,7 +980,7 @@ projection prefix/.initial=tmpp}
 \pgfmathsetmacro\pgfutil@tmpAB{TD("(\pgfutil@tmpB)-(\pgfutil@tmpA)")}%
 \pgfmathsetmacro\pgfutil@tmpd{sqrt(TD("(\pgfutil@tmpAB)o(\pgfutil@tmpAB)"))}%
 \ifdim\pgfutil@tmpd pt<0.1pt\relax
-\typeout{Points \pgfkeysvalueof{/tikz/3d/aux keys/A} and \pgfkeysvalueof{/tikz/3d/aux keys/B} are too close to each other.}%
+\PackageWarning{3dtools}{Points \pgfkeysvalueof{/tikz/3d/aux keys/A} and \pgfkeysvalueof{/tikz/3d/aux keys/B} are too close to each other.}%
 \else
 \pgfmathsetmacro\pgfutil@tmpAC{TD("(\pgfutil@tmpC)-(\pgfutil@tmpA)")}% temp2
 %     i = dot(e_x,temp2)                                   
@@ -1000,7 +1000,7 @@ projection prefix/.initial=tmpp}
 %     temp4 = r1*r1 - x*x - y*y                            
 \pgfmathsetmacro\pgfutil@tmpc{\pgfutil@tmprA*\pgfutil@tmprA-pow(\pgfutil@tmpx,2)-pow(\pgfutil@tmpy,2)}%
 \ifdim\pgfutil@tmpc pt<0pt\relax
-\typeout{Not all spheres intersect.}%
+\PackageWarning{3dtools}{Not all spheres intersect.}%
 \else
 \pgfmathsetmacro\pgfutil@tmpz{sqrt(\pgfutil@tmpc)}%
 \pgfmathsetmacro\pgfutil@tmpd{TD("(\pgfutil@tmpA)+\pgfutil@tmpx*(\pgfutil@tmpex)%
@@ -1059,7 +1059,7 @@ draw face with corners/.code={\begingroup\c@pgf@counta0\relax
 \fi
 }%
 \ifnum\c@pgf@counta<3\relax
-\typeout{A face needs at least three vertices. However, only \the\c@pgf@counta\space vertices were specified.}%
+\PackageWarning{3dtools}{A face needs at least three vertices. However, only \the\c@pgf@counta\space vertices were specified.}%
 \else
 \edef\pgfutil@tmpO{\pgfkeysvalueof{/tikz/3d/polyhedron/O}}%
 \pgfmathsetmacro\pgfutil@tmpO{TD("\pgfutil@tmpO")}%
