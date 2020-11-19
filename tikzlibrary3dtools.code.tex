@@ -148,24 +148,24 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \edef\mycoord{\RawCoord(#1)}%
 \pgfmathparse@td@FPU{zcomp3\mycoord}% 
 \pgfmathsmuggle\pgfmathresult\endgroup}%
-\pgfmathdeclarefunction{TDX}{1}{% x component of a 3-vector 
-\begingroup% 
-\edef\pgfmathresult{0}%
-% \typeout{#1}
-% \edef\temp{\noexpand\pgfmathparse@td@FPU{TDx#1}}%
-% \temp
-\typeout{\pgfmathresult}%
-\pgfmathsmuggle\pgfmathresult\endgroup}%
-\pgfmathdeclarefunction{TDY}{1}{% x component of a 3-vector 
-\begingroup% 
-\edef\mycoord{\RawCoord#1}%
-\pgfmathparse@td@FPU{ycomp3\mycoord}% 
-\pgfmathsmuggle\pgfmathresult\endgroup}%
-\pgfmathdeclarefunction{TDZ}{1}{% x component of a 3-vector 
-\begingroup% 
-\edef\mycoord{\RawCoord#1}%
-\pgfmathparse@td@FPU{zcomp3\mycoord}% 
-\pgfmathsmuggle\pgfmathresult\endgroup}%
+% \pgfmathdeclarefunction{TDX}{1}{% x component of a 3-vector 
+% \begingroup% 
+% \edef\pgfmathresult{0}%
+% % \typeout{#1}
+% % \edef\temp{\noexpand\pgfmathparse@td@FPU{TDx#1}}%
+% % \temp
+% \typeout{\pgfmathresult}%
+% \pgfmathsmuggle\pgfmathresult\endgroup}%
+% \pgfmathdeclarefunction{TDY}{1}{% x component of a 3-vector 
+% \begingroup% 
+% \edef\mycoord{\RawCoord#1}%
+% \pgfmathparse@td@FPU{ycomp3\mycoord}% 
+% \pgfmathsmuggle\pgfmathresult\endgroup}%
+% \pgfmathdeclarefunction{TDZ}{1}{% x component of a 3-vector 
+% \begingroup% 
+% \edef\mycoord{\RawCoord#1}%
+% \pgfmathparse@td@FPU{zcomp3\mycoord}% 
+% \pgfmathsmuggle\pgfmathresult\endgroup}%
 \tikzset{3d/record physical components/.code={%
 \tikzset{every coordinate node/.append style={3d/store components}}},
 3d/store components/.code={%
@@ -188,7 +188,7 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \ifcsname tikz@td@physical@x@#1\endcsname
 \expandafter\edef\expandafter\pgfmathresult\expandafter{\csname tikz@td@physical@x@#1\endcsname}%
 \else
-\typeout{Physical x component of #1 not stored. Setting it to 0.}
+\PackageWarning{3dtools}{Physical x component of #1 not stored. Setting it to 0.}
 \edef\pgfmathresult{0}%
 \fi
 \pgfmathsmuggle\pgfmathresult\endgroup%
@@ -198,7 +198,7 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \ifcsname tikz@td@physical@y@#1\endcsname
 \expandafter\edef\expandafter\pgfmathresult\expandafter{\csname tikz@td@physical@y@#1\endcsname}%
 \else
-\typeout{Physical y component of #1 not stored. Setting it to 0.}
+\PackageWarning{3dtools}{Physical y component of #1 not stored. Setting it to 0.}
 \edef\pgfmathresult{0}%
 \fi
 \pgfmathsmuggle\pgfmathresult\endgroup%
@@ -208,7 +208,7 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \ifcsname tikz@td@physical@z@#1\endcsname
 \expandafter\edef\expandafter\pgfmathresult\expandafter{\csname tikz@td@physical@z@#1\endcsname}%
 \else
-\typeout{Physical y component of #1 not stored. Setting it to 0.}
+\PackageWarning{3dtools}{Physical y component of #1 not stored. Setting it to 0.}
 \edef\pgfmathresult{0}%
 \fi
 \pgfmathsmuggle\pgfmathresult\endgroup%
@@ -507,6 +507,15 @@ x2d("\pgfutil@tmpa")-x2d("\pgfutil@tmpd"))+\pgfutil@tmpe,360)}%
 \tikzset{insert path=\pgfutil@tmpp}%
 }}
 %
+\tikzset{generous outside path/.style={overlay,insert path={[reset cm]
+			(-16383.99999pt,-16383.99999pt) |-
+			(16383.99999pt,16383.99999pt)|- cycle}},
+		 generous outside path'/.style={overlay,insert path={[reset cm]
+			(-16383.99999pt,-16383.99999pt) -|
+			(16383.99999pt,16383.99999pt)-| cycle}}}
+%			
+\tikzset{even odd clip/.code={\pgfseteorule}}			
+%
 % the following is very much "inspired" by the calc library 
 \long\def\pgfmathtdparse#1{% < and > really are placeholders for a later integration
 \begingroup% into calc, which however requires changes both in
@@ -683,7 +692,7 @@ plane through/.code args={#1 and #2 and #3 named #4}{%
 \pgfmathsetmacro{\pgfutil@tmpa}{TD("#2-#1x#3-#1")}%
 \pgfmathsetmacro{\pgfutil@tmpb}{TD("(\pgfutil@tmpa)o(\pgfutil@tmpa)")}%
 \ifdim\pgfutil@tmpb pt<0.01pt\relax
-\typeout{The points #1 and #2 and #3 are either too close to each other or almost
+\PackageWarning{3dtools}{The points #1 and #2 and #3 are either too close to each other or almost
 on one line, so not suited to define a plane.}%
 \else
 \pgfmathsetmacro{\pgfutil@tmpc}{1/sqrt(\pgfutil@tmpb)}%
@@ -707,17 +716,23 @@ line through/.code args={#1 and #2 named #3}{%
 \pgfmathsetmacro{\pgfutil@tmpe}{TD("#2")}%
 \pgfmathsetmacro{\pgfutil@tmpf}{TD("#1-#2o#1-#2")}%
 \ifdim\pgfutil@tmpf pt<0.001pt\relax
-\typeout{The points #1 and #2 are too close to each other. No line defined.}%
+\PackageWarning{3dtools}{The points #1 and #2 are too close to each other. No line defined.}%
 \else
 \expandafter\xdef\csname tikz@td@line@A@#3\endcsname{\pgfutil@tmpd}%
 \expandafter\xdef\csname tikz@td@line@B@#3\endcsname{\pgfutil@tmpe}%
 \expandafter\xdef\csname tikz@td@dim@#3\endcsname{1}%
 \fi
 },%
+sphere with center/.code args={#1 and radius #2 named #3}{%
+\pgfmathsetmacro{\pgfutil@tmpd}{TD("#1")}%
+\expandafter\xdef\csname tikz@td@sphere@C@#3\endcsname{\pgfutil@tmpd}%
+\expandafter\xdef\csname tikz@td@sphere@r@#3\endcsname{#2}%
+\expandafter\xdef\csname tikz@td@dim@#3\endcsname{3}% reserve 3 for sphere...
+},
 project/.code args={#1 on #2}{%
 \expandafter\edef\expandafter\pgfutil@tmpd{\csname tikz@td@dim@#2\endcsname}%
 \ifcase\pgfutil@tmpd
-\typeout{It is not particularly meaningful to project a point on a point.}
+\PackageWarning{3dtools}{It is not particularly meaningful to project a point on a point.}
 \or% line
 \expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@line@A@#2\endcsname}%
 \expandafter\edef\expandafter\pgfutil@tmpb{\csname tikz@td@line@B@#2\endcsname}%
@@ -755,9 +770,27 @@ project/.code args={#1 on #2}{%
   \expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@plane@point@#2\endcsname}%
   \edef\pgfutil@tmpf{1}% flag
  \else
-  \typeout{Currently, one intersection object has to be a plane and the other 
-  	one a line. However, #1 has dimension \pgfutil@tmpd\space and 
-	#2 has dimension \pgfutil@tmpe.}%
+  \ifnum\pgfutil@tmpde=13\relax% line with sphere
+   \expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@line@A@#1\endcsname}%
+   \expandafter\edef\expandafter\pgfutil@tmpb{\csname tikz@td@line@B@#1\endcsname}%
+   \expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@sphere@C@#2\endcsname}%
+   \expandafter\edef\expandafter\pgfutil@tmpr{\csname tikz@td@sphere@r@#2\endcsname}%
+   \edef\pgfutil@tmpf{2}%
+   \typeout{line with sphere}%
+  \else
+   \ifnum\pgfutil@tmpde=31\relax% sphere with line
+   \expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@line@A@#2\endcsname}%
+   \expandafter\edef\expandafter\pgfutil@tmpb{\csname tikz@td@line@B@#2\endcsname}%
+   \expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@sphere@C@#1\endcsname}%
+   \expandafter\edef\expandafter\pgfutil@tmpr{\csname tikz@td@sphere@r@#1\endcsname}%
+   \edef\pgfutil@tmpf{2}%
+    \typeout{sphere with line}%
+   \else
+	\PackageWarning{3dtools}{Currently, one intersection object has to be a plane and the other 
+  	  one a line. However, #1 has dimension \pgfutil@tmpd\space and 
+	  #2 has dimension \pgfutil@tmpe.}%
+   \fi
+  \fi	
  \fi
 \fi
 \ifnum\pgfutil@tmpf=1\relax% reasonable input, stored in a, b, c and n
@@ -771,6 +804,37 @@ project/.code args={#1 on #2}{%
 %\typeout{debug: intersection is at (\pgfutil@tmpj)}%
 \else
 \PackageWarning{3dtools}{The plane and line do not intersect within the uncertainties. Returning (0,0,0) instead.}%
+\fi
+\fi
+\ifnum\pgfutil@tmpf=2\relax% line and sphere
+\pgfmathsetmacro{\pgfutil@tmpg}{TD("(\pgfutil@tmpb)-(\pgfutil@tmpa)o(\pgfutil@tmpb)-(\pgfutil@tmpa)")}%
+\pgfmathsetmacro{\pgfutil@tmph}{2*TD("(\pgfutil@tmpa)-(\pgfutil@tmpc)o(\pgfutil@tmpb)-(\pgfutil@tmpa)")}%
+\pgfmathsetmacro{\pgfutil@tmpi}{TD("(\pgfutil@tmpa)-(\pgfutil@tmpc)o(\pgfutil@tmpa)-(\pgfutil@tmpc)")-\pgfutil@tmpr*\pgfutil@tmpr}%
+\pgfmathsetmacro{\pgfutil@tmpj}{\pgfutil@tmph*\pgfutil@tmph-4*\pgfutil@tmpg*\pgfutil@tmpi}%
+\ifdim\pgfutil@tmpj pt<0pt\relax
+\PackageWarning{3dtools}{The sphere and line do not intersect within the uncertainties. Returning (0,0,0) instead.}%
+\else
+\pgfmathsetmacro{\pgfutil@tmpk}{(\pgfutil@tmph+sqrt(\pgfutil@tmph*\pgfutil@tmph-4*\pgfutil@tmpg*\pgfutil@tmpi))/2/\pgfutil@tmpg}%
+\edef\pgfutil@tmpm{0}%
+\ifdim\pgfutil@tmpk pt>0pt\relax
+ \ifdim\pgfutil@tmpk pt<1pt\relax
+  \edef\pgfutil@tmpm{1}%
+  \pgfmathsetmacro{\pgfutil@tmpn}{TD("(\pgfutil@tmpa)+\pgfutil@tmpk*(\pgfutil@tmpb)-\pgfutil@tmpk*(\pgfutil@tmpa)")}%
+  \tikzset{insert path={(\pgfutil@tmpn) coordinate (\pgfkeysvalueof{/tikz/3d/aux keys/intersection 1})}}%
+ \fi
+\fi
+\pgfmathsetmacro{\pgfutil@tmpk}{(\pgfutil@tmph-sqrt(\pgfutil@tmph*\pgfutil@tmph-4*\pgfutil@tmpg*\pgfutil@tmpi))/2/\pgfutil@tmpg}%
+\ifdim\pgfutil@tmpk pt>0pt\relax
+ \ifdim\pgfutil@tmpk pt<1pt\relax
+  \pgfmathsetmacro{\pgfutil@tmpn}{TD("(\pgfutil@tmpa)+\pgfutil@tmpk*(\pgfutil@tmpb)-\pgfutil@tmpk*(\pgfutil@tmpa)")}%
+  \ifnum\pgfutil@tmpm=1
+   \tikzset{insert path={(\pgfutil@tmpn) coordinate (\pgfkeysvalueof{/tikz/3d/aux keys/intersection 2})}}%
+  \else
+   \tikzset{insert path={(\pgfutil@tmpn) coordinate (\pgfkeysvalueof{/tikz/3d/aux keys/intersection 1})}}%
+  \fi
+ \fi
+\fi
+% cont
 \fi
 \fi
 }}
@@ -856,7 +920,9 @@ be determined.}%
 \pgfutil@tmp	
 \fi
 },3d/aux keys/.cd,A/.initial={(A)},B/.initial={(B)},
-C/.initial={(C)},D/.initial={(D)},ex/.initial={(ex)},
+C/.initial={(C)},D/.initial={(D)},
+intersection 1/.initial={I-1},intersection 2/.initial={I-2},
+ex/.initial={(ex)},
 ey/.initial={(ey)},ez/.initial={(ez)},
 i1/.initial=i1,i2/.initial=i2,
 rA/.initial=1,rB/.initial=1,rC/.initial=1}
@@ -955,6 +1021,87 @@ extra/.code={}}%
 center name/.initial=I,
 A/.initial={(1,0,0)},B/.initial={(0,1,0)},C/.initial={(0,0,1)},
 projection prefix/.initial=tmpp}
+%
+\tikzset{pics/3d/cone/.style={code={
+	\tikzset{3d/.cd,#1}%
+	\def\pv##1{\pgfkeysvalueof{/tikz/3d/##1}}%
+	\pgfmathsetmacro{\sdtip}{screendepth(0,0,\pv{h})}
+	\pgfmathsetmacro{\aspectangle}{atan2(\sdtip,sqrt(\pv{h}*\pv{h}-\sdtip*\sdtip))}
+	\path (0,0,\pv{h}) coordinate (-tip);
+    \begin{scope}[x={(0,0,tan(\aspectangle))},y={($(0,0,0)!1cm!90:(0,0,\pv{h})$)}]
+	 \pgfmathtruncatemacro{\itest}{abs(tan(\aspectangle)*\pv{r}/\pv{h})<1}
+	 \ifnum\itest=1
+	  \pgfmathsetmacro{\alphacrit}{acos(tan(\aspectangle)*\pv{r}/\pv{h})}
+	  \ifdim\sdtip pt>0pt
+	   \path[/tikz/3d/hidden] (\alphacrit:\pv{r}) arc[start angle=\alphacrit,end
+	   angle=-\alphacrit,radius=\pv{r}];
+	   \path[/tikz/3d/visible] (\alphacrit:\pv{r}) 
+	   arc[start angle=\alphacrit,end  angle=360-\alphacrit,radius=\pv{r}]
+	   -- (-tip) -- cycle;
+	  \else
+	   \path[/tikz/3d/visible] circle[radius=\pv{r}];
+	   \path[/tikz/3d/visible] (\alphacrit:\pv{r}) 
+	   -- (-tip) -- (360-\alphacrit:\pv{r});
+	  \fi
+	 \else
+	  \path[/tikz/3d/visible] circle[radius=\pv{r}];	 
+	 \fi
+    \end{scope}
+	}}}
+%%
+\tikzset{pics/3d/frustum/.style={code={
+			\tikzset{3d/.cd,#1}
+			\def\pv##1{\pgfkeysvalueof{/tikz/3d/##1}}%
+			\pgfmathsetmacro{\myH}{(\pv{R}*\pv{h}/(\pv{R}-\pv{r}))}%
+			\pgfmathsetmacro{\sdtip}{screendepth(0,0,\myH)}%
+			\pgfmathsetmacro{\aspectangle}{atan2(\sdtip,sqrt(\myH*\myH-\sdtip*\sdtip))}
+			%\typeout{H=\myH,angle=\aspectangle}
+			\path[overlay] (0,0,\myH) coordinate (-tip)
+			(0,0,\pv{h}) coordinate (-upper base);
+			\begin{scope}[x={(0,0,tan(\aspectangle))},y={($(0,0,0)!1cm!90:(0,0,\pv{h})$)}]
+				\pgfmathtruncatemacro{\itest}{abs(tan(\aspectangle)*\pv{R}/\myH)<1}
+				\ifnum\itest=1
+				 \pgfmathsetmacro{\alphacrit}{acos(tan(\aspectangle)*\pv{R}/\myH)}
+				 \ifdim\sdtip pt>0pt
+				  \path[/tikz/3d/hidden] (\alphacrit:\pv{R}) arc[start angle=\alphacrit,end
+				  angle=-\alphacrit,radius=\pv{R}];
+				  \path[/tikz/3d/visible] ($(-upper base)+(\alphacrit:\pv{r})$)
+				  --(\alphacrit:\pv{R}) 
+				  arc[start angle=\alphacrit,end  angle=360-\alphacrit,radius=\pv{R}]
+				  -- ($(-upper base)+(360-\alphacrit:\pv{r})$);
+				  \path[/tikz/3d/visible] (-upper base) circle[radius=\pv{r}];
+				 \else %\typeout{\sdtip<0}
+				  \path[/tikz/3d/visible] circle[radius=\pv{R}];
+				  \begin{scope}
+				   \clip circle[radius=\pv{R}];
+				   \path[/tikz/3d/hidden] ($(-upper base)+(\alphacrit:\pv{r})$)
+				   --(\alphacrit:\pv{R}) 
+				   ($(-upper base)+(360-\alphacrit:\pv{r})$)
+				   --(360-\alphacrit:\pv{R});
+				   \path[/tikz/3d/hidden] (-upper base) circle[radius=\pv{r}];
+				  \end{scope}
+				  % enlarge the bounding box
+				  \path ($(-upper base)+(\alphacrit:\pv{r})$)
+				  --(\alphacrit:\pv{R}) 
+				  ($(-upper base)+(360-\alphacrit:\pv{r})$)
+				  --(360-\alphacrit:\pv{R});
+				  \path (-upper base) circle[radius=\pv{r}];
+				  \begin{scope}
+ 				   \clip[even odd clip] circle[radius=\pv{R}] [generous outside path];
+				   \path[/tikz/3d/visible] ($(-upper base)+(\alphacrit:\pv{r})$)
+				   --(\alphacrit:\pv{R}) 
+				   ($(-upper base)+(360-\alphacrit:\pv{r})$)
+				   --(360-\alphacrit:\pv{R});
+				   \path[/tikz/3d/visible] (-upper base) circle[radius=\pv{r}];
+				  \end{scope}
+				 \fi
+				\else
+				 \path[/tikz/3d/visible] circle[radius=\pv{R}];	 
+				 \path[/tikz/3d/hidden] (-upper base) circle[radius=\pv{r}];
+				\fi
+			\end{scope}
+	}}}
+%		
 \pgfmathdeclarefunction{tddistance}{2}{%
 \begingroup%
 \pgfmathparse@td@FPU{sqrt(TD("#1-#2o#1-#2"))}%
@@ -1132,8 +1279,8 @@ before hidden/.code={},after hidden/.code={},
 }%
 % y cylinder, not yet in the manual
 \tikzset{pics/ycylinder/.style={code={
-\tikzset{3d/cylinder/.cd,#1}
-\def\pv##1{\pgfkeysvalueof{/tikz/3d/cylinder/##1}}
+\tikzset{3d/.cd,#1}
+\def\pv##1{\pgfkeysvalueof{/tikz/3d/##1}}
 \pgfmathsetmacro{\vmin}{atan2(sin(\pgfkeysvalueof{/tikz/3d/theta})*sin(\pgfkeysvalueof{/tikz/3d/phi}),%
 min(cos(\pgfkeysvalueof{/tikz/3d/phi}),-1/sqrt(2))*cos(\pgfkeysvalueof{/tikz/3d/theta}))}
 \pgfmathsetmacro{\vmax}{\vmin-180}
@@ -1155,9 +1302,11 @@ min(cos(\pgfkeysvalueof{/tikz/3d/phi}),-1/sqrt(2))*cos(\pgfkeysvalueof{/tikz/3d/
     \path[3d/cylinder/top] plot[variable=\t,domain=0:360,smooth cycle]
     ({\pv{r}*cos(\t)},0,{\pv{r}*sin(\t)}) ;
 \fi
-}},3d/.cd,cylinder/.cd,r/.initial=1,h/.initial=1,
+}},3d/.cd,cylinder/.cd,
 mantle/.style={draw},top/.style={draw}}
-
+\tikzset{3d/.cd,visible/.style={draw,solid},
+	hidden/.style={draw,very thin,cheating dash},
+	r/.initial=1,h/.initial=1,R/.initial=2}
 %%
 %% decorations
 %% 

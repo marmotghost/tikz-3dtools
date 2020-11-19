@@ -316,6 +316,11 @@ named \mvar{name}}
 	\mvar{point 1} and \mvar{point 1}.   
 \end{key}
 
+\begin{key}{/tikz/3d/sphere with center=\mvar{center} and radius \mvar{radius} named \mvar{name}}
+    Defines a sphere with center \mvar{center} and radius \mvar{radius}. 
+\end{key}
+
+
 \begin{key}{/tikz/3d/intersection of=\mvar{object 1} with \mvar{object 2}}
     Computes the intersection of a named object \mvar{object 1} with another
 	object \mvar{object 2}. Currently only intersections of planes with lines
@@ -1009,15 +1014,46 @@ systems such as spherical ones, all coordinates that are defined in
 \end{tikzpicture}
 \end{codeexample}
 
+The library has also some experimental pics for cones, truncated cones and
+cylinders. They share a couple of common keys. 
+
+\begin{key}{/tikz/3d/r (initially 1)}
+ Key for radii, e.g.\ of cylinders or cones.
+\end{key}
+\begin{key}{/tikz/3d/h (initially 1)}
+ Key for heights,  e.g.\ of cylinders or cones.
+\end{key}
+\begin{key}{/tikz/3d/R (initially 2)}
+ Key for larger radii, e.g.\ of a frustum.
+\end{key}
+\begin{key}{/tikz/pics/3d/visible (initially {draw,solid})}
+ Style for visible lines.
+\end{key}
+\begin{key}{/tikz/pics/3d/hidden (initially {draw,very thin,cheating dash})}
+ Style for hidden lines.
+\end{key}
+
+\begin{key}{/tikz/pics/3d/cone (initially empty)}
+ Draws a cone with the basis in the current xy plane.
+\end{key}
+
+\begin{key}{/tikz/pics/3d/frustum (initially empty)}
+ Draws a cone with the basis in the current xy plane.
+\end{key}
+
+
+\begin{codeexample}[width=4.5cm,preamble={\usetikzlibrary{3dtools}}]
+\begin{tikzpicture}[3d/install view=%
+	{phi=110,psi=0,theta=60}]
+ \pic{3d/frustum};
+\end{tikzpicture}
+\end{codeexample}
+
+
+
 \begin{key}{/tikz/pics/ycylinder (initially empty)}
  A cylinder in the $y$-direction. This pic requires the |calc| library. 
  As of now it does only work for |psi=0|.
-\end{key}
-\begin{key}{/tikz/pics/3d/r (initially 1)}
- Key for radii, e.g.\ of cylinders.
-\end{key}
-\begin{key}{/tikz/pics/3d/h (initially 1)}
- Key for heights,  e.g.\ of cylinders.
 \end{key}
 \begin{key}{/tikz/pics/3d/mantle (initially draw)}
  Style for cylinder mantle. If no fill option is specified, it will be shaded.
@@ -1027,12 +1063,29 @@ systems such as spherical ones, all coordinates that are defined in
 \end{key}
 
 
+
 \begin{codeexample}[width=3cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}[3d/install view={phi=30,psi=0,theta=80}]
  \pic{ycylinder={r=0.4,h=3,
  top/.style={fill=blue}}};
 \end{tikzpicture}
 \end{codeexample}
+
+% \begin{key}{/tikz/3d/cone/r (initially 1)}
+%  Radius of the base of the cone.
+% \end{key}
+% \begin{key}{/tikz/3d/cone/h (initially 1)}
+%  Height of the cone.
+% \end{key}
+% \begin{key}{/tikz/pics/3d/h (initially 1)}
+%  Key for heights,  e.g.\ of cylinders.
+% \end{key}
+% \begin{key}{/tikz/pics/3d/mantle (initially draw)}
+%  Style for cylinder mantle. If no fill option is specified, it will be shaded.
+% \end{key}
+% \begin{key}{/tikz/pics/3d/top (initially draw)}
+%  Style for cylinder top. 
+% \end{key}
 
 To do:
 \begin{itemize}
