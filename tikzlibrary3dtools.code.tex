@@ -723,6 +723,18 @@ line through/.code args={#1 and #2 named #3}{%
 \expandafter\xdef\csname tikz@td@dim@#3\endcsname{1}%
 \fi
 },%
+line with direction/.code args={#1 through #2 named #3}{%
+\pgfmathsetmacro{\pgfutil@tmpd}{TD("#2")}%
+\pgfmathsetmacro{\pgfutil@tmpe}{TD("#1+#2")}%
+\pgfmathsetmacro{\pgfutil@tmpf}{TD("#1o#1")}%
+\ifdim\pgfutil@tmpf pt<0.001pt\relax
+\PackageWarning{3dtools}{The points #1 and #2 are too close to each other. No line defined.}%
+\else
+\expandafter\xdef\csname tikz@td@line@A@#3\endcsname{\pgfutil@tmpd}%
+\expandafter\xdef\csname tikz@td@line@B@#3\endcsname{\pgfutil@tmpe}%
+\expandafter\xdef\csname tikz@td@dim@#3\endcsname{1}%
+\fi
+},%
 sphere with center/.code args={#1 and radius #2 named #3}{%
 \pgfmathsetmacro{\pgfutil@tmpd}{TD("#1")}%
 \expandafter\xdef\csname tikz@td@sphere@C@#3\endcsname{\pgfutil@tmpd}%
@@ -756,41 +768,49 @@ project/.code args={#1 on #2}{%
 \expandafter\edef\expandafter\pgfutil@tmpe{\csname tikz@td@dim@#2\endcsname}%
 \edef\pgfutil@tmpde{\pgfutil@tmpd\pgfutil@tmpe}%
 \edef\pgfutil@tmpf{0}% flag
-\ifnum\pgfutil@tmpde=21\relax% plane with line
-\expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@line@A@#2\endcsname}%
-\expandafter\edef\expandafter\pgfutil@tmpb{\csname tikz@td@line@B@#2\endcsname}%
-\expandafter\edef\expandafter\pgfutil@tmpn{\csname tikz@td@plane@normal@#1\endcsname}%
-\expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@plane@point@#1\endcsname}%
-\edef\pgfutil@tmpf{1}%
+\ifnum\pgfutil@tmpde=11\relax% line with line
+ \expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@line@B@#1\endcsname}%
+ \expandafter\edef\expandafter\pgfutil@tmpb{\csname tikz@td@line@B@#2\endcsname}%
+ \expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@line@A@#1\endcsname}%
+ \expandafter\edef\expandafter\pgfutil@tmpd{\csname tikz@td@line@A@#2\endcsname}%
+\edef\pgfutil@tmpf{3}% 
 \else
- \ifnum\pgfutil@tmpde=12\relax% line with plane
-  \expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@line@A@#1\endcsname}%
-  \expandafter\edef\expandafter\pgfutil@tmpb{\csname tikz@td@line@B@#1\endcsname}%
-  \expandafter\edef\expandafter\pgfutil@tmpn{\csname tikz@td@plane@normal@#2\endcsname}%
-  \expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@plane@point@#2\endcsname}%
-  \edef\pgfutil@tmpf{1}% flag
+\ifnum\pgfutil@tmpde=21\relax% plane with line
+ \expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@line@A@#2\endcsname}%
+ \expandafter\edef\expandafter\pgfutil@tmpb{\csname tikz@td@line@B@#2\endcsname}%
+ \expandafter\edef\expandafter\pgfutil@tmpn{\csname tikz@td@plane@normal@#1\endcsname}%
+ \expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@plane@point@#1\endcsname}%
+ \edef\pgfutil@tmpf{1}%
  \else
-  \ifnum\pgfutil@tmpde=13\relax% line with sphere
+  \ifnum\pgfutil@tmpde=12\relax% line with plane
    \expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@line@A@#1\endcsname}%
    \expandafter\edef\expandafter\pgfutil@tmpb{\csname tikz@td@line@B@#1\endcsname}%
-   \expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@sphere@C@#2\endcsname}%
-   \expandafter\edef\expandafter\pgfutil@tmpr{\csname tikz@td@sphere@r@#2\endcsname}%
-   \edef\pgfutil@tmpf{2}%
-   \typeout{line with sphere}%
+   \expandafter\edef\expandafter\pgfutil@tmpn{\csname tikz@td@plane@normal@#2\endcsname}%
+   \expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@plane@point@#2\endcsname}%
+   \edef\pgfutil@tmpf{1}% flag
   \else
-   \ifnum\pgfutil@tmpde=31\relax% sphere with line
-   \expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@line@A@#2\endcsname}%
-   \expandafter\edef\expandafter\pgfutil@tmpb{\csname tikz@td@line@B@#2\endcsname}%
-   \expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@sphere@C@#1\endcsname}%
-   \expandafter\edef\expandafter\pgfutil@tmpr{\csname tikz@td@sphere@r@#1\endcsname}%
-   \edef\pgfutil@tmpf{2}%
-    \typeout{sphere with line}%
+   \ifnum\pgfutil@tmpde=13\relax% line with sphere
+	\expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@line@A@#1\endcsname}%
+	\expandafter\edef\expandafter\pgfutil@tmpb{\csname tikz@td@line@B@#1\endcsname}%
+	\expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@sphere@C@#2\endcsname}%
+	\expandafter\edef\expandafter\pgfutil@tmpr{\csname tikz@td@sphere@r@#2\endcsname}%
+	\edef\pgfutil@tmpf{2}%
+	\typeout{line with sphere}%
    \else
-	\PackageWarning{3dtools}{Currently, one intersection object has to be a plane and the other 
-  	  one a line. However, #1 has dimension \pgfutil@tmpd\space and 
-	  #2 has dimension \pgfutil@tmpe.}%
-   \fi
-  \fi	
+	\ifnum\pgfutil@tmpde=31\relax% sphere with line
+	\expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@line@A@#2\endcsname}%
+	\expandafter\edef\expandafter\pgfutil@tmpb{\csname tikz@td@line@B@#2\endcsname}%
+	\expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@sphere@C@#1\endcsname}%
+	\expandafter\edef\expandafter\pgfutil@tmpr{\csname tikz@td@sphere@r@#1\endcsname}%
+	\edef\pgfutil@tmpf{2}%
+     \typeout{sphere with line}%
+	\else
+	 \PackageWarning{3dtools}{Currently, one intersection object has to be a plane and the other 
+  	   one a line. However, #1 has dimension \pgfutil@tmpd\space and 
+	   #2 has dimension \pgfutil@tmpe.}%
+	\fi
+   \fi	
+  \fi
  \fi
 \fi
 \ifnum\pgfutil@tmpf=1\relax% reasonable input, stored in a, b, c and n
@@ -836,6 +856,28 @@ project/.code args={#1 on #2}{%
 \fi
 % cont
 \fi
+\fi
+\ifnum\pgfutil@tmpf=3\relax% intersection between two lines, follow https://math.stackexchange.com/a/271366
+ \pgfmathsetmacro{\pgfutil@tmpC}{TD("(\pgfutil@tmpc)")}%
+ \pgfmathsetmacro{\pgfutil@tmpD}{TD("(\pgfutil@tmpd)")}%
+ \pgfmathsetmacro{\pgfutil@tmpE}{TD("(\pgfutil@tmpc)-(\pgfutil@tmpa)")}%
+ \pgfmathsetmacro{\pgfutil@tmpF}{TD("(\pgfutil@tmpd)-(\pgfutil@tmpb)")}%
+ \pgfmathsetmacro{\pgfutil@tmpG}{TD("(\pgfutil@tmpD)-(\pgfutil@tmpC)")}%
+ \pgfmathsetmacro{\pgfutil@tmpH}{TD("(\pgfutil@tmpF)x(\pgfutil@tmpG)")}%
+ \pgfmathsetmacro{\pgfutil@tmpK}{TD("(\pgfutil@tmpF)x(\pgfutil@tmpE)")}%
+ \pgfmathsetmacro{\pgfutil@tmph}{sqrt(TD("(\pgfutil@tmpH)o(\pgfutil@tmpH)"))}%
+ \pgfmathsetmacro{\pgfutil@tmpk}{sqrt(TD("(\pgfutil@tmpK)o(\pgfutil@tmpK)"))}%
+ \ifdim\pgfutil@tmph pt<0.01pt\relax
+  \PackageWarning{3dtools}{The lines do not intersect within the uncertainties. Returning (0,0,0) instead.}%
+ \else
+  \ifdim\pgfutil@tmpk pt<0.01pt\relax
+   \PackageWarning{3dtools}{The lines do not intersect within the uncertainties. Returning (0,0,0) instead.}%
+  \else
+   \pgfmathsetmacro{\pgfutil@tmpl}{sign(TD("(\pgfutil@tmpH)o(\pgfutil@tmpK)"))*\pgfutil@tmph/\pgfutil@tmpk}%
+   \pgfmathsetmacro{\pgfutil@tmpM}{TD("(\pgfutil@tmpC)+\pgfutil@tmpl*(\pgfutil@tmpE)")}%
+   \tikzset{insert path={(\pgfutil@tmpM) coordinate (\pgfkeysvalueof{/tikz/3d/aux keys/intersection 1})}}%
+  \fi 
+ \fi
 \fi
 }}
 %%
