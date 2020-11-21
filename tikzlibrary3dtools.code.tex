@@ -664,16 +664,21 @@ torusumax(\th,\R,\r)=ifthenelse(torusdisc(\th,\R,\r)>0,asin(sqrt(abs(torusdisc(\
 insert path={(\pgfmathresult)}},3d coordinate/.style args={#1=#2}{%
 /utils/exec=\pgfmathtdparse{#2},%
 insert path={(\pgfmathresult) coordinate #1}}}%
-\def\pgfmathprintvector#1{%
-\pgfutil@tempcnta=0%
-\pgfutil@for\pgf@tmp:={#1}\do{\advance\pgfutil@tempcnta by1}%
-\pgfutil@tempcntb=1%
-\pgfutil@for\pgf@tmp:={#1}\do{\advance\pgfutil@tempcntb by1%
-\ifnum\the\pgfutil@tempcntb<\the\pgfutil@tempcnta
-\pgfmathprintnumber\pgf@tmp,%
+\newcommand\pgfmathprintvector[2][]{%
+\begingroup
+\pgfkeys{#1}%
+\pgfutil@tempcnta0%
+\pgfutil@for\pgf@tmp:={#2}\do{\advance\pgfutil@tempcnta by1}%
+\pgfutil@tempcntb1%
+\pgfutil@for\pgf@tmp:={#2}\do{\advance\pgfutil@tempcntb by1%
+\ifnum\pgfutil@tempcntb<\pgfutil@tempcnta
+\pgfmathparse{\pgf@tmp}%
+\pgfmathprintnumber{\pgfmathresult},%
 \else
-\pgfmathprintnumber\pgf@tmp
+\pgfmathparse{\pgf@tmp}%
+\pgfmathprintnumber{\pgfmathresult}%
 \fi}%
+\endgroup
 }%
 % 
 % projection of a point on a line
@@ -762,7 +767,7 @@ project/.code args={#1 on #2}{%
 \fi
 }}
 %%
-%% intersections in 3d (so far: intersection of line with plane)
+%% intersections in 3d (so far: intersection of line with line, plane, or sphere)
 \tikzset{3d/intersection of/.code args={#1 with #2}{%
 \expandafter\edef\expandafter\pgfutil@tmpd{\csname tikz@td@dim@#1\endcsname}%
 \expandafter\edef\expandafter\pgfutil@tmpe{\csname tikz@td@dim@#2\endcsname}%
@@ -860,23 +865,28 @@ project/.code args={#1 on #2}{%
 \ifnum\pgfutil@tmpf=3\relax% intersection between two lines, follow https://math.stackexchange.com/a/271366
  \pgfmathsetmacro{\pgfutil@tmpC}{TD("(\pgfutil@tmpc)")}%
  \pgfmathsetmacro{\pgfutil@tmpD}{TD("(\pgfutil@tmpd)")}%
- \pgfmathsetmacro{\pgfutil@tmpE}{TD("(\pgfutil@tmpc)-(\pgfutil@tmpa)")}%
- \pgfmathsetmacro{\pgfutil@tmpF}{TD("(\pgfutil@tmpd)-(\pgfutil@tmpb)")}%
- \pgfmathsetmacro{\pgfutil@tmpG}{TD("(\pgfutil@tmpD)-(\pgfutil@tmpC)")}%
- \pgfmathsetmacro{\pgfutil@tmpH}{TD("(\pgfutil@tmpF)x(\pgfutil@tmpG)")}%
- \pgfmathsetmacro{\pgfutil@tmpK}{TD("(\pgfutil@tmpF)x(\pgfutil@tmpE)")}%
- \pgfmathsetmacro{\pgfutil@tmph}{sqrt(TD("(\pgfutil@tmpH)o(\pgfutil@tmpH)"))}%
- \pgfmathsetmacro{\pgfutil@tmpk}{sqrt(TD("(\pgfutil@tmpK)o(\pgfutil@tmpK)"))}%
- \ifdim\pgfutil@tmph pt<0.01pt\relax
-  \PackageWarning{3dtools}{The lines do not intersect within the uncertainties. Returning (0,0,0) instead.}%
+ \pgfmathsetmacro{\pgfutil@tmpi}{sqrt(TD("(\pgfutil@tmpC)-(\pgfutil@tmpD)o(\pgfutil@tmpC)-(\pgfutil@tmpD)"))}%
+ \ifdim\pgfutil@tmpi pt<0.05pt\relax
+  \tikzset{insert path={(\pgfutil@tmpC) coordinate (\pgfkeysvalueof{/tikz/3d/aux keys/intersection 1})}}%
  \else
-  \ifdim\pgfutil@tmpk pt<0.01pt\relax
+  \pgfmathsetmacro{\pgfutil@tmpE}{TD("(\pgfutil@tmpc)-(\pgfutil@tmpa)")}%
+  \pgfmathsetmacro{\pgfutil@tmpF}{TD("(\pgfutil@tmpd)-(\pgfutil@tmpb)")}%
+  \pgfmathsetmacro{\pgfutil@tmpG}{TD("(\pgfutil@tmpD)-(\pgfutil@tmpC)")}%
+  \pgfmathsetmacro{\pgfutil@tmpH}{TD("(\pgfutil@tmpF)x(\pgfutil@tmpG)")}%
+  \pgfmathsetmacro{\pgfutil@tmpK}{TD("(\pgfutil@tmpF)x(\pgfutil@tmpE)")}%
+  \pgfmathsetmacro{\pgfutil@tmph}{sqrt(TD("(\pgfutil@tmpH)o(\pgfutil@tmpH)"))}%
+  \pgfmathsetmacro{\pgfutil@tmpk}{sqrt(TD("(\pgfutil@tmpK)o(\pgfutil@tmpK)"))}%
+  \ifdim\pgfutil@tmph pt<0.01pt\relax
    \PackageWarning{3dtools}{The lines do not intersect within the uncertainties. Returning (0,0,0) instead.}%
   \else
-   \pgfmathsetmacro{\pgfutil@tmpl}{sign(TD("(\pgfutil@tmpH)o(\pgfutil@tmpK)"))*\pgfutil@tmph/\pgfutil@tmpk}%
-   \pgfmathsetmacro{\pgfutil@tmpM}{TD("(\pgfutil@tmpC)+\pgfutil@tmpl*(\pgfutil@tmpE)")}%
-   \tikzset{insert path={(\pgfutil@tmpM) coordinate (\pgfkeysvalueof{/tikz/3d/aux keys/intersection 1})}}%
-  \fi 
+   \ifdim\pgfutil@tmpk pt<0.01pt\relax
+	\PackageWarning{3dtools}{The lines do not intersect within the uncertainties. Returning (0,0,0) instead.}%
+   \else
+	\pgfmathsetmacro{\pgfutil@tmpl}{sign(TD("(\pgfutil@tmpH)o(\pgfutil@tmpK)"))*\pgfutil@tmph/\pgfutil@tmpk}%
+	\pgfmathsetmacro{\pgfutil@tmpM}{TD("(\pgfutil@tmpC)+\pgfutil@tmpl*(\pgfutil@tmpE)")}%
+	\tikzset{insert path={(\pgfutil@tmpM) coordinate (\pgfkeysvalueof{/tikz/3d/aux keys/intersection 1})}}%
+   \fi 
+  \fi
  \fi
 \fi
 }}
