@@ -1116,6 +1116,8 @@ projection prefix/.initial=tmpp}
    (0,0,\pv{h}) coordinate (-upper base);
    \begin{scope}[x={(0,0,tan(\aspectangle))},y={($(0,0,0)!1cm!90:(0,0,\pv{h})$)}]
 	   \pgfmathtruncatemacro{\itest}{abs(tan(\aspectangle)*\pv{R}/\myH)<1}
+	   \path (-upper base) circle[radius=\pv{r}]
+	    (0,0,0) circle[radius=\pv{R}];
 	   \ifnum\itest=1
 		\pgfmathsetmacro{\alphacrit}{acos(tan(\aspectangle)*\pv{R}/\myH)}
 		\ifdim\sdtip pt>0pt
