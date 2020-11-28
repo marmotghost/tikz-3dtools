@@ -92,6 +92,10 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \pgfkeys{/pgf/fpu,/pgf/fpu/output format=fixed}%
 \pgfmathparse{#1}%
 \pgfmathsmuggle\pgfmathresult\endgroup}%
+\def\pgfmathsetmacro@td@FPU#1#2{\begingroup%
+\pgfkeys{/pgf/fpu,/pgf/fpu/output format=fixed}%
+\pgfmathsetmacro#1{#2}%
+\pgfmathsmuggle#1\endgroup}%
 %
 \xdef\tikz@td@type{0}%0=linear combination,1=vector product
 \long\def\RawCoord(#1){\csname tikz@dcl@coord@#1\endcsname}% 
@@ -308,8 +312,8 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \begingroup%
 \pgfkeys{/pgf/fpu,/pgf/fpu/output format=fixed}%
 \pgfmathparse{%
-((\the\pgf@yx/1cm)*(\the\pgf@zy/1cm)-(\the\pgf@yy/1cm)*(\the\pgf@zx/1cm))*(#1)+
-((\the\pgf@zx/1cm)*(\the\pgf@xy/1cm)-(\the\pgf@xx/1cm)*(\the\pgf@zy/1cm))*(#2)+
+((\the\pgf@yx/1cm)*(\the\pgf@zy/1cm)-(\the\pgf@yy/1cm)*(\the\pgf@zx/1cm))*(#1)+%
+((\the\pgf@zx/1cm)*(\the\pgf@xy/1cm)-(\the\pgf@xx/1cm)*(\the\pgf@zy/1cm))*(#2)+%
 ((\the\pgf@xx/1cm)*(\the\pgf@yy/1cm)-(\the\pgf@yx/1cm)*(\the\pgf@xy/1cm))*(#3)}%
 \pgfmathsmuggle\pgfmathresult\endgroup%
 }%
@@ -874,15 +878,15 @@ project/.code args={#1 on #2}{%
   \pgfmathsetmacro{\pgfutil@tmpG}{TD("(\pgfutil@tmpD)-(\pgfutil@tmpC)")}%
   \pgfmathsetmacro{\pgfutil@tmpH}{TD("(\pgfutil@tmpF)x(\pgfutil@tmpG)")}%
   \pgfmathsetmacro{\pgfutil@tmpK}{TD("(\pgfutil@tmpF)x(\pgfutil@tmpE)")}%
-  \pgfmathsetmacro{\pgfutil@tmph}{sqrt(TD("(\pgfutil@tmpH)o(\pgfutil@tmpH)"))}%
-  \pgfmathsetmacro{\pgfutil@tmpk}{sqrt(TD("(\pgfutil@tmpK)o(\pgfutil@tmpK)"))}%
+  \pgfmathsetmacro@td@FPU{\pgfutil@tmph}{sqrt(TD("(\pgfutil@tmpH)o(\pgfutil@tmpH)"))}%
+  \pgfmathsetmacro@td@FPU{\pgfutil@tmpk}{sqrt(TD("(\pgfutil@tmpK)o(\pgfutil@tmpK)"))}%
   \ifdim\pgfutil@tmph pt<0.01pt\relax
    \PackageWarning{3dtools}{The lines do not intersect within the uncertainties. Returning (0,0,0) instead.}%
   \else
    \ifdim\pgfutil@tmpk pt<0.01pt\relax
 	\PackageWarning{3dtools}{The lines do not intersect within the uncertainties. Returning (0,0,0) instead.}%
    \else
-	\pgfmathsetmacro{\pgfutil@tmpl}{sign(TD("(\pgfutil@tmpH)o(\pgfutil@tmpK)"))*\pgfutil@tmph/\pgfutil@tmpk}%
+	\pgfmathsetmacro@td@FPU{\pgfutil@tmpl}{sign(TD("(\pgfutil@tmpH)o(\pgfutil@tmpK)"))*\pgfutil@tmph/\pgfutil@tmpk}%
 	\pgfmathsetmacro{\pgfutil@tmpM}{TD("(\pgfutil@tmpC)+\pgfutil@tmpl*(\pgfutil@tmpE)")}%
 	\tikzset{insert path={(\pgfutil@tmpM) coordinate (\pgfkeysvalueof{/tikz/3d/aux keys/intersection 1})}}%
    \fi 
@@ -1113,14 +1117,16 @@ projection prefix/.initial=tmpp}
    \pgfmathsetmacro{\aspectangle}{atan2(\sdtip,sqrt(\myH*\myH-\sdtip*\sdtip))}%
    %\typeout{H=\myH,angle=\aspectangle}
    \path[overlay] (0,0,\myH) coordinate (-tip)
-   (0,0,\pv{h}) coordinate (-upper base);
-   \begin{scope}[x={(0,0,tan(\aspectangle))},y={($(0,0,0)!1cm!90:(0,0,\pv{h})$)}]
+   (0,0,\pv{h}) coordinate (-upper base)
+   (0,0,{tan(\aspectangle)}) coordinate (-tdtmpex)
+   ($(0,0,0)!1cm!90:(0,0,\pv{h})$) coordinate (-tdtmpey);
+   \begin{scope}[x={(-tdtmpex)},y={(-tdtmpey)}]
 	   \pgfmathtruncatemacro{\itest}{abs(tan(\aspectangle)*\pv{R}/\myH)<1}
-	   \path (-upper base) circle[radius=\pv{r}]
+	   \path[local bounding box=pft] (-upper base) circle[radius=\pv{r}]
 	    (0,0,0) circle[radius=\pv{R}];
 	   \ifnum\itest=1
 		\pgfmathsetmacro{\alphacrit}{acos(tan(\aspectangle)*\pv{R}/\myH)}
-		\ifdim\sdtip pt>0pt
+		\ifdim\sdtip pt>0pt\relax
 		 \begin{scope}
 		  \clip (-upper base) circle[radius=\pv{r}] ;
 		  \path[/tikz/3d/hidden] (\alphacrit:\pv{R}) arc[start angle=\alphacrit,end
