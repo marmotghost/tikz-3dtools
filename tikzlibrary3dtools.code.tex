@@ -812,7 +812,7 @@ project/.code args={#1 on #2}{%
 	\expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@sphere@C@#1\endcsname}%
 	\expandafter\edef\expandafter\pgfutil@tmpr{\csname tikz@td@sphere@r@#1\endcsname}%
 	\edef\pgfutil@tmpf{2}%
-     \typeout{sphere with line}%
+    \typeout{sphere with line}%
 	\else
 	 \PackageWarning{3dtools}{Currently, one intersection object has to be a plane and the other 
   	   one a line. However, #1 has dimension \pgfutil@tmpd\space and 
@@ -836,14 +836,14 @@ project/.code args={#1 on #2}{%
 \fi
 \fi
 \ifnum\pgfutil@tmpf=2\relax% line and sphere
-\pgfmathsetmacro{\pgfutil@tmpg}{TD("(\pgfutil@tmpb)-(\pgfutil@tmpa)o(\pgfutil@tmpb)-(\pgfutil@tmpa)")}%
-\pgfmathsetmacro{\pgfutil@tmph}{2*TD("(\pgfutil@tmpa)-(\pgfutil@tmpc)o(\pgfutil@tmpb)-(\pgfutil@tmpa)")}%
-\pgfmathsetmacro{\pgfutil@tmpi}{TD("(\pgfutil@tmpa)-(\pgfutil@tmpc)o(\pgfutil@tmpa)-(\pgfutil@tmpc)")-\pgfutil@tmpr*\pgfutil@tmpr}%
-\pgfmathsetmacro{\pgfutil@tmpj}{\pgfutil@tmph*\pgfutil@tmph-4*\pgfutil@tmpg*\pgfutil@tmpi}%
+\pgfmathsetmacro@td@FPU{\pgfutil@tmpg}{TD("(\pgfutil@tmpb)-(\pgfutil@tmpa)o(\pgfutil@tmpb)-(\pgfutil@tmpa)")}%
+\pgfmathsetmacro@td@FPU{\pgfutil@tmph}{2*TD("(\pgfutil@tmpa)-(\pgfutil@tmpc)o(\pgfutil@tmpb)-(\pgfutil@tmpa)")}%
+\pgfmathsetmacro@td@FPU{\pgfutil@tmpi}{TD("(\pgfutil@tmpa)-(\pgfutil@tmpc)o(\pgfutil@tmpa)-(\pgfutil@tmpc)")-\pgfutil@tmpr*\pgfutil@tmpr}%
+\pgfmathsetmacro@td@FPU{\pgfutil@tmpj}{sign(\pgfutil@tmph*\pgfutil@tmph-4*\pgfutil@tmpg*\pgfutil@tmpi)}%
 \ifdim\pgfutil@tmpj pt<0pt\relax
 \PackageWarning{3dtools}{The sphere and line do not intersect within the uncertainties. Returning (0,0,0) instead.}%
 \else
-\pgfmathsetmacro{\pgfutil@tmpk}{-1*(\pgfutil@tmph+sqrt(\pgfutil@tmph*\pgfutil@tmph-4*\pgfutil@tmpg*\pgfutil@tmpi))/2/\pgfutil@tmpg}%
+\pgfmathsetmacro@td@FPU{\pgfutil@tmpk}{-1*(\pgfutil@tmph+sqrt(\pgfutil@tmph*\pgfutil@tmph-4*\pgfutil@tmpg*\pgfutil@tmpi))/2/\pgfutil@tmpg}%
 %\typeout{k=\pgfutil@tmpk}
 \edef\pgfutil@tmpm{0}%
 \ifdim\pgfutil@tmpk pt>0pt\relax
@@ -854,7 +854,7 @@ project/.code args={#1 on #2}{%
   %\typeout{first intersection inserted.}%
  \fi
 \fi
-\pgfmathsetmacro{\pgfutil@tmpk}{-1*(\pgfutil@tmph-sqrt(\pgfutil@tmph*\pgfutil@tmph-4*\pgfutil@tmpg*\pgfutil@tmpi))/2/\pgfutil@tmpg}%
+\pgfmathsetmacro@td@FPU{\pgfutil@tmpk}{-1*(\pgfutil@tmph-sqrt(\pgfutil@tmph*\pgfutil@tmph-4*\pgfutil@tmpg*\pgfutil@tmpi))/2/\pgfutil@tmpg}%
 %\typeout{k=\pgfutil@tmpk}
 \ifdim\pgfutil@tmpk pt>0pt\relax
  \ifdim\pgfutil@tmpk pt<1pt\relax
