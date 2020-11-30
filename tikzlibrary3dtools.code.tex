@@ -843,16 +843,19 @@ project/.code args={#1 on #2}{%
 \ifdim\pgfutil@tmpj pt<0pt\relax
 \PackageWarning{3dtools}{The sphere and line do not intersect within the uncertainties. Returning (0,0,0) instead.}%
 \else
-\pgfmathsetmacro{\pgfutil@tmpk}{(\pgfutil@tmph+sqrt(\pgfutil@tmph*\pgfutil@tmph-4*\pgfutil@tmpg*\pgfutil@tmpi))/2/\pgfutil@tmpg}%
+\pgfmathsetmacro{\pgfutil@tmpk}{-1*(\pgfutil@tmph+sqrt(\pgfutil@tmph*\pgfutil@tmph-4*\pgfutil@tmpg*\pgfutil@tmpi))/2/\pgfutil@tmpg}%
+%\typeout{k=\pgfutil@tmpk}
 \edef\pgfutil@tmpm{0}%
 \ifdim\pgfutil@tmpk pt>0pt\relax
  \ifdim\pgfutil@tmpk pt<1pt\relax
   \edef\pgfutil@tmpm{1}%
   \pgfmathsetmacro{\pgfutil@tmpn}{TD("(\pgfutil@tmpa)+\pgfutil@tmpk*(\pgfutil@tmpb)-\pgfutil@tmpk*(\pgfutil@tmpa)")}%
   \tikzset{insert path={(\pgfutil@tmpn) coordinate (\pgfkeysvalueof{/tikz/3d/aux keys/intersection 1})}}%
+  %\typeout{first intersection inserted.}%
  \fi
 \fi
-\pgfmathsetmacro{\pgfutil@tmpk}{(\pgfutil@tmph-sqrt(\pgfutil@tmph*\pgfutil@tmph-4*\pgfutil@tmpg*\pgfutil@tmpi))/2/\pgfutil@tmpg}%
+\pgfmathsetmacro{\pgfutil@tmpk}{-1*(\pgfutil@tmph-sqrt(\pgfutil@tmph*\pgfutil@tmph-4*\pgfutil@tmpg*\pgfutil@tmpi))/2/\pgfutil@tmpg}%
+%\typeout{k=\pgfutil@tmpk}
 \ifdim\pgfutil@tmpk pt>0pt\relax
  \ifdim\pgfutil@tmpk pt<1pt\relax
   \pgfmathsetmacro{\pgfutil@tmpn}{TD("(\pgfutil@tmpa)+\pgfutil@tmpk*(\pgfutil@tmpb)-\pgfutil@tmpk*(\pgfutil@tmpa)")}%
