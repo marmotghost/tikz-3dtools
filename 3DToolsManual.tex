@@ -1,4 +1,5 @@
 \documentclass[a4paper,fleqn]{ltxdoc}
+\usepackage[margin=1in]{geometry}
 %\input{pgfmanual-dvipdfm.cfg}
 %\input{../../text-en/pgfmanual-en-main-preamble}
 \usepackage[version=latest]{pgf}
@@ -149,7 +150,7 @@ to parse 3d expressions. The supported vector operations are |+| (addition $+$),
    or dreibein is a German word that stands for a local frame, its literal
    translation is something like three-leg. Like the term eigenvector this is a
    foreign word that, to the best of my knowledge, has no commonly used English
-   counterpart.} from lengths like  |\textbackslash pgf@xy| and so on, so the
+   counterpart.} from lengths like  \texttt{\textbackslash pgf@xy} and so on, so the
    function is independent of the tool that is employed to install a view (cf.\
    section~\ref{sec:3DOrthonormalProjections}). The screen depth is crucial to
    decide which objects are in front of other objects. 
@@ -328,9 +329,21 @@ named \mvar{name}}
 
 \begin{key}{/tikz/3d/intersection of=\mvar{object 1} with \mvar{object 2}}
     Computes the intersection of a named object \mvar{object 1} with another
-	object \mvar{object 2}. Currently only intersections of planes with lines
-	are supported.	
+	object \mvar{object 2}. Currently only intersections of lines with lines and
+	planes with lines are supported. There is also some support for
+	intersections of lines with spheres. The intersections get also named by
+	some predefined names. Note that if intersections cannot be found, warnings
+	will be issued. Due to the limited precision of \TeX\ the decision whether
+	or not an intersection actually exists may be wrong in close cases.
 \end{key}
+
+\begin{key}{/tikz/3d/aux keys/intersection 1  (initially I-1)}
+    Predefined name for the first intersection.
+\end{key}	
+
+\begin{key}{/tikz/3d/aux keys/intersection 2  (initially I-2)}
+    Predefined name for the second intersection.
+\end{key}	
 
 These extended objects can be used in projections.
 
@@ -683,7 +696,7 @@ surface with \LaTeX.
  \draw[thick,smooth,variable=\u,domain=4:8] 
  	plot  (\u,{R(\u)*cv1(\u)},{R(\u)*sv1(\u)})
  	plot  (\u,{R(\u)*cv2(\u)},{R(\u)*sv2(\u)});
- ;
+ %
  \DrawIntersectingPlane[annot={%
  	\path (2.9,2.9) node[below left,transform shape]{$Q$};
 	\draw (2,3) arc[start angle=180,end angle=270,radius=1];
@@ -1131,6 +1144,18 @@ than 3.1.3, some elaborate pics may not work as they use  |\pgfutil@pushmacro|
 and |\pgfutil@popmacro|, which were added in version 3.1.3. If the version is
 earlier than 3.1.6, the internal macro |\pgfutil@pushmacro| will be fixed.  
 
+
+\subsection*{Acknowledgments}
+
+I'd like to thank \href{https://github.com/minhthien2016}{minhthien2016} for
+continuous support and encouragement. I thank the creators, maintainers,
+moderators and users of \href{https://topanswers.xyz/tex}{topanswers.xyz} for
+their invaluable support. These acknowledgements extend to all users on this
+site, including those with whom I have passionate disagreements with.
+Disagreements are good, they indicare critical thinking, or in the words of
+Nobel Laureate Steven Weinberg, physics thrives on contradictions.
+
+
 \end{document}
 
 
@@ -1174,7 +1199,6 @@ $0.5\,\vec A\times\vec B=(\pgfmathresult)$
 \noindent\pgfmathparse{TD("(A)+(C)o(B)")}%
 $\left(\begin{array}{@{}c@{}}1\\ 0\\ 0\end{array}\right)$
 %(note, however, that + and - have higher precedence than o)\end{document}
-
 
 \end{document}
 
