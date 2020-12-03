@@ -1391,6 +1391,97 @@ mantle/.style={draw},top/.style={draw}}
 %%
 %% decorations
 %% 
+%% path restoration
+\newcounter{tikz@td@recorded@point}
+\tikzset{stored path/.cd,coordinate prefix/.initial={stored-},
+	reset coordinate index/.code={\setcounter{tikz@td@recorded@point}{0}},
+	restore path/.style={insert path/.expanded={\csname tikz@td@recorded@path@f@#1\endcsname}},%	
+	restore reversed path/.style={insert path/.expanded={\csname tikz@td@recorded@path@r@#1\endcsname}},%	
+	first coordinate of/.style={insert path/.expanded={(\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#1-0)}},%	
+	last coordinate of/.style={insert path/.expanded={(\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#1-\the\numexpr\value{tikz@td@recorded@point})}},%	
+	coordinate with index/.style args={#1 of #2}{insert path/.expanded={(\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#2-#1)}},%	
+/tikz/store path/.style={/tikz/stored path/reset coordinate index,%
+    decorate,decoration={show path construction,
+    lineto code={\def\tikz@td@prefix{\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#1-}%
+	\path (\tikzinputsegmentfirst) 
+		coordinate (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point})
+		 (\tikzinputsegmentlast) 
+		coordinate (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1);
+    \ifnum\value{tikz@td@recorded@point}=0
+	 \expandafter\xdef\csname tikz@td@recorded@path@f@#1\endcsname{% forward
+	 	(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point})
+		--(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1)}%
+	 \expandafter\xdef\csname tikz@td@recorded@path@r@#1\endcsname{% reverse
+	 	(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1)
+		--(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point})}%
+	\else
+	 \expandafter\xdef\csname tikz@td@recorded@path@f@#1\endcsname{% forward
+	 	\csname tikz@td@recorded@path@f@#1\endcsname
+		--(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1)}%
+	 \expandafter\xdef\csname tikz@td@recorded@path@r@#1\endcsname{% reverse
+	 	(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1) --
+		\csname tikz@td@recorded@path@r@#1\endcsname}%
+	\fi
+	\stepcounter{tikz@td@recorded@point}%	
+    },
+    curveto code={\def\tikz@td@prefix{\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#1-}%
+      \path (\tikzinputsegmentfirst)
+	    coordinate (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point})
+        (\tikzinputsegmentsupporta) 
+		coordinate (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1)
+		(\tikzinputsegmentsupportb)
+		coordinate (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+2)
+        (\tikzinputsegmentlast)
+		coordinate (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+3);
+    \ifnum\value{tikz@td@recorded@point}=0
+	 \expandafter\xdef\csname tikz@td@recorded@path@f@#1\endcsname{% forward
+	 	(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point})
+		.. controls (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1)
+		and (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+2)
+		.. (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+3)}%
+	 \expandafter\xdef\csname tikz@td@recorded@path@r@#1\endcsname{% reverse
+	 	(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+3)
+		.. controls (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+2)
+		and (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1)
+		.. (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point})}%
+	\else
+	 \expandafter\xdef\csname tikz@td@recorded@path@f@#1\endcsname{% forward
+	 	\csname tikz@td@recorded@path@f@#1\endcsname
+		.. controls (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1)
+		and (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+2)
+		.. (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+3)}%
+	 \expandafter\xdef\csname tikz@td@recorded@path@r@#1\endcsname{% reverse
+	 	(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+3)
+		.. controls (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+2)
+		and (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1) ..
+		\csname tikz@td@recorded@path@r@#1\endcsname}%
+	\fi
+	\stepcounter{tikz@td@recorded@point}%	
+	\stepcounter{tikz@td@recorded@point}%	
+	\stepcounter{tikz@td@recorded@point}%	
+    },
+    closepath code={\def\tikz@td@prefix{\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#1-}%
+	\path (\tikzinputsegmentfirst) 
+		coordinate (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point})
+		 (\tikzinputsegmentlast) 
+		coordinate (\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1);
+    \ifnum\value{tikz@td@recorded@point}=0
+	 \expandafter\xdef\csname tikz@td@recorded@path@f@#1\endcsname{% forward
+	 	(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point})
+		--(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1)}%
+	 \expandafter\xdef\csname tikz@td@recorded@path@r@#1\endcsname{% reverse
+	 	(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1)
+		--(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point})}%
+	\else
+	 \expandafter\xdef\csname tikz@td@recorded@path@f@#1\endcsname{% forward
+	 	\csname tikz@td@recorded@path@f@#1\endcsname
+		--(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1)}%
+	 \expandafter\xdef\csname tikz@td@recorded@path@r@#1\endcsname{% reverse
+	 	(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1) --
+		\csname tikz@td@recorded@path@r@#1\endcsname}%
+	\fi
+	  } }}}
+%% coil
 \newif\ifcoil@closed%
 \pgfkeys{%%
 /pgf/decoration/.cd,%

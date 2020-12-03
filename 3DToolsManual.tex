@@ -103,7 +103,7 @@ Both keys support both symbolic and explicit coordinates.
 \end{codeexample}
 
 Notice that, as of now, only the syntax |\path (1,2,3) coordinate (A);| works,
-i.e.\ |\coordinate (A) at (1,2,3);| does \emph{not} work, but leads to error
+yet |\coordinate (A) at (1,2,3);| does \emph{not} work, but leads to error
 messages.
 
 \begin{codeexample}[width=6cm,preamble={\usetikzlibrary{3dtools}}]
@@ -123,7 +123,9 @@ messages.
 The actual parsings are done by the function |\pgfmathtdparse| that allows one
 to parse 3d expressions. The supported vector operations are |+| (addition $+$),
 |-| (subtraction $-$), |*| (multiplication of the vector by a scalar), |x|
-(vector product $\times$) and |o| (scalar product).
+(vector product $\times$) and |o| (scalar product). Admittedly, this function is
+currently very poor. Enhancing it will be a top priority if this is ever to
+become a CTAN library/package.
 
 \begin{command}{\pgfmathtdparse{\marg{x}}}
    Parses 3d expressions.
@@ -222,8 +224,8 @@ coordinates that get used later in coordinate calculations.
 \end{tikzpicture}
 \end{codeexample}
 
-Its main usage is to strip off unnecessary zeros, which emerge since the
-internal computations are largely done with the |fpu| library.
+The main usage of |\pgfmathprintvector| is to strip off unnecessary zeros, which
+emerge since the internal computations are largely done with the |fpu| library.
 
 \begin{codeexample}[width=5.2cm,preamble={\usetikzlibrary{3dtools}}]
 \pgfmathparse{TD("(1,0,0)x(0,1,0)")}%
@@ -723,7 +725,7 @@ this. It should be said, though, that these functions are even more
 apart from the ``physical'' $x$ and $y$ coordinates, i.e.\ the coordinates of an
 point on the screen, one can also keep track of the physical $z$ coordinate, or
 screen depth, which indicates how far a given point is above  ($z>0$) or below
-($z<0$) the screen. To accomplish this, one needs to swich on the recording of
+($z<0$) the screen. To accomplish this, one needs to switch on the recording of
 physical components.
 
 \begin{key}{/tikz/3d/record physical components}
@@ -1112,9 +1114,58 @@ To do:
  \item maybe layering/visibility
 \end{itemize}
 
+\subsection{Path management}
+
+This is poor marmots version of path management. The idea is that one can store
+paths, and redraw them, possibly in reversed order. This recording tool uses the
+|show path construction| decoration from the |decorations.pathreplacing|
+library. In order to make use of these tools, you need to load the library.
+
+\begin{key}{/tikz/store path=\meta{name} (initially empty)}
+ 		Records a path under the name \meta{name}. If you want to draw and
+		record a path at the same time, use |postaction={store path=name}|.
+\end{key}
+
+
+\begin{key}{/tikz/stored path/coordinate prefix=\meta{prefix} (initially stored-)}
+ 		Prefix for the stored coordinates. If you store several paths and want
+		to possibly combine them, you may want to give each path a unique
+		prefix.
+\end{key}
+
+\begin{key}{/tikz/stored path/reset coordinate index}
+ 		Resets the counter for the stored coordinates. Mainly for internal use.
+\end{key}
+
+
+\begin{key}{/tikz/stored path/restore path=\meta{name} (initially empty)}
+ 		Restores a saved path of name \meta{name} using the |insert path| key.
+\end{key}
+
+\begin{key}{/tikz/stored path/restore reversed path=\meta{name} (initially empty)}
+ 		Restores a saved path of name \meta{name} using the |insert path| key
+		in \emph{reversed} order.
+\end{key}
+
+\begin{key}{/tikz/stored path/first coordinate of=\meta{name} (initially empty)}
+ 		Inserts the first coordinate of the path named \meta{name} using the |insert path| key.
+\end{key}
+
+\begin{key}{/tikz/stored path/last coordinate of=\meta{name} (initially empty)}
+ 		Inserts the last coordinate of the path named \meta{name} using the |insert path| key.
+\end{key}
+
+\begin{key}{/tikz/stored path/coordinate with index=\mvar{n} of \meta{name} (initially empty)}
+ 		Inserts the \mvar{n}\textsuperscript{th} coordinate of the path named \meta{name} using the |insert path| key.
+		Notice that at present there is no sanity check. If \mvar{n} is
+		larger than the number of stored coordinates, there will be an error.
+\end{key}
+
+
+
 \subsection{3D-like decorations}
 
-\begin{key}{/tikz/decorations/3d complete  coil}
+\begin{key}{/tikz/decorations/3d complete coil}
         3d-like coil where the front is thicker than the back.
 \end{key}
 
@@ -1151,9 +1202,9 @@ I'd like to thank \href{https://github.com/minhthien2016}{minhthien2016} for
 continuous support and encouragement. I thank the creators, maintainers,
 moderators and users of \href{https://topanswers.xyz/tex}{topanswers.xyz} for
 their invaluable support. These acknowledgements extend to all users on this
-site, including those with whom I have passionate disagreements with.
-Disagreements are good, they indicare critical thinking, or in the words of
-Nobel Laureate Steven Weinberg, physics thrives on contradictions.
+site, including those with whom I have passionate disagreements. Disagreements
+are good, they indicate critical thinking, or in the words of Nobel Laureate
+Steven Weinberg, physics thrives on contradictions.
 
 
 \end{document}
