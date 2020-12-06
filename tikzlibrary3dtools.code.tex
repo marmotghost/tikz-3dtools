@@ -985,6 +985,7 @@ ex/.initial={(ex)},
 ey/.initial={(ey)},ez/.initial={(ez)},
 i1/.initial=i1,i2/.initial=i2,
 rA/.initial=1,rB/.initial=1,rC/.initial=1}
+\tikzset{3d/screen coords/.style={x={(1cm,0cm)},y={(0cm,1cm)},z={(-1cm,-1cm)}}}%
 %%
 %% predefined pics
 % based on https://en.wikipedia.org/wiki/Circumscribed_circle
@@ -1080,6 +1081,118 @@ extra/.code={}}%
 center name/.initial=I,
 A/.initial={(1,0,0)},B/.initial={(0,1,0)},C/.initial={(0,0,1)},
 projection prefix/.initial=tmpp}
+%
+\tikzset{pics/3d/circle on sphere/.style={code={%
+ \tikzset{3d/circle on sphere/.cd,#1}%
+ \edef\pgfutil@tmpR{\pgfkeysvalueof{/tikz/3d/circle on sphere/R}}%
+ \edef\pgfutil@tmpC{\pgfkeysvalueof{/tikz/3d/circle on sphere/C}}%
+ \edef\pgfutil@tmpP{\pgfkeysvalueof{/tikz/3d/circle on sphere/P}}%
+ \edef\pgfutil@tmpn{\pgfkeysvalueof{/tikz/3d/circle on sphere/n}}%
+ \edef\pgfutil@tmpPname{\pgfkeysvalueof{/tikz/3d/circle on sphere/auxiliary coordinate prefix}P}%
+ \pgfmathsetmacro{\pgfutil@tmpC}{TD("\pgfutil@tmpC")}%
+ \pgfmathsetmacro{\pgfutil@tmpP}{TD("\pgfutil@tmpP")}%
+ \pgfmathsetmacro{\pgfutil@tmpn}{TD("\pgfutil@tmpn")}%
+ \pgfmathsetmacro{\pgfutil@tmpd}{sqrt(TD("(\pgfutil@tmpP)-(\pgfutil@tmpC)o(\pgfutil@tmpP)-(\pgfutil@tmpC)"))}%
+ \ifdim\pgfutil@tmpd pt>0.02pt\relax
+  % compute a new normal
+  \pgfmathsetmacro{\pgfutil@tmpn}{TD("(\pgfutil@tmpP)-(\pgfutil@tmpC)")}%
+ \fi
+ % normalize the normal
+ \pgfmathsetmacro{\pgfutil@tmpa}{sqrt(TD("(\pgfutil@tmpn)o(\pgfutil@tmpn)"))}%
+ \ifdim\pgfutil@tmpa pt<0.02pt\relax
+  \PackageWarning{3dtools}{Chosen normal is too short.}%    
+ \else
+ \pgfmathtruncatemacro{\pgfutil@tmpb}{(\pgfutil@tmpd<\pgfutil@tmpR?1:0)} 
+ \ifnum\pgfutil@tmpb=0
+  \PackageWarning{3dtools}{Circle center is not inside the sphere.}
+ \else 
+  \pgfmathsetmacro{\pgfutil@tmpr}{sqrt(\pgfutil@tmpR*\pgfutil@tmpR-\pgfutil@tmpd*\pgfutil@tmpd)}%
+  \pgfmathsetmacro{\pgfutil@tmpa}{1/\pgfutil@tmpa}%
+  \pgfmathsetmacro{\pgfutil@tmpz}{TD("\pgfutil@tmpa*(\pgfutil@tmpn)")}%
+  \path[overlay] (nscreenx,nscreeny,nscreenz) coordinate (nscreen)
+	[3d coordinate/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ez}=(\pgfutil@tmpz)},
+	3d coordinate/.expanded={(\pgfutil@tmpPname)=(\pgfutil@tmpP)}];%
+  \pgfmathsetmacro{\pgfutil@tmpy}{TD("\pgfkeysvalueof{/tikz/3d/aux keys/ez}x(nscreen)")}%
+  \pgfmathsetmacro{\pgfutil@tmpa}{sqrt(TD("(\pgfutil@tmpy)o(\pgfutil@tmpy)"))}%
+  \ifdim\pgfutil@tmpa pt<0.04pt%
+   %\typeout{(n) is (almost) parallel to normal on screen.}%
+   \pgfmathsetmacro{\pgfutil@tmpx}{normalcandidate(\pgfutil@tmpz)}%
+   \pgfmathsetmacro{\pgfutil@tmpy}{TD("(\pgfutil@tmpz)x(\pgfutil@tmpx)")}
+   \path[overlay] 
+	[3d coordinate/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ex}=(\pgfutil@tmpx)},
+	 3d coordinate/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ey}=(\pgfutil@tmpy)}];
+   \pgfmathtruncatemacro{\pgfutil@tmpa}{(TD("\pgfkeysvalueof{/tikz/3d/aux keys/ez}o(\pgfutil@tmpn)")<0?0:1)}%   
+   \begin{scope}[x/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ex}},%
+   	y/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ey}},%
+	z/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ez}},%
+	shift={(\pgfutil@tmpPname)}]
+	\ifcase\pgfutil@tmpa
+	 % hidden
+	 \begin{pgfonlayer}{\pgfkeysvalueof{/tikz/3d/circle on sphere/back layer}}%
+	  \draw[3d/hidden]  circle[radius=\pgfutil@tmpr];
+	 \end{pgfonlayer}%
+	\or
+	 % visible
+	 \begin{pgfonlayer}{\pgfkeysvalueof{/tikz/3d/circle on sphere/fore layer}}%
+	  \draw[3d/visible] circle[radius=\pgfutil@tmpr];
+	 \end{pgfonlayer}% 
+	\fi
+   \end{scope}
+  \else% normal not collinear with n_screen 
+   \pgfmathsetmacro{\pgfutil@tmpa}{1/\pgfutil@tmpa}%
+   \pgfmathsetmacro{\pgfutil@tmpy}{TD("\pgfutil@tmpa*(\pgfutil@tmpy)")}%
+   \pgfmathsetmacro{\pgfutil@tmpx}{TD("(\pgfutil@tmpy)x(\pgfutil@tmpz)")}%
+   \pgfmathsetmacro{\pgfutil@tmps}{TD("(nscreen)")}%
+   \pgfmathsetmacro{\pgfutil@tmpp}{TD("\pgfkeysvalueof{/tikz/3d/aux keys/ez}o(nscreen)")}%
+   \pgfmathsetmacro{\pgfutil@tmpo}{sqrt(1-\pgfutil@tmpp*\pgfutil@tmpp)}%
+   \pgfmathsetmacro{\pgfutil@tmpa}{atan2(-1*\pgfutil@tmpp,\pgfutil@tmpo)}%
+   \pgfmathsetmacro{\pgfutil@tmpb}{screendepth(\pgfutil@tmpP)}%
+   \pgfmathsetmacro{\pgfutil@tmpc}{screendepth(\pgfutil@tmpC)}%
+   \path[overlay,
+		3d coordinate/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ex}=(\pgfutil@tmpx)},
+		3d coordinate/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ey}=(\pgfutil@tmpy)}];%
+%    \typeout{\pgfkeysvalueof{/tikz/3d/aux keys/ex}=(\pgfutil@tmpx), 
+%    	\pgfkeysvalueof{/tikz/3d/aux keys/ey}=(\pgfutil@tmpy), 
+% 	\pgfkeysvalueof{/tikz/3d/aux keys/ez}=(\pgfutil@tmpz), n_screen=(\pgfutil@tmps)}%
+   \begin{scope}[x/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ex}},%
+   	 y/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ey}},%
+	 z/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ez}},%
+	 shift={(\pgfutil@tmpPname)}]  
+    \pgfmathtruncatemacro{\pgfutil@tmpi}{(abs(\pgfutil@tmpr*cos(\pgfutil@tmpa))>abs(\pgfutil@tmpb-\pgfutil@tmpc)?1:0)}% 
+ 	\ifcase\pgfutil@tmpi
+% 	  % only visible or only hidden
+ 	 \pgfmathtruncatemacro{\pgfutil@tmpj}{(\pgfutil@tmpb<\pgfutil@tmpc?0:1)}%
+ 	 \ifcase\pgfutil@tmpj
+% 	   % hidden
+      \begin{pgfonlayer}{\pgfkeysvalueof{/tikz/3d/circle on sphere/back layer}}%
+ 	   \draw[3d/hidden]  circle[radius=\pgfutil@tmpr];
+	  \end{pgfonlayer}%	
+ 	 \or
+% 	   % visible
+	  \begin{pgfonlayer}{\pgfkeysvalueof{/tikz/3d/circle on sphere/fore layer}}%
+ 	   \draw[3d/visible]  circle[radius=\pgfutil@tmpr];
+	  \end{pgfonlayer}%	
+ 	 \fi
+ 	\or
+% 	  % mixed
+	 \pgfmathsetmacro{\pgfutil@tmpf}{abs(acos((\pgfutil@tmpc-\pgfutil@tmpb)/\pgfutil@tmpr/cos(\pgfutil@tmpa))}%
+	 \begin{pgfonlayer}{\pgfkeysvalueof{/tikz/3d/circle on sphere/back layer}}%
+	  \draw[3d/hidden]  (\pgfutil@tmpf:\pgfutil@tmpr) arc[start angle=\pgfutil@tmpf,
+	 	end angle=360-\pgfutil@tmpf,radius=\pgfutil@tmpr];
+     \end{pgfonlayer}%
+	 \begin{pgfonlayer}{\pgfkeysvalueof{/tikz/3d/circle on sphere/fore layer}}%
+	  \draw[3d/visible]  (\pgfutil@tmpf:\pgfutil@tmpr) arc[start angle=\pgfutil@tmpf,
+	 	end angle=-\pgfutil@tmpf,radius=\pgfutil@tmpr];
+	 \end{pgfonlayer}%	
+ 	\fi
+   \end{scope}
+   \fi	
+  \fi
+ \fi  
+}},3d/circle on sphere/.cd,C/.initial={(0,0,0)},
+	P/.initial={(0,0,0)},R/.initial=1,%
+	n/.initial={(0,0,1)},auxiliary coordinate prefix/.initial=tmp,%
+	fore layer/.initial=main,back layer/.initial=main}
 %
 \tikzset{pics/3d/cone/.style={code={%
 	\tikzset{3d/.cd,#1}%

@@ -23,7 +23,8 @@
 % /usr/local/texlive/2020/texmf-dist/doc/generic/pgf/macros/pgfmanual-en-macros.tex
 % or the equivalent on your installation
 \def\pgfautoxrefs{1}
-\usetikzlibrary{3dtools,calc}
+\usetikzlibrary{3dtools,calc,angles}
+\DeclareMathOperator{\sd}{sd}
 \begin{document}
 \section{3D Tools}
 \begin{tikzlibrary}{3dtools}
@@ -156,6 +157,13 @@ become a CTAN library/package.
    function is independent of the tool that is employed to install a view (cf.\
    section~\ref{sec:3DOrthonormalProjections}). The screen depth is crucial to
    decide which objects are in front of other objects. 
+\end{math-function}
+
+\begin{math-function}{tddistance("\mvar{point 1}","\mvar{point 2}")}
+   Yields the distance between \mvar{point 1} and \mvar{point 2}. You have to
+   keep the parentheses, e.g.\ |tddistance("(P)","(Q)")| works if you defined
+   the points |(P)| and |Q!|, but not 
+   |tddistance("P","Q")|;															                                                                
 \end{math-function}
 
 \begin{math-function}{nscreenx}
@@ -524,6 +532,12 @@ package.\footnote{I do not know how to contact the author.}
 		to length 1.
 \end{key}
 
+\begin{key}{/tikz/3d/screen coords}
+		Defines locally screen coordinate system, i.e.\ this style brings you
+		back to the original coordinate system in |tikzpicture|s. It is taken
+		from |tikz-3dplot|, where this style is called |tdplot_screen_coords|.
+\end{key}
+
 
 \subsection{Visibility considerations}
 
@@ -539,6 +553,8 @@ the screen, which is given by the last row of the orthogonal matrix $O$ of
 \href{https://ctan.org/pkg/tikz-3dplot?lang=en}{|tikz-3dplot|} with the
 identifications $\theta=\texttt{\textbackslash tdplotmaintheta}$ and
 $\phi=\texttt{\textbackslash tdplotmainphi}$.
+
+\subsubsection{Example 1: latitude circle on sphere}
 
 Here is an example. Suppose we wish to draw a latitude circle on a sphere for
 $\psi=0$. Since the system has a rotational symmetry around the $z$ axis, we can
@@ -595,6 +611,76 @@ Notice that it could be made more concise with the |3d| library.
 \end{tikzpicture}
 \end{codeexample}
 
+
+\subsubsection{Example 2: arbitrary circle on sphere}
+
+A somewhat more advanced question is to draw an arbitrary circle on a sphere.
+That is, we are given a sphere around a center $C$ or radius $R$ and a point $P$
+inside the sphere. If $C$ and $P$ coincide, we need to define a normal $n$,
+otherwise $n=P-C$.  How can one draw a circle on the sphere, distinguishing
+between visible and hidden stretches?
+
+\paragraph{\boldmath First test: $\lvert P-C\rvert<R$.}
+ The circle only makes sense if
+$\vert P-C\vert<R$. The radius of the circle is $r=\sqrt{R^2-\lvert P-C\rvert^2}$. Call the normal
+on the screen $n_\mathrm{screen}$. 
+
+\paragraph{\boldmath Case $n\parallel n_\mathrm{screen}$.}  If $n$ and
+$n_\mathrm{screen}$ are linearly dependent, the circle is completely hidden if
+the screen depth of $P$ is smaller than the screen depth of $C$, $\sd P <\sd$,
+and visible otherwise. We can choose a coordinate system in which  
+\[
+e_z=\frac{n}{|n|}\;,\quad e_x\text{ arbitary but }\perp e_z \quad\text{and}\quad
+e_y=e_z\times e_x
+\] 
+to draw the circle.
+
+\paragraph{\boldmath Case $n\not\,\parallel n_\mathrm{screen}$.} 
+From now on we assume that $n$ and $n_\mathrm{screen}$ are not linearly
+dependent. This means that they span a plane, and we can choose
+$n_\mathrm{screen}$ to point in the $x$-direction of this plane (see
+figure~\ref{fig:not_parallel}).
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+ \draw (-3,-3) rectangle (4,3);
+ \draw[dashed] (0,3) coordinate (t) -- (0,-3) coordinate (b)node[below]{$\sd C$};
+ \draw[-stealth] (3.5,-3.3) -- (4,-3.3) node[right] {$\sd$};
+ \path (2,-2) coordinate (c1) -- (-1,2) coordinate (c2)
+ 	node[midway,circle,fill,inner sep=1.2pt,label=above:{$P$}](P){};
+ \draw[thick,blue] (intersection of c1--c2 and t--b) coordinate (i) -- coordinate (v) (c1) ;	
+ \draw[thick,gray] (i) -- coordinate (h) (c2) ;	
+ \draw ($(c1)!5mm!90:(c2)$) --  coordinate (r1) ($(c1)!2mm!90:(c2)$)
+ ($(c2)!5mm!-90:(c1)$) --  coordinate (r2) ($(c2)!2mm!-90:(c1)$)
+ (r1) -- node[sloped,fill=white]{$r$} (r2);
+ \draw[red,-stealth] (P) -- ($(P)!20mm!90:(c1)$)coordinate (n) node[pos=1.15]{$n$};
+ \draw[red,dashed] (n) |- (P) node[pos=0.25,right]{$n_\perp$}
+  coordinate[pos=0.5] (aux)
+  node[pos=0.75,above]{$n_\parallel$}
+  pic[draw,solid,pic text={$\alpha$},angle radius=3em,angle eccentricity=0.6]{angle=c1--P--aux};
+\end{tikzpicture}
+\caption{$n\not\,\parallel n_\mathrm{screen}$.}
+\label{fig:not_parallel}
+\end{figure}
+
+The normal can be decomposed in a part parallel to $n_\mathrm{screen}$,
+$n_\parallel$, and a perpendicular part, $n_\perp$. The projection of the circle
+on this plane is a line, and has slope $\alpha=\arctan(-n_\parallel/n_\perp)$.
+If $r\cos\alpha>\lvert\sd P-\sd C\lvert$, the circle has both hidden and visible
+stretches, from between $-r\cos\alpha$ and $\sd P-\sd C$ it is hidden and between $\sd
+P-\sd C$ and $r\cos\alpha$ it is solid. 
+
+We are going to draw the circle in a coordinate system defined by
+\[ e_z=\frac{n}{\lvert n \rvert}\;,\quad e_y=e_z\times n_\mathrm{screen}
+\quad\text{and}\quad e_x=e_y\times e_z\;.\]
+The circle is then in the $x$-$y$ plane, and the positive $x$-direction is the
+direction of increasing screen depth (or visibility). If $r\cos\alpha>\lvert \sd P\rvert$,
+then the stretch between $\beta:=\left\vert\arccos\left(\frac{\sd C-\sd
+P}{r\cos\alpha}\right)\right\vert$ and $-\beta$ is visible, between $\beta$ and
+$360^\circ-\beta$ it is hidden.
+
+\subsubsection{Example 3: outlines of shapes}
 
 Another type of visibility considerations concerns the contours of shapes. To be
 specific, consider a surface parametrized by
@@ -922,6 +1008,46 @@ systems such as spherical ones, all coordinates that are defined in
 \end{tikzpicture}
 \end{codeexample}
 
+\begin{key}{/tikz/pics/3d/circle on sphere=\meta{options} (initially empty)}
+		Draws a circle on as sphere. It distinguishes between foreground and
+		background. Notice that this pic defines its own dreibein, so it will
+		define coordinates that draw their names from |/tikz/3d/aux keys/ex|,
+		|/tikz/3d/aux keys/ey| and |/tikz/3d/aux keys/ez|. It will also define a
+		coordinate |(nscreen)| which contains the normal to the screen.  The
+		foreground path will use the style |/tikz/3d/visible|, and the hidden
+		path will be drawn with the style |/tikz/3d/hidden|.
+\end{key}
+\begin{key}{/tikz/3d/circle on sphere/C (initially {(0,0,0)})}
+        Coordinate of the center of the sphere.
+\end{key}
+\begin{key}{/tikz/3d/circle on sphere/P (initially {(0,0,0)})}
+        Coordinate of the center of the circle.
+\end{key}
+\begin{key}{/tikz/3d/circle on sphere/n (initially {(0,0,1)})}
+        Normal. This is only needed if the center of the circle coincides with
+		the center of the sphere.
+\end{key}
+\begin{key}{/tikz/3d/circle on sphere/auxiliary coordinate prefix (initially {tmp})}
+        This pic installs a symbolic coordinate for the center of the circle.
+		The auxiliary prefix can be used to avoid overwriting existing
+		coordinates. The initial choice of the prefix will lead to a coordinate
+		with name |(tmpP)|.
+\end{key}
+\begin{key}{/tikz/3d/circle on sphere/fore layer=\meta{layer} (initially main)}
+ 		Layer of the visible faces.
+\end{key}
+
+\begin{key}{/tikz/3d/circle on sphere/back layer=\meta{layer} (initially main)}
+ 		Layer of the hidden faces.
+\end{key}
+
+\begin{codeexample}[width=4.5cm,preamble={\usetikzlibrary{3dtools}}]
+\begin{tikzpicture}[3d/install view={phi=110,theta=70},
+	declare function={R=2;}]
+ \shade[ball color=white,3d/screen coords] circle[radius=R];
+ \path pic{3d/circle on sphere={R=R,P={(0.5,-1.2,1)}}};
+\end{tikzpicture}
+\end{codeexample}
 
 \begin{key}{/tikz/pics/3d incircle=\meta{options} (initially empty)}
         Inscribes a circle in a triangle in 3 dimensions.
@@ -1160,6 +1286,11 @@ library. In order to make use of these tools, you need to load the library.
 		Notice that at present there is no sanity check. If \mvar{n} is
 		larger than the number of stored coordinates, there will be an error.
 \end{key}
+
+\begin{math-function}{tikztdindexoflastcoordinate}
+   Yields index of the last coordinate of a stored path. This can be used to
+   test if a path is empty.
+\end{math-function}
 
 
 
