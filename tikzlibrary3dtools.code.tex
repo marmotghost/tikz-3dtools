@@ -520,6 +520,31 @@ x2d("\pgfutil@tmpa")-x2d("\pgfutil@tmpd"))+\pgfutil@tmpe,360)}%
 %			
 \tikzset{even odd clip/.code={\pgfseteorule}}			
 %
+\tikzset{%
+	save named path/.code={\tikz@addmode{\pgfsyssoftpath@getcurrentpath\pgfutil@tmpf
+		\global\expandafter\let\csname tikz@td@named@path@#1\endcsname=\pgfutil@tmpf}},
+	use named path/.code={%
+		\expandafter\pgfsyssoftpath@setcurrentpath\expandafter{\csname tikz@td@named@path@#1\endcsname}}
+}
+%
+\pgfkeys{% https://tex.stackexchange.com/a/20426
+  /tikz/on layer/.code={
+    \pgfonlayer{#1}\begingroup
+    \aftergroup\endpgfonlayer
+    \aftergroup\endgroup
+  },
+  /tikz/node on layer/.code={
+    \gdef\node@@on@layer{%
+      \setbox\tikz@tempbox=\hbox\bgroup\pgfonlayer{#1}\unhbox\tikz@tempbox\endpgfonlayer\egroup}
+    \aftergroup\node@on@layer
+  },
+  /tikz/end node on layer/.code={
+    \endpgfonlayer\endgroup\endgroup
+  }
+}
+%
+\def\node@on@layer{\aftergroup\node@@on@layer}
+%
 % the following is very much "inspired" by the calc library 
 \long\def\pgfmathtdparse#1{% < and > really are placeholders for a later integration
 \begingroup% into calc, which however requires changes both in
@@ -714,11 +739,17 @@ on one line, so not suited to define a plane.}%
 \fi
 },%
 plane with normal/.code args={#1 through #2 named #3}{%
-\pgfmathsetmacro{\pgfutil@tmpd}{TD("#1")}%
+\pgfmathsetmacro{\pgfutil@tmpn}{sqrt(TD("#1o#1"))}%
+\ifdim\pgfutil@tmpn pt<0.02pt\relax
+\PackageWarning{3dtools}{Normal (\pgfutil@tmpn) is too short.}%
+\else
+\pgfmathsetmacro{\pgfutil@tmpn}{1/\pgfutil@tmpn}%
+\pgfmathsetmacro{\pgfutil@tmpd}{TD("\pgfutil@tmpn*#1")}%
 \pgfmathsetmacro{\pgfutil@tmpe}{TD("#2")}%
 \expandafter\xdef\csname tikz@td@plane@normal@#3\endcsname{\pgfutil@tmpd}%
 \expandafter\xdef\csname tikz@td@plane@point@#3\endcsname{\pgfutil@tmpe}%
 \expandafter\xdef\csname tikz@td@dim@#3\endcsname{2}%
+\fi
 },%
 line through/.code args={#1 and #2 named #3}{%
 \pgfmathsetmacro{\pgfutil@tmpd}{TD("#1")}%
@@ -1207,19 +1238,20 @@ projection prefix/.initial=tmpp}
 	  \ifdim\sdtip pt>0pt
 	   \path[/tikz/3d/hidden] (\alphacrit:\pv{r}) arc[start angle=\alphacrit,end
 	   angle=-\alphacrit,radius=\pv{r}];
-	   \path[/tikz/3d/visible] (\alphacrit:\pv{r}) 
+	   \path[/tikz/3d/visible,/tikz/3d/cone/outer] (\alphacrit:\pv{r}) 
 	   arc[start angle=\alphacrit,end  angle=360-\alphacrit,radius=\pv{r}]
 	   -- (-tip) -- cycle;
 	  \else
-	   \path[/tikz/3d/visible] circle[radius=\pv{r}];
-	   \path[/tikz/3d/visible] (\alphacrit:\pv{r}) 
-	   -- (-tip) -- (360-\alphacrit:\pv{r});
+	   \path[/tikz/3d/visible,/tikz/3d/cone/inner] (0,0) circle[radius=\pv{r}];
+	   \path[/tikz/3d/visible,/tikz/3d/cone/outer] (\alphacrit:\pv{r}) 
+	   arc[start angle=\alphacrit,end  angle=-\alphacrit,radius=\pv{r}]
+	   -- (-tip) -- cycle;
 	  \fi
 	 \else
 	  \path[/tikz/3d/visible] circle[radius=\pv{r}];	 
 	 \fi
     \end{scope}
-	}}}
+	}},3d/cone/.cd,outer/.style={},inner/.style={}}
 %%
 \tikzset{pics/3d/frustum/.style={code={%
   \tikzset{3d/.cd,#1}

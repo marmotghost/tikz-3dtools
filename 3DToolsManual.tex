@@ -1015,7 +1015,10 @@ systems such as spherical ones, all coordinates that are defined in
 		|/tikz/3d/aux keys/ey| and |/tikz/3d/aux keys/ez|. It will also define a
 		coordinate |(nscreen)| which contains the normal to the screen.  The
 		foreground path will use the style |/tikz/3d/visible|, and the hidden
-		path will be drawn with the style |/tikz/3d/hidden|.
+		path will be drawn with the style |/tikz/3d/hidden|. For an alternative
+		approach with more functionality see the 
+		\href{https://github.com/matthias-wolff/tikz-3dplot-circleofsphere}{%
+		\texttt{tikz-3dplot-circleofsphere}} package.
 \end{key}
 \begin{key}{/tikz/3d/circle on sphere/C (initially {(0,0,0)})}
         Coordinate of the center of the sphere.
@@ -1292,7 +1295,34 @@ library. In order to make use of these tools, you need to load the library.
    test if a path is empty.
 \end{math-function}
 
+\subsection{Miscellaneous goodies}
 
+\begin{key}{/tikz/on layer=\meta{layer}}
+        Allows one to set a layer in a path. Taken from
+		\href{https://tex.stackexchange.com/a/20426}{https://tex.stackexchange.com/a/20426}.
+\end{key}
+
+\begin{key}{/tikz/node on layer=\meta{layer}}
+        Allows one to set a layer of a node in a path. Taken from
+		\href{https://tex.stackexchange.com/a/20426}{https://tex.stackexchange.com/a/20426}.
+\end{key}
+
+
+\begin{key}{/tikz/even odd clip}
+        Enables the `even odd rule` for clips.
+\end{key}
+
+\begin{key}{/tikz/save named path}
+		Saves a path very much like the |save path| key but uses strings, i.e.\
+		you can say \texttt{save named path=A}, and prefixes the global macro by
+		|tikz@td@named@path@| to minimize the chance that this macro interferes
+		with other macros.
+\end{key}
+
+\begin{key}{/tikz/use named path}
+        Allows one to use a path saved with |save named path|, e.g.\ 
+		\texttt{use named path=A}.
+\end{key}
 
 \subsection{3D-like decorations}
 
