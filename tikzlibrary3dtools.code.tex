@@ -152,6 +152,18 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \edef\mycoord{\RawCoord(#1)}%
 \pgfmathparse@td@FPU{zcomp3\mycoord}% 
 \pgfmathsmuggle\pgfmathresult\endgroup}%
+\pgfmathdeclarefunction{TDunit}{1}{% x component of a 3-vector 
+\begingroup% 
+\pgfmathsetmacro{\pgfutil@tmpv}{TD("#1")}%
+\pgfmathsetmacro{\pgfutil@tmpn}{sqrt(TD("(\pgfutil@tmpv)o(\pgfutil@tmpv)"))}%
+\ifdim\pgfutil@tmpn pt<0.002pt\relax
+\PackageWarning{3dtools}{Vector too short, cannot normalize it.}%
+\let\pgfmathresult\pgfutil@tmpv%
+\else
+\pgfmathsetmacro{\pgfutil@tmpn}{1/\pgfutil@tmpn}%
+\pgfmathparse{TD("\pgfutil@tmpn*(\pgfutil@tmpv)")}%
+\fi
+\pgfmathsmuggle\pgfmathresult\endgroup}%
 % \pgfmathdeclarefunction{TDX}{1}{% x component of a 3-vector 
 % \begingroup% 
 % \edef\pgfmathresult{0}%
@@ -1648,6 +1660,44 @@ mantle/.style={draw},top/.style={draw}}
 		\csname tikz@td@recorded@path@r@#1\endcsname}%
 	\fi
 	  } }}}
+%% bounding box for animations
+\def\tikz@td@bbox@store@aux#1#2{%
+	\immediate\write\@mainaux{\string\expandafter\xdef\noexpand\csname pgfk@/tikz/3d/bbox/stored/#1\string\endcsname{#2}}%
+	\expandafter\xdef\csname pgfk@/tikz/3d/bbox/stored/#1\endcsname{#2}}%
+\def\tikz@td@bbox@@get@min@from@aux#1#2{%
+	\ifcsname pgfk@/tikz/3d/bbox/stored/#1min\endcsname
+	\edef#2{\csname pgfk@/tikz/3d/bbox/stored/#1min\endcsname}%
+	\else
+	\edef#2{16383.99999pt}%
+	\expandafter\edef\csname pgfk@/tikz/3d/bbox/stored/#1min\endcsname{16383.99999pt}%
+	\fi}
+\def\tikz@td@bbox@@get@max@from@aux#1#2{%
+	\ifcsname pgfk@/tikz/3d/bbox/stored/#1max\endcsname
+	\edef#2{\csname pgfk@/tikz/3d/bbox/stored/#1max\endcsname}%
+	\else
+	\edef#2{-16383.99999pt}%
+	\expandafter\edef\csname pgfk@/tikz/3d/bbox/stored/#1max\endcsname{-16383.99999pt}%
+	\fi}
+\tikzset{same bounding box/.style={%
+execute at end picture={%
+\tikz@td@bbox@@get@min@from@aux{#1x}\pgfutil@tmpa%
+\tikz@td@bbox@@get@min@from@aux{#1y}\pgfutil@tmpb%
+\tikz@td@bbox@@get@max@from@aux{#1x}\pgfutil@tmpc%
+\tikz@td@bbox@@get@max@from@aux{#1y}\pgfutil@tmpd%
+%\typeout{(\pgfutil@tmpa,\pgfutil@tmpb) (\pgfutil@tmpc,\pgfutil@tmpd)}%
+\pgfmathsetmacro\pgfutil@tmpa{min(\pgfutil@tmpa,\pgf@picminx,\pgfkeysvalueof{/tikz/3d/bbox/stored/#1xmin})}%
+\pgfmathsetmacro\pgfutil@tmpb{min(\pgfutil@tmpb,\pgf@picminy,\pgfkeysvalueof{/tikz/3d/bbox/stored/#1ymin})}%
+\pgfmathsetmacro\pgfutil@tmpc{max(\pgfutil@tmpc,\pgf@picmaxx,\pgfkeysvalueof{/tikz/3d/bbox/stored/#1xmax})}%
+\pgfmathsetmacro\pgfutil@tmpd{max(\pgfutil@tmpd,\pgf@picmaxy,\pgfkeysvalueof{/tikz/3d/bbox/stored/#1ymax})}%
+%\typeout{(\pgfutil@tmpa,\pgfutil@tmpb) (\pgfutil@tmpc,\pgfutil@tmpd)}%
+\tikz@td@bbox@store@aux{#1xmin}{\pgfutil@tmpa}%
+\tikz@td@bbox@store@aux{#1ymin}{\pgfutil@tmpb}%
+\tikz@td@bbox@store@aux{#1xmax}{\pgfutil@tmpc}%
+\tikz@td@bbox@store@aux{#1ymax}{\pgfutil@tmpd}%
+\ifdim\pgfutil@tmpa pt<16383.99999pt\relax
+\path (\pgfutil@tmpa pt,\pgfutil@tmpb pt) (\pgfutil@tmpc pt,\pgfutil@tmpd pt);
+\fi
+}},same bounding box/.default=A} 	  
 %% coil
 \newif\ifcoil@closed%
 \pgfkeys{%%
@@ -1659,14 +1709,16 @@ mantle/.style={draw},top/.style={draw}}
 3d coil closed/.code=\coil@closedtrue%
 }%
 % https://tex.stackexchange.com/a/219088/121799%
-\tikzset{get stroke color/.code={%%
-    \expandafter\global% Jump over, now we have \global%
-    \expandafter\let% Jump over now we have \global\let%
-    \expandafter\pgfsavedstrokecolor% Jump we have \global\let\pgf...%
-    \csname\string\color@pgfstrokecolor\endcsname% Finally expand this and put it at the end %
-    },                                           % \global\let\pgf...{} in expanded form %
-    restore stroke color/.code={\pgf@setstrokecolor#1},%
-}%
+% \tikzset{get stroke color/.code={%%
+%     \expandafter\global% Jump over, now we have \global%
+%     \expandafter\let% Jump over now we have \global\let%
+%     \expandafter\pgfsavedstrokecolor% Jump we have \global\let\pgf...%
+%     \csname\string\color@pgfstrokecolor\endcsname% Finally expand this and put it at the end %
+% 	\typeout{\pgfsavedstrokecolor}%
+% 	\pgfutil@namelet{\string\color@pgfstrokecolor}{pgf@strokecolor@global}%
+%     },                                           % \global\let\pgf...{} in expanded form %
+%     restore stroke color/.code={\pgf@setstrokecolor#1},%
+% }%
 \def\pgfpoint@onthreedcoil#1#2#3{%%
   \pgf@x=#1\pgfdecorationsegmentamplitude%%
   \pgf@x=\pgfdecorationsegmentaspect\pgf@x%%
@@ -1684,7 +1736,7 @@ mantle/.style={draw},top/.style={draw}}
     next state=coil, persistent precomputation={% from https://tex.stackexchange.com/a/25689/121799%
     \pgfmathsetmacro\matchinglength{\pgfdecoratedinputsegmentlength / int(\pgfdecoratedinputsegmentlength/\pgfdecorationsegmentlength)}%
     \setlength{\pgfdecorationsegmentlength}{\matchinglength pt}%
-    \tikzset{get stroke color}%
+    %\tikzset{get stroke color}%
     \pgfmathsetmacro{\generaloffset}{\pgfdecorationsegmentlength}%
     \pgfmathsetmacro{\initialoffset}{1.5*\pgfdecorationsegmentlength}%
     \pgfmathsetmacro{\auxoffset}{2.5*\pgfdecorationsegmentlength}%
@@ -2007,7 +2059,8 @@ mantle/.style={draw},top/.style={draw}}
   \state{final}%
   {%
     \pgfpathmoveto{\pgfpointdecoratedpathlast}%
-    \tikzset{restore stroke color/.expand once=\pgfsavedstrokecolor}%
+	\pgfutil@namelet{\string\color@pgfstrokecolor}{pgf@strokecolor@global}%
+    %\tikzset{restore stroke color/.expand once=\pgfsavedstrokecolor}%
   }%
 }%
 \makeatother

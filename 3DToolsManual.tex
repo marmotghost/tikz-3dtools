@@ -74,6 +74,28 @@ seems to be required to perform a successful submission to CTAN is not the kind
 of fun the author is after. This is not to say that CTAN does not have a point
 in requiring all these data.
 
+\noindent\textbf{Code examples.} This manual contains a number of code examples.
+They do not consist of complete \LaTeX\ documents but only excerpts. Almost all of
+them require the |3dtools| library but they may require additional libraries that
+do not get loaded by the |3dtools| library. All libraries that are required to
+compile a code example are indicated. Each code example can be embedded in a minimal
+example, which can have the form 
+\[\begin{minipage}{0.8\textwidth}
+\begin{tabular}{lp{1em}l}
+|\document[tikz]{standalone}| & & also loads \tikzname \\
+|\usetikzlibrary{3dtools,|\dots|}| & & libraries as indicated\\
+|\begin{document}| & & \\
+\meta{code} & & code from the example\\
+|\end{document}| & & \\
+\end{tabular}
+\end{minipage}
+\]
+It should be also possible to embed the code in generic \LaTeX\ documents as long as
+in the preamble \tikzname\ gets loaded (e.g.\ with |\usepackage{tikz}}|)  and the
+relevant libraries get also loaded. Note that although above |ConTeXt| gets
+mentioned this library has not been tested with |ConTeXt|. The only reason why
+|ConTeXt| gets mentioned is that this gets automatically added by
+|pgfmanual.code.tex|, which gets loaded to prepare this document.
 
 \subsection{Coordinate computations}
 \label{sec:3DCoordinateComputations}
@@ -121,7 +143,7 @@ messages.
 \end{tikzpicture}
 \end{codeexample}
 
-The actual parsings are done by the function |\pgfmathtdparse| that allows one
+The actual parsing are done by the function |\pgfmathtdparse| that allows one
 to parse 3d expressions. The supported vector operations are |+| (addition $+$),
 |-| (subtraction $-$), |*| (multiplication of the vector by a scalar), |x|
 (vector product $\times$) and |o| (scalar product). Admittedly, this function is
@@ -142,6 +164,13 @@ become a CTAN library/package.
 
 \begin{math-function}{TDz("\mvar{vector}")}
    Yields the $z$-component of a 3d expression.
+\end{math-function}
+
+
+\begin{math-function}{TDunit("\mvar{vector}")}
+   Yields the result of the expression normalized to unity. If the length of the
+   expression is too close to zero, a warning is issued and the unnormalized vector
+   gets returned. 
 \end{math-function}
 
 
@@ -212,7 +241,7 @@ be evaluated when they are retrieved. So, if you use, say, random numbers, you
 will get each time a \emph{different} result. This is because this library is
 working with |\tikz@dcl@coord@|\meta{coord}, where \meta{coord} is the name of
 the coordinate, say |A|. This is the string with which the coordinate was
-generatated, e.g.\ |(1,2,3)|. However, the coordinate will always be at the same location. So
+generated, e.g.\ |(1,2,3)|. However, the coordinate will always be at the same location. So
 you may want to avoid using functions that change their values when declaring
 coordinates that get used later in coordinate calculations. 
 
@@ -630,7 +659,7 @@ $n_\mathrm{screen}$ are linearly dependent, the circle is completely hidden if
 the screen depth of $P$ is smaller than the screen depth of $C$, $\sd P <\sd$,
 and visible otherwise. We can choose a coordinate system in which  
 \[
-e_z=\frac{n}{|n|}\;,\quad e_x\text{ arbitary but }\perp e_z \quad\text{and}\quad
+e_z=\frac{n}{|n|}\;,\quad e_x\text{ arbitrary but }\perp e_z \quad\text{and}\quad
 e_y=e_z\times e_x
 \] 
 to draw the circle.
@@ -1323,6 +1352,13 @@ library. In order to make use of these tools, you need to load the library.
         Allows one to use a path saved with |save named path|, e.g.\ 
 		\texttt{use named path=A}.
 \end{key}
+
+\begin{key}{/tikz/same bounding box=\mvar{id} (default A)}
+		Allows one to synchronize the bounding box of various pictures. Each picture
+		with the same \mvar{id} will have the same bounding box after the second
+		compilation.
+\end{key}
+
 
 \subsection{3D-like decorations}
 
