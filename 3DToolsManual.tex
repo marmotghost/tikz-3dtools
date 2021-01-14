@@ -1305,6 +1305,18 @@ library. In order to make use of these tools, you need to load the library.
 		in \emph{reversed} order.
 \end{key}
 
+
+\begin{key}{/tikz/stored path/append path=\meta{name} (initially empty)}
+		Restores a saved path of name \meta{name} using the |insert path| key with a
+		|--| at the beginning. This may be necessary to patch paths together.
+\end{key}
+
+\begin{key}{/tikz/stored path/restore reversed path=\meta{name} (initially empty)}
+		Restores a saved path of name \meta{name} using the |insert path| key in
+		\emph{reversed} order with a |--| at the beginning. This may be necessary to
+		patch paths together.
+\end{key}
+
 \begin{key}{/tikz/stored path/first coordinate of=\meta{name} (initially empty)}
  		Inserts the first coordinate of the path named \meta{name} using the |insert path| key.
 \end{key}

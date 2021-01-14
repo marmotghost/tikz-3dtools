@@ -1429,9 +1429,9 @@ projection prefix/.initial=tmpp}
 face edges/.style={},
 edges have complete dashes/.is if=@tikz@td@complete@dashes,
 edges have complete dashes/.default=true,
-complete dashes/.code args={on #1 off #2}{\tikzset{3d/.cd,polyhedron/.cd,
-edges have complete dashes=true,
-face edges/.append style={cheating dash=on #1 off #2}}},
+complete dashes/.code args={on #1 off #2}{\tikzset{%
+/tikz/3d/polyhedron/edges have complete dashes=true,
+/tikz/3d/polyhedron/face edges/.append style={cheating dash=on #1 off #2}}},
 complete dashes/.default={on 2pt off 2pt},
 draw face with corners/.code={\begingroup\c@pgf@counta0\relax
 \pgfutil@for\pgfutil@tmpa:={#1}\do{%
@@ -1558,6 +1558,8 @@ mantle/.style={draw},top/.style={draw}}
 	reset coordinate index/.code={\setcounter{tikz@td@recorded@point}{0}},
 	restore path/.style={insert path/.expanded={\csname tikz@td@recorded@path@f@#1\endcsname}},%	
 	restore reversed path/.style={insert path/.expanded={\csname tikz@td@recorded@path@r@#1\endcsname}},%	
+	append path/.style={insert path/.expanded={-- \csname tikz@td@recorded@path@f@#1\endcsname}},%	
+	append reversed path/.style={insert path/.expanded={-- \csname tikz@td@recorded@path@r@#1\endcsname}},%	
 	first coordinate of/.style={insert path/.expanded={(\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#1-0)}},%	
 	last coordinate of/.style={insert path/.expanded={(\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#1-\the\numexpr\value{tikz@td@recorded@point})}},%	
 	coordinate with index/.style args={#1 of #2}{insert path/.expanded={(\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#2-#1)}},%	
