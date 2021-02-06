@@ -1206,38 +1206,43 @@ systems such as spherical ones, all coordinates that are defined in
    Draws a face from a list of vertices. Such lists can be generated with  with
    \texttt{Mathematica}, e.g.\ with \texttt{PolyhedronData["Dodecahedron",
    "FaceIndices"]}. This key is very similar to  |draw face with corners| except
-   that it also adds the |name prefix|.
+   that it also adds the |name prefix|, and that it loops over the list.
 \end{key}
 
 
-\begin{codeexample}[width=4.5cm,preamble={\usetikzlibrary{3dtools}}]
-\pgfdeclarelayer{background} 
-\pgfdeclarelayer{foreground}
+\begin{codeexample}[width=3.5cm,preamble={\usetikzlibrary{3dtools}}]
+\pgfdeclarelayer{background}\pgfdeclarelayer{foreground}
 \pgfsetlayers{background,main,foreground}
 \begin{tikzpicture}
+ \edef\lstV{{-1.376,0.,0.2628},{1.376,0.,-0.2628},{-0.4253,-1.309,0.2628},
+ {-0.4253,1.309,0.2628},{1.113,-0.8090,0.2628},{1.113,0.8090,0.2628},
+ {-0.2628,-0.8090,1.113},{-0.2628,0.8090,1.113},{-0.6881,-0.5,-1.113},
+ {-0.6881,0.5,-1.113},{0.6881,-0.5,1.113},{0.6881,0.5,1.113},
+ {0.8506,0.,-1.113},{-1.113,-0.8090,-0.2628},{-1.113,0.8090,-0.2628},
+ {-0.8506,0.,1.113},{0.2628,-0.8090,-1.113},{0.2628,0.8090,-1.113},
+ {0.4253,-1.309,-0.2628},{0.4253,1.309,-0.2628}}
+ \edef\lstFaces{{15,10,9,14,1},{2,6,12,11,5},{5,11,7,3,19},{11,12,8,16,7},
+ {12,6,20,4,8},{6,2,13,18,20},{2,5,19,17,13},{4,20,18,10,15},{18,13,17,9,10},
+ {17,19,3,14,9},{3,7,16,1,14},{16,8,4,15,1}}
+ \tikzset{3d/polyhedron/.cd,fore layer=foreground,back layer=background, 
+	fore/.append style={fill opacity=0.7},back/.append style={fill opacity=0.7}}
 \begin{scope}[3d/install view={phi=120,psi=20,%
 	theta=70}]
- \edef\lstV{{-1.37638,0.,0.262866},{1.37638,0.,-0.262866},
- {-0.425325,-1.30902,0.262866},{-0.425325,1.30902,0.262866},
- {1.11352,-0.809017,0.262866},{1.11352,0.809017,0.262866},
- {-0.262866,-0.809017,1.11352},{-0.262866,0.809017,1.11352},
- {-0.688191,-0.5,-1.11352},{-0.688191,0.5,-1.11352},
- {0.688191,-0.5,1.11352},{0.688191,0.5,1.11352},
- {0.850651,0.,-1.11352},{-1.11352,-0.809017,-0.262866},
- {-1.11352,0.809017,-0.262866},{-0.850651,0.,1.11352},
- {0.262866,-0.809017,-1.11352},{0.262866,0.809017,-1.11352},
- {0.425325,-1.30902,-0.262866},{0.425325,1.30902,-0.262866}}
- \tikzset{name prefix=V,%<- used for all vertices
- 	3d/define vertices/.expanded={\lstV}}
- \edef\lstFaces{{15,10,9,14,1},{2,6,12,11,5},{5,11,7,3,19},
- {11,12,8,16,7},{12,6,20,4,8},{6,2,13,18,20},{2,5,19,17,13},
- {4,20,18,10,15},{18,13,17,9,10},{17,19,3,14,9},{3,7,16,1,14},
- {16,8,4,15,1}}
- \tikzset{3d/polyhedron/.cd,
-	fore layer=foreground,back layer=background, 
-	fore/.append style={fill opacity=0.7},  
-	back/.append style={fill opacity=0.7}, 
- 	create faces from vertex list/.expanded={\lstFaces}}
+ \tikzset{name prefix=Va,%<- used for all vertices
+ 	3d/define vertices/.expanded={\lstV},
+	3d/polyhedron/create faces from vertex list/.expanded={\lstFaces}}
+\end{scope}
+\begin{scope}[yshift=-3.5cm,
+	3d/install view={phi=210,psi=30,theta=60}]
+ \tikzset{name prefix=Vb,%<- used for all vertices
+ 	3d/define vertices/.expanded={\lstV},
+ 	3d/polyhedron/create faces from vertex list/.expanded={\lstFaces}}
+\end{scope}
+\begin{scope}[yshift=-7cm,
+	3d/install view={phi=30,psi=-10,theta=75}]
+ \tikzset{name prefix=Vc,%<- used for all vertices
+ 	3d/define vertices/.expanded={\lstV},
+ 	3d/polyhedron/create faces from vertex list/.expanded={\lstFaces}}
 \end{scope}
 \end{tikzpicture}
 \end{codeexample}
