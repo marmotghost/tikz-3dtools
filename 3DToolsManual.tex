@@ -1096,10 +1096,10 @@ systems such as spherical ones, all coordinates that are defined in
 \begin{key}{/tikz/3d incircle/center name (initially {I})}
         Name of the center coordinate that will be derived.
 \end{key}
-\begin{key}{/tikz/3d incircle/auxiliary coordinate prefix (initially {tmpp})}
+\begin{key}{/tikz/3d incircle/projection prefix (initially {tmpp})}
 		In \tikzname\ the coordinates are global. The code for the circle is
 		more comprehensible if named coordinates are introduced. Their names
-		will begin with this prefix. Changing the prefix will allow users to
+		will begin with this prefix. Changing the prefix allows users to
 		avoid overwriting existing coordinates.
 \end{key}
 
@@ -1188,6 +1188,56 @@ systems such as spherical ones, all coordinates that are defined in
  	draw face with corners={{(v1)},{(v2)},{(v4)}},
  	draw face with corners={{(v1)},{(v3)},{(v4)}},
  	draw face with corners={{(v2)},{(v3)},{(v4)}}}	  
+\end{scope}
+\end{tikzpicture}
+\end{codeexample}
+
+
+\begin{key}{/tikz/3d/define vertices=\meta{list} (initially empty)}
+   Allows the user to define a list of vertices from a list. These vertices have
+   names that consist of their indices in the list. One can work with the 
+   |name prefix| key to give them more meaningful names. Such lists can be generated
+   with \texttt{Mathematica}, e.g.\ with
+   \texttt{N[PolyhedronData["Dodecahedron", "VertexCoordinates"]]}.
+\end{key}
+
+
+\begin{key}{/tikz/3d/polyhedron/create faces from vertex list=\meta{list} (initially empty)}
+   Draws a face from a list of vertices. Such lists can be generated with  with
+   \texttt{Mathematica}, e.g.\ with \texttt{PolyhedronData["Dodecahedron",
+   "FaceIndices"]}. This key is very similar to  |draw face with corners| except
+   that it also adds the |name prefix|.
+\end{key}
+
+
+\begin{codeexample}[width=4.5cm,preamble={\usetikzlibrary{3dtools}}]
+\pgfdeclarelayer{background} 
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+\begin{tikzpicture}
+\begin{scope}[3d/install view={phi=120,psi=20,%
+	theta=70}]
+ \edef\lstV{{-1.37638,0.,0.262866},{1.37638,0.,-0.262866},
+ {-0.425325,-1.30902,0.262866},{-0.425325,1.30902,0.262866},
+ {1.11352,-0.809017,0.262866},{1.11352,0.809017,0.262866},
+ {-0.262866,-0.809017,1.11352},{-0.262866,0.809017,1.11352},
+ {-0.688191,-0.5,-1.11352},{-0.688191,0.5,-1.11352},
+ {0.688191,-0.5,1.11352},{0.688191,0.5,1.11352},
+ {0.850651,0.,-1.11352},{-1.11352,-0.809017,-0.262866},
+ {-1.11352,0.809017,-0.262866},{-0.850651,0.,1.11352},
+ {0.262866,-0.809017,-1.11352},{0.262866,0.809017,-1.11352},
+ {0.425325,-1.30902,-0.262866},{0.425325,1.30902,-0.262866}}
+ \tikzset{name prefix=V,%<- used for all vertices
+ 	3d/define vertices/.expanded={\lstV}}
+ \edef\lstFaces{{15,10,9,14,1},{2,6,12,11,5},{5,11,7,3,19},
+ {11,12,8,16,7},{12,6,20,4,8},{6,2,13,18,20},{2,5,19,17,13},
+ {4,20,18,10,15},{18,13,17,9,10},{17,19,3,14,9},{3,7,16,1,14},
+ {16,8,4,15,1}}
+ \tikzset{3d/polyhedron/.cd,
+	fore layer=foreground,back layer=background, 
+	fore/.append style={fill opacity=0.7},  
+	back/.append style={fill opacity=0.7}, 
+ 	create faces from vertex list/.expanded={\lstFaces}}
 \end{scope}
 \end{tikzpicture}
 \end{codeexample}

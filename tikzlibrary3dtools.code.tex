@@ -1,4 +1,4 @@
-% Copyright 2020 by an anonymous marmot
+% Copyright 2021 by an anonymous marmot
 %
 % This file may be distributed and/or modified
 %
@@ -1425,6 +1425,14 @@ projection prefix/.initial=tmpp}
             \pgfmathparse{max((\rest-\onoff*\nfullonoff)/\nfullonoff+#2, #2)}\let\offexpand=\pgfmathresult%
             \pgfsetdash{{#1}{\offexpand}}{0pt}}%
     },cheating dash/.default={on 2pt off 2pt}}%
+\tikzset{3d/.cd,% 
+reset vertex counter/.code={\c@pgf@counta0\relax},
+add vertex/.code={\advance\c@pgf@counta by1\relax
+\path (#1) coordinate (\the\c@pgf@counta);},
+define vertices/.code={\c@pgf@counta0\relax
+\tikzset{3d/add vertex/.list={#1}}},%
+append vertices/.code={\tikzset{3d/add vertex/.list={#1}}},%
+}	
 \tikzset{3d/.cd,polyhedron/.cd,
 face edges/.style={},
 edges have complete dashes/.is if=@tikz@td@complete@dashes,
@@ -1514,6 +1522,17 @@ shading function/.initial={tikztdpolyhedronshade},
 /tikz/declare function={tikztdpolyhedronshade(\x)=70+30*\x;},
 before visible/.code={},after visible/.code={},
 before hidden/.code={},after hidden/.code={},
+create face from vertices/.code={\let\pgfutil@tmpa\relax%
+\pgfutil@for\pgfutil@tmpb:={#1}\do{%
+\ifx\pgfutil@tmpa\relax
+\edef\pgfutil@tmpa{{(\pgfkeysvalueof{/tikz/name prefix}\pgfutil@tmpb)}}%
+\else
+\edef\pgfutil@tmpa{\pgfutil@tmpa,{(\pgfkeysvalueof{/tikz/name prefix}\pgfutil@tmpb)}}%
+\fi
+}%
+\tikzset{3d/polyhedron/draw face with corners/.expanded=\pgfutil@tmpa}%
+},%
+create faces from vertex list/.style={/tikz/3d/polyhedron/create face from vertices/.list={#1}}%
 }%
 % y cylinder, not yet in the manual
 \tikzset{pics/ycylinder/.style={code={
