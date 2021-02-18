@@ -1411,6 +1411,26 @@ projection prefix/.initial=tmpp}
 \fi
 }}%
 %
+\tikzset{3d/insphere center/.code={%
+ \tikzset{3d/insphere/.cd,#1}%
+ \pgfmathsetmacro{\pgfutil@tmpA}{TD("\pgfkeysvalueof{/tikz/3d/insphere/B}x\pgfkeysvalueof{/tikz/3d/insphere/C}")}%
+ \pgfmathsetmacro{\pgfutil@tmpA}{sqrt(TD("(\pgfutil@tmpA)o(\pgfutil@tmpA)"))/2}%
+ \pgfmathsetmacro{\pgfutil@tmpB}{TD("\pgfkeysvalueof{/tikz/3d/insphere/A}x\pgfkeysvalueof{/tikz/3d/insphere/C}")}%
+ \pgfmathsetmacro{\pgfutil@tmpB}{sqrt(TD("(\pgfutil@tmpB)o(\pgfutil@tmpB)"))/2}%
+ \pgfmathsetmacro{\pgfutil@tmpC}{TD("\pgfkeysvalueof{/tikz/3d/insphere/A}x\pgfkeysvalueof{/tikz/3d/insphere/B}")}%
+ \pgfmathsetmacro{\pgfutil@tmpC}{sqrt(TD("(\pgfutil@tmpC)o(\pgfutil@tmpC)"))/2}%
+ \pgfmathsetmacro{\pgfutil@tmpD}{TD("\pgfkeysvalueof{/tikz/3d/insphere/A}-\pgfkeysvalueof{/tikz/3d/insphere/B}x\pgfkeysvalueof{/tikz/3d/insphere/C}-\pgfkeysvalueof{/tikz/3d/insphere/B}")}%
+ \pgfmathsetmacro{\pgfutil@tmpD}{sqrt(TD("(\pgfutil@tmpD)o(\pgfutil@tmpD)"))/2}%
+ \pgfmathsetmacro{\pgfutil@tmps}{\pgfutil@tmpA+\pgfutil@tmpB+\pgfutil@tmpC+\pgfutil@tmpD}%
+ \pgfmathsetmacro{\pgfutil@tmpA}{\pgfutil@tmpA/\pgfutil@tmps}%
+ \pgfmathsetmacro{\pgfutil@tmpB}{\pgfutil@tmpB/\pgfutil@tmps}%
+ \pgfmathsetmacro{\pgfutil@tmpC}{\pgfutil@tmpC/\pgfutil@tmps}%
+ \pgfmathsetmacro{\pgfutil@tmpD}{\pgfutil@tmpD/\pgfutil@tmps}%
+ \pgfmathsetmacro{\pgfutil@tmpI}{TD("\pgfutil@tmpA*\pgfkeysvalueof{/tikz/3d/insphere/A}+\pgfutil@tmpB*\pgfkeysvalueof{/tikz/3d/insphere/B}+\pgfutil@tmpC*\pgfkeysvalueof{/tikz/3d/insphere/C}+\pgfutil@tmpD*\pgfkeysvalueof{/tikz/3d/insphere/D}")}%
+ \tikzset{insert path={(\pgfutil@tmpI)}}
+},3d/insphere/.cd,A/.initial={(A)},B/.initial={(B)},
+C/.initial={(C)},D/.initial={(D)}}%
+%
 \newif\if@tikz@td@complete@dashes
 \@tikz@td@complete@dashesfalse
 \tikzset{cheating dash/.code args={on #1 off #2}{% from https://tex.stackexchange.com/a/133357

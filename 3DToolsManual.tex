@@ -994,6 +994,31 @@ systems such as spherical ones, all coordinates that are defined in
 \end{tikzpicture}
 \end{codeexample}
 
+\begin{key}{/tikz/3d/insphere center=\meta{options} (initially empty)}
+		Computes the center of an insphere center of a tetrahedron defined by
+		four corners, |A|, |B|, |C|, and |D|. The initial values are
+		|A=(A)|, |B=(B)|, |C=(C)|, and |D=(D)|. 
+\end{key}
+
+\begin{codeexample}[width=5.4cm,preamble={\usetikzlibrary{3dtools}}]
+\begin{tikzpicture}[line join=round,line cap=round,
+	3d/install view={phi=100,psi=0,theta=70}]	
+   \path (0,0,0) coordinate (D)
+	(2,0,0) coordinate (A)
+	(0,3,0) coordinate (B)
+	(0,0,4) coordinate (C);
+   \path[3d/insphere center] coordinate (I);	
+   \tikzset{3d/plane through=(A) and (B) and (C) named pABC}
+   \path[3d/project={(I) on pABC}] coordinate (I');
+   \pgfmathsetmacro{\myr}{tddistance("(I)","(I')")}
+   \draw (A) -- (B) -- (C) -- cycle --(D) --(B) (C) -- (D);
+   \shade[3d/screen coords,ball color=green, opacity=0.8] 
+		(I) circle [radius=\myr];
+\end{tikzpicture}
+\end{codeexample}
+
+
+
 \begin{key}{/tikz/pics/3d circle through 3 points=\meta{options} (initially empty)}
         Draws a circle through 3 points in 3 dimensions. If the three
 		coordinates are close to linearly dependent, the circle will not be
@@ -1207,6 +1232,7 @@ systems such as spherical ones, all coordinates that are defined in
    \texttt{Mathematica}, e.g.\ with \texttt{PolyhedronData["Dodecahedron",
    "FaceIndices"]}. This key is very similar to  |draw face with corners| except
    that it also adds the |name prefix|, and that it loops over the list.
+   One should avoid spaces in the list.
 \end{key}
 
 
