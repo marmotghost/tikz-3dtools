@@ -152,7 +152,7 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \edef\mycoord{\RawCoord(#1)}%
 \pgfmathparse@td@FPU{zcomp3\mycoord}% 
 \pgfmathsmuggle\pgfmathresult\endgroup}%
-\pgfmathdeclarefunction{TDunit}{1}{% x component of a 3-vector 
+\pgfmathdeclarefunction{TDunit}{1}{%normalized vector
 \begingroup% 
 \pgfmathsetmacro{\pgfutil@tmpv}{TD("#1")}%
 \pgfmathsetmacro{\pgfutil@tmpn}{sqrt(TD("(\pgfutil@tmpv)o(\pgfutil@tmpv)"))}%
@@ -1602,7 +1602,8 @@ mantle/.style={draw},top/.style={draw}}
 	first coordinate of/.style={insert path/.expanded={(\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#1-0)}},%	
 	last coordinate of/.style={insert path/.expanded={(\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#1-\the\numexpr\value{tikz@td@recorded@point})}},%	
 	coordinate with index/.style args={#1 of #2}{insert path/.expanded={(\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#2-#1)}},%	
-/tikz/store path/.style={/tikz/stored path/reset coordinate index,%
+/tikz/extend stored path/.style={%
+	/utils/exec=\typeout{\arabic{tikz@td@recorded@point}},
     decorate,decoration={show path construction,
     moveto code={\def\tikz@td@prefix{\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#1-}%
 	\path (\tikzinputsegmentfirst) 
@@ -1700,7 +1701,11 @@ mantle/.style={draw},top/.style={draw}}
 	 	(\tikz@td@prefix\the\numexpr\value{tikz@td@recorded@point}+1) --
 		\csname tikz@td@recorded@path@r@#1\endcsname}%
 	\fi
-	  } }}}
+	  } }},
+/tikz/store path/.style={%	  
+	  /tikz/stored path/reset coordinate index,%
+	  /tikz/extend stored path=#1}
+	  }
 %% bounding box for animations
 \def\tikz@td@bbox@store@aux#1#2{%
 	\immediate\write\@mainaux{\string\expandafter\xdef\noexpand\csname pgfk@/tikz/3d/bbox/stored/#1\string\endcsname{#2}}%
@@ -1739,6 +1744,98 @@ execute at end picture={%
 \path (\pgfutil@tmpa pt,\pgfutil@tmpb pt) (\pgfutil@tmpc pt,\pgfutil@tmpd pt);
 \fi
 }},same bounding box/.default=A} 	  
+%% list management
+\newif\if@pgf@list@first@item
+\pgfkeys{/handlers/.add item/.code=\pgfkeys{\pgfkeyscurrentpath/.append={,#1}},
+/handlers/.remove item/.code={%
+\edef\pgfutil@tmpa{\pgfkeysvalueof{\pgfkeyscurrentpath}}%
+\edef\pgfutil@tmpb{#1}%
+\edef\pgfutil@tmpc{\noexpand\@removeelement{\pgfutil@tmpb}{\pgfutil@tmpa}{\noexpand\pgfutil@tmpa}}%
+\pgfutil@tmpc
+\pgfkeyssetvalue{\pgfkeyscurrentpath}{\pgfutil@tmpa}},% maybe test if the list is now empty?
+/handlers/.count/.code={\begingroup%
+\edef\pgfutil@tmpl{\pgfkeysvalueof{\pgfkeyscurrentpath}}%
+\c@pgf@counta0\relax
+\pgfkeys{/list management/step count/.list/.expanded={\pgfutil@tmpl}}%
+\edef#1{\the\c@pgf@counta}%
+\pgfmathsmuggle#1\endgroup},%
+/handlers/.print list/.code={\begingroup%
+\@pgf@list@first@itemtrue
+\edef\pgfutil@tmpl{\pgfkeysvalueof{\pgfkeyscurrentpath}}%
+\pgfkeys{/list management/print item in list/.list/.expanded={\pgfutil@tmpl}}%
+\endgroup},
+/handlers/.is array/.code={\pgfkeysifdefined{\pgfkeyscurrentpath}{%
+\typeout{The key `\pgfkeyscurrentpath` is already in use, and won't get overwritten.}}{%
+\pgfkeysifdefined{\pgfkeyscurrentpath/dim}{%
+\typeout{The key `\pgfkeyscurrentpath` is already in use, and won't get overwritten.}}{%
+\c@pgf@counta=0\relax
+\pgfkeyssetevalue{/list management/current array}{\pgfkeyscurrentpath}%
+\pgfkeys{/list management/store array entry/.list/.expanded={#1}}%
+\pgfkeys{\pgfkeysvalueof{/list management/current array}/dim/.initial=\the\c@pgf@counta}%
+\pgfkeys{\pgfkeysvalueof{/list management/current array}/content/.initial={#1}}%
+}}},
+/handlers/.sort numeric list/.code 2 args={\begingroup%
+\edef\pgfutil@tmpl{\pgfkeysvalueof{\pgfkeyscurrentpath}}%
+\edef\pgfutil@tmpa{0}%
+\pgfutil@for\pgfutil@tmpb:={\pgfutil@tmpl}\do{% build an indexed array and 
+\edef\pgfutil@tmpa{\the\numexpr\pgfutil@tmpa+1}% precompute expressions used in comparison
+\ifcase\pgfutil@tmpa
+\or
+\or
+\edef\pgfutil@tmph{2}%
+\else
+\edef\pgfutil@tmph{\pgfutil@tmph,\pgfutil@tmpa}%
+\fi
+\pgfkeys{/list management/sort map=\pgfutil@tmpb}%
+\expandafter\edef\csname pgfutil@tmpd@\pgfutil@tmpa\endcsname{\pgfmathresult}%
+\expandafter\edef\csname pgfutil@tmpf@\pgfutil@tmpa\endcsname{\pgfutil@tmpa}%
+}%
+\edef\pgfutil@tmps{\pgfkeysvalueof{/list management/sort comparison}}%
+\pgfutil@loop
+\edef\pgfutil@tmpi{1}%
+\pgfutil@for\pgfutil@tmpb:={\pgfutil@tmph}\do{%
+\edef\pgfutil@tmpx{\@nameuse{pgfutil@tmpd@\pgfutil@tmpb}}%
+\edef\pgfutil@tmpc{\the\numexpr\pgfutil@tmpb-1}%
+\edef\pgfutil@tmpy{\@nameuse{pgfutil@tmpd@\pgfutil@tmpc}}%
+\edef\pgfutil@tmpr{(\pgfutil@tmpx\pgfutil@tmps\pgfutil@tmpy?1:0)}%
+\pgfmathtruncatemacro\pgfutil@tmpj{\pgfutil@tmpr}%
+\ifnum\pgfutil@tmpj=0\relax
+\edef\pgfutil@tmpi{0}%
+\edef\pgfutil@tmpu{\@nameuse{pgfutil@tmpf@\pgfutil@tmpb}}%
+\edef\pgfutil@tmpv{\@nameuse{pgfutil@tmpf@\pgfutil@tmpc}}%
+%\typeout{swap (\pgfutil@tmpu<->\pgfutil@tmpv) and (\pgfutil@tmpx<->\pgfutil@tmpy)}%
+\expandafter\edef\csname pgfutil@tmpd@\pgfutil@tmpb\endcsname{\pgfutil@tmpy}%
+\expandafter\edef\csname pgfutil@tmpd@\pgfutil@tmpc\endcsname{\pgfutil@tmpx}%
+\expandafter\edef\csname pgfutil@tmpf@\pgfutil@tmpb\endcsname{\pgfutil@tmpv}%
+\expandafter\edef\csname pgfutil@tmpf@\pgfutil@tmpc\endcsname{\pgfutil@tmpu}%
+\fi
+}%
+\ifnum\pgfutil@tmpi=0\relax
+\pgfutil@repeat
+\edef\pgfutil@tmpa{\@nameuse{pgfutil@tmpf@1}}%
+\edef\pgfutil@tmpc{\@nameuse{pgfutil@tmpd@1}}%
+\pgfutil@for\pgfutil@tmpb:={\pgfutil@tmph}\do{%
+\edef\pgfutil@tmpa{\pgfutil@tmpa,\@nameuse{pgfutil@tmpf@\pgfutil@tmpb}}%
+\edef\pgfutil@tmpc{\pgfutil@tmpc,\@nameuse{pgfutil@tmpd@\pgfutil@tmpb}}}%
+\edef\pgfutil@tmpb{\noexpand\edef\noexpand#1{\pgfutil@tmpc}\noexpand\edef\noexpand#2{\pgfutil@tmpa}}%
+\pgfmathsmuggle\pgfutil@tmpb\endgroup\pgfutil@tmpb},
+/list management/.cd,print item/.code={#1},
+print item in list/.code={%
+\if@pgf@list@first@item
+ \pgfkeys{/list management/print item={#1}}%
+ \@pgf@list@first@itemfalse
+\else
+ \pgfkeys{/list management/print item={%
+  \pgfkeysvalueof{/list management/list separator}#1}}%
+\fi},
+list separator/.initial={,\space},
+step count/.code={\advance\c@pgf@counta by1\relax},
+sort comparison/.initial={>=},
+sort map/.code={\pgfmathparse{#1}},
+current array/.initial={},
+store array entry/.code={\advance\c@pgf@counta by1\relax
+\pgfkeyssetevalue{\pgfkeysvalueof{/list management/current array}/\the\c@pgf@counta}{#1}}
+}%
 %% coil
 \newif\ifcoil@closed%
 \pgfkeys{%%

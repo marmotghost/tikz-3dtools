@@ -1355,10 +1355,12 @@ To do:
 
 \subsection{Path management}
 
-This is poor marmots version of path management. The idea is that one can store
-paths, and redraw them, possibly in reversed order. This recording tool uses the
-|show path construction| decoration from the |decorations.pathreplacing|
-library. In order to make use of these tools, you need to load the library.
+This is poor marmots version of path management. Almost certainly
+\href{https://ctan.org/pkg/spath3?lang=en}{\texttt{spath3}} is way superior. The
+idea is that one can store paths, and redraw them, possibly in reversed order.
+This recording tool uses the |show path construction| decoration from the
+|decorations.pathreplacing| library. In order to make use of these tools, you
+need to load the library.
 
 \begin{key}{/tikz/store path=\meta{name} (initially empty)}
  		Records a path under the name \meta{name}. If you want to draw and
@@ -1451,6 +1453,124 @@ library. In order to make use of these tools, you need to load the library.
 		with the same \mvar{id} will have the same bounding box after the second
 		compilation.
 \end{key}
+
+\subsection{List management}
+
+3d ordering has a lot to do with sorting lists. Here are some poor marmot's
+tools to deal with such lists and some primitive versions of associative arrays.
+First of all, there are a couple of \emph{key handlers} that allow one to add
+and remove items.
+
+\begin{handler}{{.add item}}
+		Key handler that adds an item to a list.
+\end{handler}
+
+\begin{handler}{{.remove item}}
+		Key handler that removes an item from a list.
+\end{handler}
+
+\begin{handler}{{.count}|=|\meta{macro}}
+		Key handler stores the number of elements of a give list in a macro,
+		which is the mandatory argument.
+\end{handler}
+
+\begin{codeexample}[width=7cm,preamble={\usetikzlibrary{3dtools}}]
+\begin{minipage}{6.4cm}
+\pgfkeys{/my lists/.cd,
+tikzlings/.initial={anteater,%
+bear,bee,cat,coati,%
+hippo,koala,marmot,mouse}}
+The first 
+\pgfkeys{/my lists/tikzlings/.count=\myn}\myn\ 
+Ti\emph{k}Zlings are 
+\{\pgfkeys{/my lists/tikzlings/.print list}\}.
+\medskip
+
+\pgfkeys{/my lists/tikzlings/.add item=wolpertinger}
+After the wolpertinger joined, they were \pgfkeys{/my
+lists/tikzlings/.count=\myn}\myn, and the list became 
+\{\pgfkeys{/my lists/tikzlings/.print list}\}.
+\medskip
+
+\pgfkeys{/my lists/tikzlings/.remove item=mouse}
+Sadly, the mouse could not stand the wolpertinger, 
+so the list Ti\emph{k}Zlings got reduced to 
+\pgfkeys{/my lists/tikzlings/.count=\myn}\myn, 
+consisting of
+\{\pgfkeys{/my lists/tikzlings/.print list}\}.
+\end{minipage}
+\end{codeexample}
+
+\begin{handler}{{.is array}|=|\meta{list}}
+		Key handler makes the current key an array consisting of \meta{list}.
+		You need to use a new key for that, i.e.\ you cannot overwrite existing
+		keys.
+\end{handler}
+
+\begin{handler}{{.sort numeric list}|=|{\meta{macro}}{\meta{macro}}}
+		Key handler that sorts a list. The resulting sorted list is stored in
+		the first argument, which has to be a macro, and the permutation is
+		stored in the second argument, which needs to be a macro as well.
+\end{handler}
+
+\begin{codeexample}[width=7cm,preamble={\usetikzlibrary{3dtools}}]
+\begin{minipage}{6.4cm}
+\pgfkeys{/my lists/.cd,
+my initial array/.is array={%
+	12,19,1,3,17,4,23,5,9,7}, 
+my values/.initial=\pgfkeysvalueof{%
+	/my lists/my initial array/content},%
+my values/.sort numeric list=%
+{\temp}{\templ},% 
+my sorted array/.is array/.expanded={\temp}, 
+my index machinery/.is array/.expanded={\templ}}% 
+Often one is given a list of entries where 
+one wants to sort on the basis of some
+function that can be fed with an entry. 
+One may also want to have an index mapping
+which indicates at which position the 
+$i^\mathrm{th}$ entry of the initial list
+ended up getting. In this example, we 
+start out with 
+\[\{\lambda_i\}_{i=1}^n=
+\{\pgfkeys{/my lists/my initial array/%
+content/.print list}\}
+\;.\]
+The fact that we used the \texttt{/.is array} 
+key handler means that we know its dimension, 
+$n=\pgfkeysvalueof{/my lists/my initial array/dim}$.
+After sorting we get 
+\[\{\lambda_i'\}_{i=1}^n=\{
+\pgfkeys{/my lists/my sorted array/%
+content/.print list}\}\]
+and an index or reshuffling or permutation list 
+\[P=(\pgfkeys{/my lists/%
+my index machinery/content/.print list})\;.\]
+For instance, the $5^\mathrm{th}$ entry of the 
+permutation list being
+$P_5=\pgfkeysvalueof{/my lists/my index machinery/5}$
+tells us that the 
+$\pgfkeysvalueof{/my lists/my index machinery/5}
+^\mathrm{th}$ entry of our original list, 
+$\lambda_{\pgfkeysvalueof{/my lists/%
+my index machinery/5}}
+=\pgfkeysvalueof{/my lists/my initial array/%
+\pgfkeysvalueof{/my lists/my index machinery/5}}$, 
+ended up at position $5$ in the sorted list, 
+i.e.\ $\lambda_5'=\lambda_{\pgfkeysvalueof{/my lists/%
+my index machinery/5}}$. Similarly, 
+$P_3=\pgfkeysvalueof{/my lists/my index machinery/3}$ 
+means that for the
+$\pgfkeysvalueof{/my lists/my index machinery/3}
+^\mathrm{th}$ entry of our original list,  
+$\lambda_{\pgfkeysvalueof{/my lists/%
+my index machinery/3}}
+=\pgfkeysvalueof{/my lists/my initial array/%
+\pgfkeysvalueof{/my lists/my index machinery/3}}
+=\lambda_3'$. 
+\end{minipage}
+\end{codeexample}
+
 
 
 \subsection{3D-like decorations}
