@@ -1603,7 +1603,7 @@ mantle/.style={draw},top/.style={draw}}
 	last coordinate of/.style={insert path/.expanded={(\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#1-\the\numexpr\value{tikz@td@recorded@point})}},%	
 	coordinate with index/.style args={#1 of #2}{insert path/.expanded={(\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#2-#1)}},%	
 /tikz/extend stored path/.style={%
-	/utils/exec=\typeout{\arabic{tikz@td@recorded@point}},
+	%/utils/exec=\typeout{\arabic{tikz@td@recorded@point}},
     decorate,decoration={show path construction,
     moveto code={\def\tikz@td@prefix{\pgfkeysvalueof{/tikz/stored path/coordinate prefix}#1-}%
 	\path (\tikzinputsegmentfirst) 
