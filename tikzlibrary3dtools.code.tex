@@ -1282,8 +1282,7 @@ projection prefix/.initial=tmpp}
     \pgfmathtruncatemacro{\itest}{sign(screendepth(0,0,\pv{h}))+1}%
 	\pgfmathsetmacro{\sdtip}{screendepth(0,0,\pv{h})}%
 	\pgfmathsetmacro{\aspectangle}{atan2(\sdtip,\pgfutil@tmpa/1cm)}%
-	\typeout{\aspectangle,\sdtip,\pgfutil@tmpa,\itest}%
-	\path[overlay] (0,0,{sin(\aspectangle)}) coordinate (-tdtmpex);
+	\path[overlay] (0,0,{tan(\aspectangle)}) coordinate (-tdtmpex);
 	\begin{scope}[x={(-tdtmpex)},y={(-tdtmpey)}]
 	 \ifcase\itest\relax
       % "lower" circle visible
