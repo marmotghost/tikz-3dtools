@@ -1268,9 +1268,49 @@ projection prefix/.initial=tmpp}
 \tikzset{pics/3d/frustum/.style={code={%
   \tikzset{3d/.cd,#1}
   \def\pv##1{\pgfkeysvalueof{/tikz/3d/##1}}%
-  \pgfmathtruncatemacro{\itest}{abs(\pv{R}-\pv{r})>0.05}
+  \pgfmathtruncatemacro{\itest}{abs(\pv{R}-\pv{r})>0.02}
   \ifnum\itest=0
-   \PackageWarning{3dtools}{Radii R=\pv{R} and r=\pv{r} are too close.}%  
+   %\PackageWarning{3dtools}{Radii R=\pv{R} and r=\pv{r} are too close.}%
+   \path[overlay] (0,0,0) coordinate (-tdtmpo)
+	(0,0,\pv{h}) coordinate (-tdtmpez)
+	($(0,0,0)!1cm!90:(0,0,\pv{h})$) coordinate (-tdtmpey);
+   \pgfmathsetmacro{\pgfutil@tmpa}{sqrt(pow(x2d("-tdtmpo")-x2d("-tdtmpez"),2)+pow(y2d("-tdtmpo")-y2d("-tdtmpez"),2))}
+   \pgfmathtruncatemacro{\itest}{(\pgfutil@tmpa>0.5?1:0)}%
+   \ifnum\itest=0
+	\draw[3d/visible] (0,0,0) circle[radius=R];
+   \else
+    \pgfmathtruncatemacro{\itest}{sign(screendepth(0,0,\pv{h}))+1}%
+	\pgfmathsetmacro{\sdtip}{screendepth(0,0,\pv{h})}%
+	\pgfmathsetmacro{\aspectangle}{atan2(\sdtip,\pgfutil@tmpa/1cm)}%
+	\typeout{\aspectangle,\sdtip,\pgfutil@tmpa,\itest}%
+	\path[overlay] (0,0,{sin(\aspectangle)}) coordinate (-tdtmpex);
+	\begin{scope}[x={(-tdtmpex)},y={(-tdtmpey)}]
+	 \ifcase\itest\relax
+      % "lower" circle visible
+	  \draw[3d/hidden] (-tdtmpez)+(0,\pv{r})
+	  	arc[start angle=90,end angle=-90,radius=\pv{r}];
+	  \draw[3d/visible]  (0,\pv{R}) 
+	   -- ($(-tdtmpez)+(0,\pv{r})$) 
+	   arc[start angle=90,end angle=270,radius=\pv{r}]
+	   -- (0,-\pv{R})
+	   (0,0) circle[radius=\pv{R}];
+	 \or
+      % no circle visible
+	  \draw[3d/visible]  (0,\pv{R}) 
+	   -- ($(-tdtmpez)+(0,\pv{r})$) 
+	   -- ($(-tdtmpez)+(0,-\pv{r})$) -- (0,-\pv{R}) -- cycle;
+	 \or
+      % "upper" circle visible
+	  \draw[3d/hidden] (0,\pv{R})
+	  	arc[start angle=90,end angle=-90,radius=\pv{R}];
+	  \draw[3d/visible] (-tdtmpez)+ (0,\pv{r}) 
+	   -- (0,\pv{R})
+	   arc[start angle=90,end angle=270,radius=\pv{R}]
+	   -- ($(-tdtmpez)+(0,-\pv{r})$) 
+	   (-tdtmpez) circle[radius=\pv{r}];
+	 \fi
+	\end{scope} 
+   \fi
   \else
    \pgfmathsetmacro{\myH}{(\pv{R}*\pv{h}/(\pv{R}-\pv{r}))}%
    \pgfmathsetmacro{\sdtip}{screendepth(0,0,\myH)}%
