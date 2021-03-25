@@ -1270,24 +1270,33 @@ projection prefix/.initial=tmpp}
 	\def\pv##1{\pgfkeysvalueof{/tikz/3d/##1}}%
 	\pgfmathsetmacro{\sdtip}{screendepth(0,0,\pv{h})}
 	\pgfmathsetmacro{\aspectangle}{atan2(\sdtip,sqrt(\pv{h}*\pv{h}-\sdtip*\sdtip))}
-	\path (0,0,\pv{h}) coordinate (-tip);
+	\path (0,0,0) coordinate (-base) (0,0,\pv{h}) coordinate (-tip);
     \begin{scope}[x={(0,0,tan(\aspectangle))},y={($(0,0,0)!1cm!90:(0,0,\pv{h})$)}]
 	 \pgfmathtruncatemacro{\itest}{abs(tan(\aspectangle)*\pv{r}/\pv{h})<1}
 	 % zero means tip inside projection of the base
 	 \ifnum\itest=1
 	  \pgfmathsetmacro{\alphacrit}{acos(tan(\aspectangle)*\pv{r}/\pv{h})}
+   	  \pgfmathtruncatemacro{\itest}{y2d("-tip")>y2d("-base")?1:0}
+      \ifnum\itest=1 
+	   \pgfmathsetmacro{\alphacritB}{-\alphacrit}
+	   \pgfmathsetmacro{\alphacritC}{360-\alphacrit}
+	  \else
+	   \pgfmathsetmacro{\alphacritB}{360-\alphacrit}
+	   \pgfmathsetmacro{\alphacritC}{-\alphacrit}
+	  \fi
+	  %\typeout{\sdtip,\itest,\alphacrit,\alphacritB,\alphacritC}
 	  \ifdim\sdtip pt>0pt
 	   \begin{scope}
 	    \clip (\alphacrit:\pv{r}) 
-	     arc[start angle=\alphacrit,end  angle=360-\alphacrit,radius=\pv{r}]
+	     arc[start angle=\alphacrit,end  angle=\alphacritC,radius=\pv{r}]
 	     -- (-tip) -- cycle;
 	    \path[3d/cone/outer shade,3d/screen coords]	
 		 (-tip) circle[radius={abs(\pv{r})+abs(\pv{h})}];
 	   \end{scope}
 	   \path[/tikz/3d/hidden] (\alphacrit:\pv{r}) arc[start angle=\alphacrit,end
-	    angle=-\alphacrit,radius=\pv{r}];
-	   \path[/tikz/3d/visible,/tikz/3d/cone/outer] (\alphacrit:\pv{r}) 
-	    arc[start angle=\alphacrit,end  angle=360-\alphacrit,radius=\pv{r}]
+	    angle=\alphacritB,radius=\pv{r}];
+	   \path[/tikz/3d/visible] (\alphacrit:\pv{r}) 
+	    arc[start angle=\alphacrit,end  angle=\alphacritC,radius=\pv{r}]
 	    -- (-tip) -- cycle;
 	  \else
 	   \begin{scope}
@@ -1298,13 +1307,13 @@ projection prefix/.initial=tmpp}
 	   \path[/tikz/3d/visible,/tikz/3d/cone/inner] (0,0) circle[radius=\pv{r}];
 	   \begin{scope}
 	    \clip (\alphacrit:\pv{r}) 
-	     arc[start angle=\alphacrit,end  angle=360-\alphacrit,radius=\pv{r}]
+	     arc[start angle=\alphacrit,end  angle=\alphacritB,radius=\pv{r}]
 	    -- (-tip) -- cycle;
 	    \path[3d/cone/outer shade,3d/screen coords]	
 		 (-tip) circle[radius={abs(\pv{r})+abs(\pv{h})}];
 	   \end{scope}
 	   \path[/tikz/3d/visible,/tikz/3d/cone/outer] (\alphacrit:\pv{r}) 
-	    arc[start angle=\alphacrit,end  angle=360-\alphacrit,radius=\pv{r}]
+	    arc[start angle=\alphacrit,end  angle=\alphacritB,radius=\pv{r}]
 	    -- (-tip) -- cycle;
 	  \fi
 	 \else
