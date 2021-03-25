@@ -1265,6 +1265,68 @@ projection prefix/.initial=tmpp}
     \end{scope}
 	}},3d/cone/.cd,outer/.style={},inner/.style={}}
 %%
+\tikzset{pics/3d/shaded cone/.style={code={%
+	\tikzset{3d/.cd,#1}%
+	\def\pv##1{\pgfkeysvalueof{/tikz/3d/##1}}%
+	\pgfmathsetmacro{\sdtip}{screendepth(0,0,\pv{h})}
+	\pgfmathsetmacro{\aspectangle}{atan2(\sdtip,sqrt(\pv{h}*\pv{h}-\sdtip*\sdtip))}
+	\path (0,0,\pv{h}) coordinate (-tip);
+    \begin{scope}[x={(0,0,tan(\aspectangle))},y={($(0,0,0)!1cm!90:(0,0,\pv{h})$)}]
+	 \pgfmathtruncatemacro{\itest}{abs(tan(\aspectangle)*\pv{r}/\pv{h})<1}
+	 % zero means tip inside projection of the base
+	 \ifnum\itest=1
+	  \pgfmathsetmacro{\alphacrit}{acos(tan(\aspectangle)*\pv{r}/\pv{h})}
+	  \ifdim\sdtip pt>0pt
+	   \begin{scope}
+	    \clip (\alphacrit:\pv{r}) 
+	     arc[start angle=\alphacrit,end  angle=360-\alphacrit,radius=\pv{r}]
+	     -- (-tip) -- cycle;
+	    \path[3d/cone/outer shade,3d/screen coords]	
+		 (-tip) circle[radius={abs(\pv{r})+abs(\pv{h})}];
+	   \end{scope}
+	   \path[/tikz/3d/hidden] (\alphacrit:\pv{r}) arc[start angle=\alphacrit,end
+	    angle=-\alphacrit,radius=\pv{r}];
+	   \path[/tikz/3d/visible,/tikz/3d/cone/outer] (\alphacrit:\pv{r}) 
+	    arc[start angle=\alphacrit,end  angle=360-\alphacrit,radius=\pv{r}]
+	    -- (-tip) -- cycle;
+	  \else
+	   \begin{scope}
+	    \clip (0,0) circle[radius=\pv{r}];
+	    \path[3d/cone/inner shade,3d/screen coords]	
+		 (-tip) circle[radius={abs(\pv{r})+abs(\pv{h})}];
+	   \end{scope}
+	   \path[/tikz/3d/visible,/tikz/3d/cone/inner] (0,0) circle[radius=\pv{r}];
+	   \begin{scope}
+	    \clip (\alphacrit:\pv{r}) 
+	     arc[start angle=\alphacrit,end  angle=360-\alphacrit,radius=\pv{r}]
+	    -- (-tip) -- cycle;
+	    \path[3d/cone/outer shade,3d/screen coords]	
+		 (-tip) circle[radius={abs(\pv{r})+abs(\pv{h})}];
+	   \end{scope}
+	   \path[/tikz/3d/visible,/tikz/3d/cone/outer] (\alphacrit:\pv{r}) 
+	    arc[start angle=\alphacrit,end  angle=360-\alphacrit,radius=\pv{r}]
+	    -- (-tip) -- cycle;
+	  \fi
+	 \else
+      \ifdim\sdtip pt>0pt
+	   \begin{scope}
+		\clip (0,0) circle[radius=\pv{r}];	 
+	     \path[3d/cone/outer shade,3d/screen coords]	
+		  (-tip) circle[radius={abs(\pv{r})+abs(\pv{h})}];
+	   \end{scope}
+	  \else
+	   \begin{scope}
+		\clip (0,0) circle[radius=\pv{r}];	 
+	     \path[3d/cone/inner shade,3d/screen coords]	
+		  (-tip) circle[radius={abs(\pv{r})+abs(\pv{h})}];
+	   \end{scope}
+	  \fi
+	  \path[/tikz/3d/visible] circle[radius=\pv{r}];	 
+	 \fi
+    \end{scope}
+	}},3d/cone/.cd,outer shade/.style={3d/cone shading},
+	inner shade/.style={3d/cone shading={brightness=0.3}}}	
+%%
 \tikzset{pics/3d/frustum/.style={code={%
   \tikzset{3d/.cd,#1}
   \def\pv##1{\pgfkeysvalueof{/tikz/3d/##1}}%
@@ -2240,5 +2302,31 @@ store array entry/.code={\advance\c@pgf@counta by1\relax
     %\tikzset{restore stroke color/.expand once=\pgfsavedstrokecolor}%
   }%
 }%
+% cone shading
+% based on https://tex.stackexchange.com/a/333409/238301
+\newcounter{tikz@td@cone@shading}
+% x and y run from -25 to 25, alpha is an angle
+\tikzset{3d/cone/shading/.cd,x/.initial=0,y/.initial=0,alpha/.initial=0,
+brightness/.initial=0.5,
+create shading/.code={%
+\stepcounter{tikz@td@cone@shading}%
+\tikzset{3d/cone/shading/.cd,#1}%
+\pgfdeclarefunctionalshading{simple cone \number\value{tikz@td@cone@shading}}{\pgfpoint{-25bp}{-25bp}}{\pgfpoint{25bp}{25bp}}{}{
+    % x y
+	\pgfkeysvalueof{/tikz/3d/cone/shading/y} -1 mul add % shift y by the offset
+	exch % swap x and y
+	\pgfkeysvalueof{/tikz/3d/cone/shading/x} -1 mul add % shift x by the offset
+	exch % swap y and x (reverse above swap)
+    atan   % theta
+	\pgfkeysvalueof{/tikz/3d/cone/shading/alpha} add % 
+    sin         % cos(theta)
+	1 add       % 1 + sin(theta)
+    \pgfkeysvalueof{/tikz/3d/cone/shading/brightness} mul     % brightness*(1 + sin(theta))
+    dup mul     % [f*(1 + sin(theta))]^2
+	2 mul
+	dup dup		% important so that it gets three color components
+}}}
+\tikzset{3d/cone shading/.style={3d/cone/shading/create shading={#1},
+ shading=simple cone \number\value{tikz@td@cone@shading}}}
 \makeatother
 \endinput

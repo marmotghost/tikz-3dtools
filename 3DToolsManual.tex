@@ -1296,12 +1296,33 @@ cylinders. They share a couple of common keys.
  Draws a cone with the basis in the current xy plane.
 \end{key}
 
-\begin{key}{/tikz/pics/3d/frustum (initially empty)}
- Draws a cone with the basis in the current xy plane.
+\begin{key}{/tikz/pics/3d/shaded cone (initially empty)}
+ Draws a shaded cone with the basis in the current xy plane.
+\end{key}
+
+\begin{key}{/tikz/pics/3d/cone/shading (initially empty)}
+ Defines and uses a functional shading that can be used for cones. The
+ parameters are the coordinates of the tip |x| and |y|, which have to satisfy
+ $-25<x,y<25$, and |alpha|, which indicates the rotation of the shading.
 \end{key}
 
 
-\begin{codeexample}[width=4.5cm,preamble={\usetikzlibrary{3dtools}}]
+\begin{codeexample}[width=4.8cm,preamble={\usetikzlibrary{calc,3dtools}}]
+\begin{tikzpicture}[3d/install view=%
+	{phi=110,psi=0,theta=60}]
+ \pic{3d/shaded cone={r=2,h=3}};
+\end{tikzpicture}
+\end{codeexample}
+
+
+
+\begin{key}{/tikz/pics/3d/frustum (initially empty)}
+ Draws a frustum with the basis in the current xy plane. Notice that if both
+ radii are equal this is just a cylinder.
+\end{key}
+
+
+\begin{codeexample}[width=4.8cm,preamble={\usetikzlibrary{calc,3dtools}}]
 \begin{tikzpicture}[3d/install view=%
 	{phi=110,psi=0,theta=60}]
  \pic{3d/frustum};
