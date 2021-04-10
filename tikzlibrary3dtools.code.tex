@@ -847,7 +847,7 @@ project/.code args={#1 on #2}{%
 	\expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@sphere@C@#2\endcsname}%
 	\expandafter\edef\expandafter\pgfutil@tmpr{\csname tikz@td@sphere@r@#2\endcsname}%
 	\edef\pgfutil@tmpf{2}%
-	\typeout{line with sphere}%
+	%\typeout{line with sphere}%
    \else
 	\ifnum\pgfutil@tmpde=31\relax% sphere with line
 	\expandafter\edef\expandafter\pgfutil@tmpa{\csname tikz@td@line@A@#2\endcsname}%
@@ -855,7 +855,7 @@ project/.code args={#1 on #2}{%
 	\expandafter\edef\expandafter\pgfutil@tmpc{\csname tikz@td@sphere@C@#1\endcsname}%
 	\expandafter\edef\expandafter\pgfutil@tmpr{\csname tikz@td@sphere@r@#1\endcsname}%
 	\edef\pgfutil@tmpf{2}%
-    \typeout{sphere with line}%
+    %\typeout{sphere with line}%
 	\else
 	 \PackageWarning{3dtools}{Currently, one intersection object has to be a plane and the other 
   	   one a line. However, #1 has dimension \pgfutil@tmpd\space and 
@@ -978,20 +978,32 @@ be determined.}%
 % shifting to A=0 by redefining B and C
 \pgfmathsetmacro{\pgfutil@tmpB}{TD("\pgfutil@tmpB-\pgfutil@tmpA")}%
 \pgfmathsetmacro{\pgfutil@tmpC}{TD("\pgfutil@tmpC-\pgfutil@tmpA")}%
+%\typeout{\pgfutil@tmpB,\pgfutil@tmpC}%
 % 
 \pgfmathsetmacro{\pgfutil@tmpBB}{TD("(\pgfutil@tmpB)o(\pgfutil@tmpB)")}%
 \pgfmathsetmacro{\pgfutil@tmpBC}{TD("(\pgfutil@tmpB)o(\pgfutil@tmpC)")}%
 \pgfmathsetmacro{\pgfutil@tmpCC}{TD("(\pgfutil@tmpC)o(\pgfutil@tmpC)")}%
+%\typeout{\pgfutil@tmpBB,\pgfutil@tmpBC,\pgfutil@tmpCC}%
 % determinant (times 2)
-\pgfmathsetmacro{\pgfutil@tmpd}{2*(\pgfutil@tmpBB*\pgfutil@tmpCC-\pgfutil@tmpBC*\pgfutil@tmpBC)}%
-%\typeout{Determinant is \pgfutil@tmpd.}
-\pgfmathtruncatemacro{\pgfutil@tmpi}{abs(\pgfutil@tmpd)>0.02?1:0}%
+\pgfmathparse@td@FPU{2*(\pgfutil@tmpBB*\pgfutil@tmpCC-\pgfutil@tmpBC*\pgfutil@tmpBC)}%
+\let\pgfutil@tmpd\pgfmathresult%
+%\typeout{debug: determinant is \pgfutil@tmpd.}%
+%\pgfmathtruncatemacro{\pgfutil@tmpi}{abs(\pgfutil@tmpd)>0.02?1:0}%
+\pgfmathparse@td@FPU{int(abs(\pgfutil@tmpd)>0.02?1:0)}%
+\pgfmathtruncatemacro{\pgfutil@tmpi}{\pgfmathresult}%
+%\typeout{debug: i is \pgfutil@tmpi.}%
 \ifnum\pgfutil@tmpi=0\relax
 \PackageWarning{3dtools}{The points approximately sit on a common line. The circumcircle cannot
 be determined.}%
 \else
-\pgfmathsetmacro{\pgfutil@tmpb}{(\pgfutil@tmpBB-\pgfutil@tmpBC)*\pgfutil@tmpCC/\pgfutil@tmpd}%
-\pgfmathsetmacro{\pgfutil@tmpc}{(\pgfutil@tmpCC-\pgfutil@tmpBC)*\pgfutil@tmpBB/\pgfutil@tmpd}%
+%\pgfmathsetmacro{\pgfutil@tmpb}{(\pgfutil@tmpBB-\pgfutil@tmpBC)*\pgfutil@tmpCC/\pgfutil@tmpd}%
+\pgfmathparse@td@FPU{(\pgfutil@tmpBB-\pgfutil@tmpBC)*\pgfutil@tmpCC/\pgfutil@tmpd}%
+\let\pgfutil@tmpb\pgfmathresult
+%\typeout{debug: b is \pgfutil@tmpb.}%
+%\pgfmathsetmacro{\pgfutil@tmpc}{(\pgfutil@tmpCC-\pgfutil@tmpBC)*\pgfutil@tmpBB/\pgfutil@tmpd}%
+\pgfmathparse@td@FPU{(\pgfutil@tmpCC-\pgfutil@tmpBC)*\pgfutil@tmpBB/\pgfutil@tmpd}%
+\let\pgfutil@tmpc\pgfmathresult
+%\typeout{debug: c is \pgfutil@tmpc.}%
 %\typeout{debug: b=\pgfutil@tmpb,c=\pgfutil@tmpc,(B)=(\pgfutil@tmpB),(C)=(\pgfutil@tmpC)}%
 \pgfmathsetmacro{\pgfutil@tmpI}{TD("\pgfutil@tmpA+\pgfutil@tmpb*(\pgfutil@tmpB)+\pgfutil@tmpc*(\pgfutil@tmpC)")}%
 %\typeout{debug: (I)=((\pgfutil@tmpI))}%
@@ -1015,11 +1027,10 @@ be determined.}%
 \pgfmathsetmacro{\pgfutil@tmpB}{TD("\pgfutil@tmpb*(\pgfutil@tmpB)")}%
 \pgfmathsetmacro{\pgfutil@tmpD}{TD("\pgfutil@tmpd*(\pgfutil@tmpD)")}%
 \pgfmathsetmacro{\pgfutil@tmpC}{TD("(\pgfutil@tmpD)x(\pgfutil@tmpB)")}%
-\edef\pgfutil@tmp{\noexpand\path[overlay,
+\expanded{\noexpand\path[overlay,
 	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ex}=(\pgfutil@tmpB)},
 	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ey}=(\pgfutil@tmpC)},
 	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ez}=(\pgfutil@tmpD)}];}%
-\pgfutil@tmp	
 \fi
 },3d/aux keys/.cd,A/.initial={(A)},B/.initial={(B)},
 C/.initial={(C)},D/.initial={(D)},
@@ -1027,7 +1038,8 @@ intersection 1/.initial={I-1},intersection 2/.initial={I-2},
 ex/.initial={(ex)},
 ey/.initial={(ey)},ez/.initial={(ez)},
 i1/.initial=i1,i2/.initial=i2,
-rA/.initial=1,rB/.initial=1,rC/.initial=1}
+rA/.initial=1,rB/.initial=1,rC/.initial=1,
+tmpcoord1/.initial=3dtoolstmp-1}
 \tikzset{3d/screen coords/.style={x={(1cm,0cm)},y={(0cm,1cm)},z={(-1cm,-1cm)}}}%
 %%
 %% predefined pics
