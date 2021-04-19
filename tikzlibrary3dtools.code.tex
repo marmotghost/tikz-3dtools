@@ -422,16 +422,16 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 % barycenter of a list of coordinates
 \pgfmathdeclarefunction{barycenter}{1}{% barycentric coordinate 
 \begingroup%
-\foreach \pgfutil@tmpa [count=\pgfutil@tmpb] in {#1}
-{\ifnum\pgfutil@tmpb=1
-   \xdef\pgfutil@tmpc{\pgfutil@tmpa}%
-   \else
-   \xdef\pgfutil@tmpc{\pgfutil@tmpc+\pgfutil@tmpa}%
-   \fi%
-   \xdef\pgfutil@tmpb{\pgfutil@tmpb}}%
-\pgfmathparse{TD("\pgfutil@tmpc")}%
-\pgfmathsetmacro{\pgfutil@tmpc}{1/\pgfutil@tmpb}%
-\pgfmathparse{TD("\pgfutil@tmpc*(\pgfmathresult)")}%   
+\edef\pgfutil@tmpb{0}%
+\tikzset{3d/tmp/.code={\edef\pgfutil@tmpb{\the\numexpr\pgfutil@tmpb+1}%
+\ifnum\pgfutil@tmpb=1
+ \edef\pgfutil@tmpc{##1}%
+\else
+ \edef\pgfutil@tmpc{\pgfutil@tmpc+##1}%
+\fi},3d/tmp/.list={#1}}%
+\pgfmathsetmacro{\pgfutil@tmpc}{TD("\pgfutil@tmpc")}%
+\pgfmathsetmacro{\pgfutil@tmpa}{1/\pgfutil@tmpb}%
+\pgfmathparse{TD("\pgfutil@tmpa*(\pgfutil@tmpc)")}%   
 \pgfmathsmuggle\pgfmathresult\endgroup}%
 %
 % position of a real in a list of reals
@@ -1027,6 +1027,9 @@ be determined.}%
 \pgfmathsetmacro{\pgfutil@tmpB}{TD("\pgfutil@tmpb*(\pgfutil@tmpB)")}%
 \pgfmathsetmacro{\pgfutil@tmpD}{TD("\pgfutil@tmpd*(\pgfutil@tmpD)")}%
 \pgfmathsetmacro{\pgfutil@tmpC}{TD("(\pgfutil@tmpD)x(\pgfutil@tmpB)")}%
+% \typeout{3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ex}=(\pgfutil@tmpB)},
+% 	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ey}=(\pgfutil@tmpC)},
+% 	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ez}=(\pgfutil@tmpD)}}%
 \expanded{\noexpand\path[overlay,
 	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ex}=(\pgfutil@tmpB)},
 	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ey}=(\pgfutil@tmpC)},
@@ -1357,7 +1360,8 @@ projection prefix/.initial=tmpp}
    \path[overlay] (0,0,0) coordinate (-tdtmpo)
 	(0,0,\pv{h}) coordinate (-tdtmpez)
 	($(0,0,0)!1cm!90:(0,0,\pv{h})$) coordinate (-tdtmpey);
-   \pgfmathsetmacro{\pgfutil@tmpa}{sqrt(pow(x2d("-tdtmpo")-x2d("-tdtmpez"),2)+pow(y2d("-tdtmpo")-y2d("-tdtmpez"),2))}
+   \pgfmathsetmacro{\mytest}{y2d("-tdtmpez")}	
+   \pgfmathsetmacro@td@FPU{\pgfutil@tmpa}{sqrt(pow(x2d("-tdtmpo")-x2d("-tdtmpez"),2)+pow(y2d("-tdtmpo")-y2d("-tdtmpez"),2))}%
    \pgfmathtruncatemacro{\itest}{(\pgfutil@tmpa>0.5?1:0)}%
    \ifnum\itest=0
 	\draw[3d/visible] (0,0,0) circle[radius=R];
