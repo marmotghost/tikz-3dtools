@@ -1680,6 +1680,45 @@ create face from vertices/.code={\let\pgfutil@tmpa\relax%
 },%
 create faces from vertex list/.style={/tikz/3d/polyhedron/create face from vertices/.list={#1}}%
 }%
+% draw named paths in some order
+\tikzset{3d/draw named path behind/.code 2 args={% #1 object, #2 list of objects in front
+   %\typeout{Draw #1 behind #2.}
+   \tikzset{3d/current named path=#1,
+   	3d/draw named path clipped against/.list={#2},
+	3d/draw named path avoiding={#2}}
+  },3d/draw named path clipped against/.code={% #1=clip path
+  %\typeout{Clip \pgfkeysvalueof{/tikz/3d/current path} against #1.}
+  \begin{scope}
+   	\clip[use named path/.expanded=#1];
+	\draw[3d/hidden,3d/ordered paths/\pgfkeysvalueof{/tikz/3d/current named path}/.try,
+		use named path/.expanded=\pgfkeysvalueof{/tikz/3d/current named path}];
+  \end{scope}},
+  3d/draw named path avoiding/.code={% #1=list of paths to be avoided
+  %\typeout{Draw \pgfkeysvalueof{/tikz/3d/current path} avoiding #1.}
+  \begin{scope}
+   \tikzset{3d/avoid named path/.list={#1}}%
+   \draw[3d/visible,3d/ordered paths/\pgfkeysvalueof{/tikz/3d/current named path}/.try,
+   	use named path/.expanded=\pgfkeysvalueof{/tikz/3d/current named path}];
+  \end{scope}},3d/avoid named path/.code={%
+  	\clip[even odd clip,use named path/.expanded=#1,generous outside path];
+  },
+  3d/current named path/.initial={},
+  3d/draw ordered paths/.code={%
+  \tikzset{3d/temporary list 1/.initial={#1},
+  	3d/draw ordered path/.list={#1}}%  
+  },3d/draw ordered path/.code={%
+  % test if remaining list has only one element
+  \expanded{\noexpand\pgfutil@in@{,}{\pgfkeysvalueof{/tikz/3d/temporary list 1}}}% 
+  \tikzset{3d/temporary list 1/.remove item={#1}}
+  \ifpgfutil@in@% 
+	\tikzset{3d/draw named path behind/.expanded={#1}{\pgfkeysvalueof{/tikz/3d/temporary list 1}}} 
+  \else
+   \begin{scope}
+	\draw[3d/visible,3d/ordered paths/\pgfkeysvalueof{/tikz/3d/current named path}/.try,
+	use named path/.expanded=#1];
+   \end{scope}	
+  \fi  
+  },3d/ordered paths/.unknown/.code={}}
 % y cylinder, not yet in the manual
 \tikzset{pics/ycylinder/.style={code={
 \tikzset{3d/.cd,#1}

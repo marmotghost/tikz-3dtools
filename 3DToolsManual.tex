@@ -583,6 +583,45 @@ the screen, which is given by the last row of the orthogonal matrix $O$ of
 identifications $\theta=\texttt{\textbackslash tdplotmaintheta}$ and
 $\phi=\texttt{\textbackslash tdplotmainphi}$.
 
+\begin{key}{/tikz/3d/draw ordered paths=\meta{list} (initially empty)}
+		This draws a list of named paths that have been created in with the
+		|save named path| in the order they appear in the list \meta{list}.
+		This is achieved by a number of clips and inverted clips. Notice that,
+		at this point, layers are not supported. This is because clips have to
+		be applied in the some layer as the path that is to be clipped against.
+		One can define styles that carry the same names as the named paths in
+		the directory |3d/ordered paths/|. If such a style exists, it will be
+		applied. 
+\end{key}
+
+\begin{codeexample}[width=5cm,preamble={\usetikzlibrary{3dtools}}]
+\begin{tikzpicture}[3d/install view={phi=50,theta=70},
+  declare function={a=3;alpha=20;},
+  line join=round]
+ \path
+   (-a/2,0,0) coordinate (P_1)
+   (a/2,0,0) coordinate (P_2)
+   (-a/2,a,0) coordinate (A_1)
+   (a/2,a,0) coordinate (A_2)
+   (-a/2,{a*cos(alpha/2)},{a*sin(alpha/2)}) coordinate (B_1)
+   (a/2,{a*cos(alpha/2)},{a*sin(alpha/2)}) coordinate (B_2)
+   (-a/2,{a*cos(alpha)},{a*sin(alpha)}) coordinate (C_1)
+   (a/2,{a*cos(alpha)},{a*sin(alpha)}) coordinate (C_2);
+ \foreach \X in {A,B,C}	 	 
+ {\path[save named path=p\X] (P_1) -- (P_2) -- 
+ 	(\X_2) -- (\X_1) -- cycle;}	 
+ \pgfmathsetmacro{\nA}{TDunit("(A_1)-(P_1)x(P_2)-(P_1)")}
+ \pgfmathsetmacro{\nC}{TDunit("(C_1)-(P_1)x(P_1)-(P_2)")}
+ \pgfmathtruncatemacro{\itest}{screendepth(\nA)>screendepth(\nC)?1:0}
+ \tikzset{3d/ordered paths/pA/.style={fill=red}}
+ \ifnum\itest=1
+  \tikzset{3d/draw ordered paths={pC,pB,pA}}
+ \else
+  \tikzset{3d/draw ordered paths={pA,pB,pC}}
+ \fi
+\end{tikzpicture}
+\end{codeexample}
+
 \subsubsection{Example 1: latitude circle on sphere}
 
 Here is an example. Suppose we wish to draw a latitude circle on a sphere for
@@ -1554,7 +1593,7 @@ and an index or reshuffling or permutation list
 my index machinery/content/.print list})\;.\]
 For instance, the $5^\mathrm{th}$ entry of the\
 permutation list being\
-$P_5=\pgfkeysvalueof{/my lists/my index machinery/5}$
+$P_5=\pgfkeysvalueof{/my lists/my index machinery/5}$\ 
 tells us that the\ 
 $\pgfkeysvalueof{/my lists/my index machinery/5}
 ^\mathrm{th}$\ entry of our original list,\ 
@@ -1565,7 +1604,7 @@ my index machinery/5}}
 ended up at position $5$ in the sorted list,\ 
 i.e.\ $\lambda_5'=\lambda_{\pgfkeysvalueof{/my lists/%
 my index machinery/5}}$. Similarly,\ 
-$P_3=\pgfkeysvalueof{/my lists/my index machinery/3}$ 
+$P_3=\pgfkeysvalueof{/my lists/my index machinery/3}$\ 
 means that for the\
 $\pgfkeysvalueof{/my lists/my index machinery/3}
 ^\mathrm{th}$ entry of our original list,\  
