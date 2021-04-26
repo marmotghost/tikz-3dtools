@@ -1714,7 +1714,7 @@ create faces from vertex list/.style={/tikz/3d/polyhedron/create face from verti
 	\tikzset{3d/draw named path behind/.expanded={#1}{\pgfkeysvalueof{/tikz/3d/temporary list 1}}} 
   \else
    \begin{scope}
-	\draw[3d/visible,3d/ordered paths/\pgfkeysvalueof{/tikz/3d/current named path}/.try,
+	\draw[3d/visible,3d/ordered paths/#1/.try,
 	use named path/.expanded=#1];
    \end{scope}	
   \fi  
