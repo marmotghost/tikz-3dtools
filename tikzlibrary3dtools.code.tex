@@ -98,8 +98,16 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \pgfmathsmuggle#1\endgroup}%
 %
 \xdef\tikz@td@type{0}%0=linear combination,1=vector product
-\long\def\RawCoord(#1){\csname tikz@dcl@coord@#1\endcsname}% 
-\long\def\ParseCoord(#1){%
+\long\def\tikz@td@raw@coord(#1){\csname tikz@dcl@coord@#1\endcsname}% 
+\long\def\tikz@td@makesenseof@coord#1{%
+\expanded{\noexpand\pgfutil@in@{(}{#1}}% 
+\ifpgfutil@in@% 
+\tikz@td@parse@coord#1%
+\else
+\tikz@td@parse@coord(#1)%
+\fi
+}%
+\long\def\tikz@td@parse@coord(#1){%
 \pgfutil@tempcnta=0%
 \pgfutil@for\pgf@tmp:={#1}\do{\advance\pgfutil@tempcnta by1}%
 \ifnum\pgfutil@tempcnta=1\relax
@@ -139,17 +147,17 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \pgfmathsmuggle\pgfmathresult\endgroup} 
 \pgfmathdeclarefunction{TDx}{1}{% x component of a 3-vector 
 \begingroup% 
-\edef\mycoord{\RawCoord(#1)}%
+\edef\mycoord{\tikz@td@raw@coord(#1)}%
 \pgfmathparse@td@FPU{xcomp3\mycoord}% 
 \pgfmathsmuggle\pgfmathresult\endgroup}%
 \pgfmathdeclarefunction{TDy}{1}{% x component of a 3-vector 
 \begingroup% 
-\edef\mycoord{\RawCoord(#1)}%
+\edef\mycoord{\tikz@td@raw@coord(#1)}%
 \pgfmathparse@td@FPU{ycomp3\mycoord}% 
 \pgfmathsmuggle\pgfmathresult\endgroup}%
 \pgfmathdeclarefunction{TDz}{1}{% x component of a 3-vector 
 \begingroup% 
-\edef\mycoord{\RawCoord(#1)}%
+\edef\mycoord{\tikz@td@raw@coord(#1)}%
 \pgfmathparse@td@FPU{zcomp3\mycoord}% 
 \pgfmathsmuggle\pgfmathresult\endgroup}%
 \pgfmathdeclarefunction{TDunit}{1}{%normalized vector
@@ -174,12 +182,12 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 % \pgfmathsmuggle\pgfmathresult\endgroup}%
 % \pgfmathdeclarefunction{TDY}{1}{% x component of a 3-vector 
 % \begingroup% 
-% \edef\mycoord{\RawCoord#1}%
+% \edef\mycoord{\tikz@td@raw@coord#1}%
 % \pgfmathparse@td@FPU{ycomp3\mycoord}% 
 % \pgfmathsmuggle\pgfmathresult\endgroup}%
 % \pgfmathdeclarefunction{TDZ}{1}{% x component of a 3-vector 
 % \begingroup% 
-% \edef\mycoord{\RawCoord#1}%
+% \edef\mycoord{\tikz@td@raw@coord#1}%
 % \pgfmathparse@td@FPU{zcomp3\mycoord}% 
 % \pgfmathsmuggle\pgfmathresult\endgroup}%
 \tikzset{3d/record physical components/.code={%
@@ -187,7 +195,7 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 3d/store components/.code={%
 \edef\pgf@Z{\relax}%
 \edef\pgfutil@tmpz{\relax}%
-\expandafter\ParseCoord\tikz@scan@point@coordinate%
+\expandafter\tikz@td@parse@coord\tikz@scan@point@coordinate%
 \pgfmathsetmacro\pgfutil@tmpx{\the\pgf@x/1cm}%
 \pgfmathsetmacro\pgfutil@tmpy{\the\pgf@y/1cm}%
 \ifx\pgf@Z\pgfutil@tmpz
@@ -204,7 +212,7 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \ifcsname tikz@td@physical@x@#1\endcsname
 \expandafter\edef\expandafter\pgfmathresult\expandafter{\csname tikz@td@physical@x@#1\endcsname}%
 \else
-\PackageWarning{3dtools}{Physical x component of #1 not stored. Setting it to 0.}
+\PackageWarning{3dtools}{Physical x component of #1 not stored. Setting it to 0.}%
 \edef\pgfmathresult{0}%
 \fi
 \pgfmathsmuggle\pgfmathresult\endgroup%
@@ -214,7 +222,7 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \ifcsname tikz@td@physical@y@#1\endcsname
 \expandafter\edef\expandafter\pgfmathresult\expandafter{\csname tikz@td@physical@y@#1\endcsname}%
 \else
-\PackageWarning{3dtools}{Physical y component of #1 not stored. Setting it to 0.}
+\PackageWarning{3dtools}{Physical y component of #1 not stored. Setting it to 0.}%
 \edef\pgfmathresult{0}%
 \fi
 \pgfmathsmuggle\pgfmathresult\endgroup%
@@ -224,7 +232,7 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \ifcsname tikz@td@physical@z@#1\endcsname
 \expandafter\edef\expandafter\pgfmathresult\expandafter{\csname tikz@td@physical@z@#1\endcsname}%
 \else
-\PackageWarning{3dtools}{Physical y component of #1 not stored. Setting it to 0.}
+\PackageWarning{3dtools}{Physical y component of #1 not stored. Setting it to 0.}%
 \edef\pgfmathresult{0}%
 \fi
 \pgfmathsmuggle\pgfmathresult\endgroup%
@@ -237,9 +245,97 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \edef\pgfmathresult{\pgfutil@tmpx,\pgfutil@tmpy,\pgfutil@tmpz}%
 \pgfmathsmuggle\pgfmathresult\endgroup%
 }%
+\tikzset{3d/.cd,local ex/.initial={localex},local ey/.initial={localey},
+local ez/.initial={localez},dual ex/.initial={dualex},dual ey/.initial={dualey},
+dual ez/.initial={dualez},install dual basis/.code={%
+% \path (1,0,0) coordinate (\pgfkeysvalueof{/tikz/3d/local ex})
+% (0,1,0) coordinate (\pgfkeysvalueof{/tikz/3d/local ey})
+% (0,0,1) coordinate (\pgfkeysvalueof{/tikz/3d/local ez});
+% \pgfmathsetmacro{\pgfutil@tmpxx}{x2d("\pgfkeysvalueof{/tikz/3d/local ex}")/1cm}%
+% \pgfmathsetmacro{\pgfutil@tmpxy}{y2d("\pgfkeysvalueof{/tikz/3d/local ex}")/1cm}%
+% \pgfmathsetmacro{\pgfutil@tmpxz}{screendepth(1,0,0)}%
+% \pgfmathsetmacro{\pgfutil@tmpyx}{x2d("\pgfkeysvalueof{/tikz/3d/local ey}")/1cm}%
+% \pgfmathsetmacro{\pgfutil@tmpyy}{y2d("\pgfkeysvalueof{/tikz/3d/local ey}")/1cm}%
+% \pgfmathsetmacro{\pgfutil@tmpyz}{screendepth(0,1,0)}%
+% \pgfmathsetmacro{\pgfutil@tmpzx}{x2d("\pgfkeysvalueof{/tikz/3d/local ez}")/1cm}%
+% \pgfmathsetmacro{\pgfutil@tmpzy}{y2d("\pgfkeysvalueof{/tikz/3d/local ez}")/1cm}%
+% \pgfmathsetmacro{\pgfutil@tmpzz}{screendepth(0,0,1)}%
+% \typeout{((\pgfutil@tmpxx,\pgfutil@tmpxy,\pgfutil@tmpxz),(\pgfutil@tmpyx,\pgfutil@tmpyy,\pgfutil@tmpyz),(\pgfutil@tmpzx,\pgfutil@tmpzy,\pgfutil@tmpzz))}%
+% % ((\the\pgf@yx/1cm)*(\the\pgf@zy/1cm)-(\the\pgf@yy/1cm)*(\the\pgf@zx/1cm))*(#1)+%
+% % ((\the\pgf@zx/1cm)*(\the\pgf@xy/1cm)-(\the\pgf@xx/1cm)*(\the\pgf@zy/1cm))*(#2)+%
+% % ((\the\pgf@xx/1cm)*(\the\pgf@yy/1cm)-(\the\pgf@yx/1cm)*(\the\pgf@xy/1cm))*(#3)}%
+\pgfmathsetmacro{\pgfutil@tmpxx}{\pgf@xx/1cm}%
+\pgfmathsetmacro{\pgfutil@tmpxy}{\pgf@xy/1cm}%
+\pgfmathsetmacro{\pgfutil@tmpxz}{nscreenx}%
+\pgfmathsetmacro{\pgfutil@tmpyx}{\pgf@yx/1cm}%
+\pgfmathsetmacro{\pgfutil@tmpyy}{\pgf@yy/1cm}%
+\pgfmathsetmacro{\pgfutil@tmpyz}{nscreeny}%
+\pgfmathsetmacro{\pgfutil@tmpzx}{\pgf@zx/1cm}%
+\pgfmathsetmacro{\pgfutil@tmpzy}{\pgf@zy/1cm}%
+\pgfmathsetmacro{\pgfutil@tmpzz}{nscreenz}%
+\path (\pgfutil@tmpxx,\pgfutil@tmpxy,\pgfutil@tmpxz) coordinate (\pgfkeysvalueof{/tikz/3d/dual ex})
+	(\pgfutil@tmpyx,\pgfutil@tmpyy,\pgfutil@tmpyz) coordinate (\pgfkeysvalueof{/tikz/3d/dual ey})
+	(\pgfutil@tmpzx,\pgfutil@tmpzy,\pgfutil@tmpzz) coordinate (\pgfkeysvalueof{/tikz/3d/dual ez});
+\typeout{((\pgfutil@tmpxx,\pgfutil@tmpxy,\pgfutil@tmpxz),(\pgfutil@tmpyx,\pgfutil@tmpyy,\pgfutil@tmpyz),(\pgfutil@tmpzx,\pgfutil@tmpzy,\pgfutil@tmpzz))}%
+}}
+\pgfmathdeclarefunction{TDlocalx}{1}{%
+\begingroup%
+\ifcsname tikz@td@physical@x@#1\endcsname
+\expandafter\edef\expandafter\pgfutil@tmpx\expandafter{\csname tikz@td@physical@x@#1\endcsname}%
+\expandafter\edef\expandafter\pgfutil@tmpy\expandafter{\csname tikz@td@physical@y@#1\endcsname}%
+\expandafter\edef\expandafter\pgfutil@tmpz\expandafter{\csname tikz@td@physical@z@#1\endcsname}%
+\pgfmathparse@td@FPU{(\pgfutil@tmpx)*(\pgf@xx/1cm)+(\pgfutil@tmpy)*(\pgf@xy/1cm)+(\pgfutil@tmpz)*(nscreenx)}% 
+\else
+\PackageWarning{3dtools}{Physical x component of #1 not stored. Setting result to 0.}%
+\edef\pgfmathresult{0}%
+\fi
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
+\pgfmathdeclarefunction{TDlocaly}{1}{%
+\begingroup%
+\ifcsname tikz@td@physical@y@#1\endcsname
+\expandafter\edef\expandafter\pgfutil@tmpx\expandafter{\csname tikz@td@physical@x@#1\endcsname}%
+\expandafter\edef\expandafter\pgfutil@tmpy\expandafter{\csname tikz@td@physical@y@#1\endcsname}%
+\expandafter\edef\expandafter\pgfutil@tmpz\expandafter{\csname tikz@td@physical@z@#1\endcsname}%
+\pgfmathparse@td@FPU{(\pgfutil@tmpx)*(\pgf@yx/1cm)+(\pgfutil@tmpy)*(\pgf@yy/1cm)+(\pgfutil@tmpz)*(nscreeny)}% 
+\else
+\PackageWarning{3dtools}{Physical x component of #1 not stored. Setting result to 0.}%
+\edef\pgfmathresult{0}%
+\fi
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
+\pgfmathdeclarefunction{TDlocalz}{1}{%
+\begingroup%
+\ifcsname tikz@td@physical@z@#1\endcsname
+\expandafter\edef\expandafter\pgfutil@tmpx\expandafter{\csname tikz@td@physical@x@#1\endcsname}%
+\expandafter\edef\expandafter\pgfutil@tmpy\expandafter{\csname tikz@td@physical@y@#1\endcsname}%
+\expandafter\edef\expandafter\pgfutil@tmpz\expandafter{\csname tikz@td@physical@z@#1\endcsname}%
+\pgfmathparse@td@FPU{(\pgfutil@tmpx)*(\pgf@zx/1cm)+(\pgfutil@tmpy)*(\pgf@zy/1cm)+(\pgfutil@tmpz)*(nscreenz)}% 
+\else
+\PackageWarning{3dtools}{Physical x component of #1 not stored. Setting result to 0.}%
+\edef\pgfmathresult{0}%
+\fi
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
+\pgfmathdeclarefunction{TDlocal}{1}{%
+\begingroup%
+\ifcsname tikz@td@physical@z@#1\endcsname
+\expandafter\edef\expandafter\pgfutil@tmpx\expandafter{\csname tikz@td@physical@x@#1\endcsname}%
+\expandafter\edef\expandafter\pgfutil@tmpy\expandafter{\csname tikz@td@physical@y@#1\endcsname}%
+\expandafter\edef\expandafter\pgfutil@tmpz\expandafter{\csname tikz@td@physical@z@#1\endcsname}%
+\pgfmathsetmacro@td@FPU{\pgfutil@tmpa}{(\pgfutil@tmpx)*(\pgf@xx/1cm)+(\pgfutil@tmpy)*(\pgf@xy/1cm)+(\pgfutil@tmpz)*(nscreenx)}% 
+\pgfmathsetmacro@td@FPU{\pgfutil@tmpb}{(\pgfutil@tmpx)*(\pgf@yx/1cm)+(\pgfutil@tmpy)*(\pgf@yy/1cm)+(\pgfutil@tmpz)*(nscreeny)}% 
+\pgfmathsetmacro@td@FPU{\pgfutil@tmpc}{(\pgfutil@tmpx)*(\pgf@zx/1cm)+(\pgfutil@tmpy)*(\pgf@zy/1cm)+(\pgfutil@tmpz)*(nscreenz)}% 
+\edef\pgfmathresult{\pgfutil@tmpa,\pgfutil@tmpb,\pgfutil@tmpc}%
+\else
+\PackageWarning{3dtools}{Physical x component of #1 not stored. Setting result to 0.}%
+\edef\pgfmathresult{(0,0,0)}%
+\fi
+\pgfmathsmuggle\pgfmathresult\endgroup%
+}%
 % \def\tizk@td@scalprod#1=#2.#3;{% 
-% \edef\coordA{\RawCoord#2}% 
-% \edef\coordB{\RawCoord#3}% 
+% \edef\coordA{\tikz@td@raw@coord#2}% 
+% \edef\coordB{\tikz@td@raw@coord#3}% 
 % \pgfmathsetmacro\pgfutil@tmpa{scalarproduct({\coordA},{\coordB})}% 
 % \edef#1{\pgfutil@tmpa}}% 
 \def\tizk@td@spaux#1#2#3#4#5#6{(#1)*(#4)+(#2)*(#5)+(#3)*(#6)}% 
@@ -270,7 +366,7 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \pgfmathdeclarefunction{axisangles}{1}{% 
 \begingroup% 
 \pgfmathsetmacro{\pgfutil@tmpa}{sqrt(TD("#1o#1"))}%
-\edef\pgfutil@tmpb{\RawCoord#1}%
+\edef\pgfutil@tmpb{\tikz@td@raw@coord#1}%
 \pgfmathsetmacro{\pgftemp@x}{xcomp3(\pgfutil@tmpb)/\pgfutil@tmpa}% 
 \pgfmathsetmacro{\pgftemp@y}{ycomp3(\pgfutil@tmpb)/\pgfutil@tmpa}% 
 \pgfmathsetmacro{\pgftemp@z}{zcomp3(\pgfutil@tmpb)/\pgfutil@tmpa}% 
@@ -569,6 +665,7 @@ x2d("\pgfutil@tmpa")-x2d("\pgfutil@tmpd"))+\pgfutil@tmpe,360)}%
 \edef\pgf@Xa{0pt}% We accumulate the result in here. 
 \edef\pgf@Ya{0pt}% 
 \edef\pgf@Za{0pt}% 
+%\typeout{Got #1 to parse.}%
 \tikz@td@cc@parse+#1% 
 }% 
 
@@ -589,12 +686,17 @@ x2d("\pgfutil@tmpa")-x2d("\pgfutil@tmpd"))+\pgfutil@tmpe,360)}%
 }{% 
 \pgfutil@ifnextchar o{% 
 \tikz@td@cc@scalprod% 
+}{% 
+\pgfutil@ifnextchar[{% 
+%\typeout{Found a [.}%
+\tikz@td@cc@pgfparse% 
 }{% \tikzerror{+ or - expected}% 
 \tikz@td@cc@end%
 }% 
 }% 
 }% 
 }% 
+}%
 }%
 }%
 % 
@@ -672,19 +774,32 @@ x2d("\pgfutil@tmpa")-x2d("\pgfutil@tmpd"))+\pgfutil@tmpe,360)}%
 % Ok, found coordinate 
 \tikz@td@cc@coordinate% 
 }{% 
+\pgfutil@ifnextchar[{%] 
+% Ok, found ordinary expression to parse
+\tikz@td@cc@pgfparse% 
+}{% 
 \tikz@td@cc@parse@factor% 
+}% 
 }% 
 }% 
 % 
 % ... otherwise it's a factor. It ends at ...*( 
 % 
+\def\tikz@td@cc@pgfparse[#1]{% 
+%\typeout{Parsing expression #1, previously the factor was \tikz@td@cc@factor.}%
+\pgfmathsetmacro{\tikz@td@cc@factor}{\tikz@td@cc@factor*(#1)}%
+%\typeout{Now the factor is \tikz@td@cc@factor.}%
+\tikz@td@cc@factororcoordinate% 
+}% 
+%
 \def\tikz@td@cc@parse@factor#1*({% 
+%\typeout{Factor: got #1}.%
 \pgfmathparse@td@FPU{#1*\tikz@td@cc@factor}% 
 \let\tikz@td@cc@factor=\pgfmathresult% 
 \tikz@td@cc@coordinate(%) 
 }% 
 \def\tikz@td@cc@coordinate(#1){% 
-\ParseCoord(#1)% 
+\tikz@td@parse@coord(#1)% 
 \pgfmathsetmacro{\pgf@Xa}{\pgf@Xa+\tikz@td@cc@factor*\pgf@X}%
 \pgfmathsetmacro{\pgf@Ya}{\pgf@Ya+\tikz@td@cc@factor*\pgf@Y}%
 \pgfmathsetmacro{\pgf@Za}{\pgf@Za+\tikz@td@cc@factor*\pgf@Z}%
@@ -701,10 +816,11 @@ pow(\r,2)*(2+pow(tan(\th),2)))/pow(\R,2);% discriminant
 torusumax(\th,\R,\r)=ifthenelse(torusdisc(\th,\R,\r)>0,asin(sqrt(abs(torusdisc(\th,\R,\r)))),0);
 }}%
 %
-\tikzset{3d parse/.style={/utils/exec=\pgfmathtdparse{#1},%
-insert path={(\pgfmathresult)}},3d coordinate/.style args={#1=#2}{%
-/utils/exec=\pgfmathtdparse{#2},%
-insert path={(\pgfmathresult) coordinate #1}}}%
+\tikzset{3d parse/.style={%/utils/exec=\pgfmathtdparse{#1},%
+insert path={\pgfextra{\pgfmathtdparse{#1}}(\pgfmathresult)}},
+3d coordinate/.style args={#1=#2}{%
+%/utils/exec=\pgfmathtdparse{#2},%
+insert path={\pgfextra{\pgfmathtdparse{#2}}(\pgfmathresult) coordinate #1}}}%
 \newcommand\pgfmathprintvector[2][]{%
 \begingroup
 \pgfkeys{#1}%
@@ -1100,17 +1216,17 @@ extra/.code={}}%
 \pgfmathsetmacro{\pgfutil@tmpd}{(\pgfutil@tmpa+\pgfutil@tmpb+\pgfutil@tmpc)/2}%
 \pgfmathsetmacro{\pgfutil@tmparea}{sqrt(\pgfutil@tmpd*(\pgfutil@tmpd-\pgfutil@tmpa)*(\pgfutil@tmpd-\pgfutil@tmpb)*(\pgfutil@tmpd-\pgfutil@tmpc))}%
 \pgfmathsetmacro{\pgfutil@tmpr}{\pgfutil@tmparea/\pgfutil@tmpd}%
-\edef\pgfutil@tmpt{\noexpand\ParseCoord\pgfkeysvalueof{/tikz/3d/incircle/A}}%
+\edef\pgfutil@tmpt{\noexpand\tikz@td@parse@coord\pgfkeysvalueof{/tikz/3d/incircle/A}}%
 \pgfutil@tmpt
 \pgfmathsetmacro{\pgfutil@tmp@Ax}{\pgf@X}%
 \pgfmathsetmacro{\pgfutil@tmp@Ay}{\pgf@Y}%
 \pgfmathsetmacro{\pgfutil@tmp@Az}{\pgf@Z}%
-\edef\pgfutil@tmpt{\noexpand\ParseCoord\pgfkeysvalueof{/tikz/3d/incircle/B}}%
+\edef\pgfutil@tmpt{\noexpand\tikz@td@parse@coord\pgfkeysvalueof{/tikz/3d/incircle/B}}%
 \pgfutil@tmpt
 \pgfmathsetmacro{\pgfutil@tmp@Bx}{\pgf@X}%
 \pgfmathsetmacro{\pgfutil@tmp@By}{\pgf@Y}%
 \pgfmathsetmacro{\pgfutil@tmp@Bz}{\pgf@Z}%
-\edef\pgfutil@tmpt{\noexpand\ParseCoord\pgfkeysvalueof{/tikz/3d/incircle/C}}%
+\edef\pgfutil@tmpt{\noexpand\tikz@td@parse@coord\pgfkeysvalueof{/tikz/3d/incircle/C}}%
 \pgfutil@tmpt
 \pgfmathsetmacro{\pgfutil@tmp@Cx}{\pgf@X}%
 \pgfmathsetmacro{\pgfutil@tmp@Cy}{\pgf@Y}%
@@ -1258,7 +1374,10 @@ projection prefix/.initial=tmpp}
 	\pgfmathsetmacro{\sdtip}{screendepth(0,0,\pv{h})}
 	\pgfmathsetmacro{\aspectangle}{atan2(\sdtip,sqrt(\pv{h}*\pv{h}-\sdtip*\sdtip))}
 	\path (0,0,\pv{h}) coordinate (-tip);
-    \begin{scope}[x={(0,0,tan(\aspectangle))},y={($(0,0,0)!1cm!90:(0,0,\pv{h})$)}]
+	\pgfmathsetmacro{\myey}{TDunit("(0,0,1)x(nscreenx,nscreeny,nscreenz)")}%
+	\path (0,0,{tan(\aspectangle)}) coordinate (-tmpex)
+		(\myey) coordinate (-tmpey);	
+    \begin{scope}[x={(-tmpex)},y={(-tmpey)}]
 	 \pgfmathtruncatemacro{\itest}{abs(tan(\aspectangle)*\pv{r}/\pv{h})<1}
 	 \ifnum\itest=1
 	  \pgfmathsetmacro{\alphacrit}{acos(tan(\aspectangle)*\pv{r}/\pv{h})}
@@ -1561,15 +1680,15 @@ C/.initial={(C)},D/.initial={(D)}}%
 \@tikz@td@complete@dashesfalse
 \tikzset{cheating dash/.code args={on #1 off #2}{% from https://tex.stackexchange.com/a/133357
         % Use csname so catcode of @ doesn't have do be changed.		
-        \csname tikz@addoption\endcsname{%
-            \pgfgetpath\currentpath%
-            \pgfprocessround{\currentpath}{\currentpath}%
-            \csname pgf@decorate@parsesoftpath\endcsname{\currentpath}{\currentpath}%
-            \pgfmathparse{\csname pgf@decorate@totalpathlength\endcsname-#1}\let\rest=\pgfmathresult%
-            \pgfmathparse{#1+#2}\let\onoff=\pgfmathresult%
-            \pgfmathparse{max(floor(\rest/\onoff), 1)}\let\nfullonoff=\pgfmathresult%
-            \pgfmathparse{max((\rest-\onoff*\nfullonoff)/\nfullonoff+#2, #2)}\let\offexpand=\pgfmathresult%
-            \pgfsetdash{{#1}{\offexpand}}{0pt}}%
+        \tikz@addoption{%
+            \pgfgetpath\pgfutil@tmpc%
+            \pgfprocessround{\pgfutil@tmpc}{\pgfutil@tmpc}%
+            \pgf@decorate@parsesoftpath{\pgfutil@tmpc}{\pgfutil@tmpc}%
+            \pgfmathsetmacro{\pgfutil@tmpa}{\pgf@decorate@totalpathlength-#1}%\let\rest=\pgfmathresult%
+            \pgfmathsetmacro{\pgfutil@tmpb}{#1+#2}%\let\onoff=\pgfmathresult%
+            \pgfmathsetmacro{\pgfutil@tmpd}{max(floor(\pgfutil@tmpa/\pgfutil@tmpb), 1)}%\let\nfullonoff=\pgfmathresult%
+            \pgfmathsetmacro{\pgfutil@tmpe}{max((\pgfutil@tmpa-\pgfutil@tmpb*\pgfutil@tmpd)/\pgfutil@tmpd+#2,#2)}%\let\offexpand=\pgfmathresult%
+            \pgfsetdash{{#1}{\pgfutil@tmpe}}{0pt}}%
     },cheating dash/.default={on 2pt off 2pt}}%
 \tikzset{3d/.cd,% 
 reset vertex counter/.code={\c@pgf@counta0\relax},

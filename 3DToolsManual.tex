@@ -283,7 +283,6 @@ precedence than vector products |x| and scalar products |o|. That is,
 |(A)+(B)x(C)| as $(\vec A+\vec B)\times\vec C$.
 
 
-
 \begin{codeexample}[width=5.2cm,preamble={\usetikzlibrary{3dtools}}]
 \pgfmathparse{TD("(A)+(B)o(C)")}%
 $(\vec A+\vec B)\cdot\vec C=
@@ -295,6 +294,16 @@ $(\vec A+\vec B)\cdot\vec C=
 $(\vec A+\vec B)\times\vec C=
 (\pgfmathprintvector\pgfmathresult)$
 \end{codeexample}
+
+You can use square brackets |[...]| to separately parse subexpressions with the
+standard \pgfname\ parser.
+
+\begin{codeexample}[width=6.2cm,preamble={\usetikzlibrary{3dtools}}]
+\pgfmathparse{TD("{[sin(45)]*(A)+[cos(30)]*(B)}")}%
+$\sin(45)\,\vec A+\cos(30)\,\vec B=
+(\pgfmathprintvector\pgfmathresult)^T$
+\end{codeexample}
+
 
 Moreover, any expression can only have either one |o| or one |x|, or none of
 these. Expressions with more of these can be accidentally right.
@@ -905,6 +914,29 @@ The physical components can then be retrieved with various functions.
    coordinate.
 \end{math-function}
 
+Sometimes one may want to retrieve the components of a physical coordinate in a
+local frame.
+
+\begin{math-function}{TDlocalx("\mvar{vector}")}
+   Yields the local $x$-component of a 3d named coordinate the physical
+   coordinates of which have been recorded.
+\end{math-function}
+
+\begin{math-function}{TDlocaly("\mvar{vector}")}
+   Yields the local $y$-component of a 3d named coordinate the physical
+   coordinates of which have been recorded.
+\end{math-function}
+
+\begin{math-function}{TDlocalz("\mvar{vector}")}
+   Yields the local $z$-component of a 3d named coordinate the physical
+   coordinates of which have been recorded.
+\end{math-function}
+
+\begin{math-function}{TDlocal("\mvar{vector}")}
+   Yields an array containing local $x$, $y$ and $z$-components of a 3d named
+   coordinate the physical coordinates of which have been recorded.
+\end{math-function}
+
 \begin{codeexample}[width=5.2cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}[3d/record physical components,
 	dot/.style={circle,inner sep=1pt,fill}] 
@@ -917,9 +949,12 @@ The physical components can then be retrieved with various functions.
  \draw[dashed] foreach \X [remember=\X as \Y (initially D)]
  	in {B,C,D}
   {(A) -- (\X) (\Y) -- (\X) 
- coordinate[dot,label=below:{$\X=\pgfmathparse{TDphys("\X")}%
- (\pgfmathprintvector\pgfmathresult)^T
- $}]}
+ coordinate[dot,label=below:{$\begin{aligned}
+	\X_\mathrm{phys}&=\pgfmathparse{TDphys("\X")}%
+ (\pgfmathprintvector\pgfmathresult)^T\\
+	\X_\mathrm{loc}&=\pgfmathparse{TDlocal("\X")}%
+ (\pgfmathprintvector\pgfmathresult)^T\\
+ \end{aligned}$}]}
  (A) coordinate[dot,label=above:{$A=\pgfmathparse{TDphys("A")}%
  (\pgfmathprintvector\pgfmathresult)^T
  $}]; 
@@ -1247,7 +1282,8 @@ systems such as spherical ones, all coordinates that are defined in
   \tikzset{3d/polyhedron/.cd,
 	fore layer=foreground,back layer=background,
 	fore/.append style={opacity=0.4,thick},
-	back/.append style={opacity=0.4},
+	back/.append style={3d/polyhedron/complete dashes,
+		opacity=0.4},
  	draw face with corners={{(v1)},{(v2)},{(v3)}},
  	draw face with corners={{(v1)},{(v2)},{(v4)}},
  	draw face with corners={{(v1)},{(v3)},{(v4)}},
@@ -1290,7 +1326,8 @@ systems such as spherical ones, all coordinates that are defined in
  {12,6,20,4,8},{6,2,13,18,20},{2,5,19,17,13},{4,20,18,10,15},{18,13,17,9,10},
  {17,19,3,14,9},{3,7,16,1,14},{16,8,4,15,1}}
  \tikzset{3d/polyhedron/.cd,fore layer=foreground,back layer=background, 
-	fore/.append style={fill opacity=0.7},back/.append style={fill opacity=0.7}}
+	fore/.append style={fill opacity=0.7},
+	back/.append style={3d/polyhedron/complete dashes,fill opacity=0.7}}
 \begin{scope}[3d/install view={phi=120,psi=20,%
 	theta=70}]
  \tikzset{name prefix=Va,%<- used for all vertices
