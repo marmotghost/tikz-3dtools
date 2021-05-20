@@ -1778,6 +1778,78 @@ draw face with corners/.code={\begingroup\c@pgf@counta0\relax
 \fi
 \endgroup
 },
+draw open face with corners/.code={\begingroup\c@pgf@counta0\relax
+\pgfutil@for\pgfutil@tmpa:={#1}\do{%
+\pgfmathsetmacro\pgfutil@tmpT{TD("\pgfutil@tmpa")}%
+\ifcase\c@pgf@counta 
+\pgfmathsetmacro\pgfutil@tmpA{TD("\pgfutil@tmpa")}%
+\or
+\pgfmathsetmacro\pgfutil@tmpB{TD("\pgfutil@tmpa")}%
+\or
+\pgfmathsetmacro\pgfutil@tmpC{TD("\pgfutil@tmpa")}%
+\fi
+\advance\c@pgf@counta by1\relax
+\ifnum\c@pgf@counta=1\relax
+\edef\pgfutil@tmpl{(\pgfutil@tmpT)}% regular list
+\edef\pgfutil@tmplf{(\pgfutil@tmpT)}% first
+\edef\pgfutil@tmple{(\pgfutil@tmpT)}% edge list
+\else
+\edef\pgfutil@tmpl{\pgfutil@tmpl -- (\pgfutil@tmpT)}%
+\edef\pgfutil@tmple{\pgfutil@tmple\space edge (\pgfutil@tmpT)
+(\pgfutil@tmpT)}%
+\fi
+}%
+\ifnum\c@pgf@counta<3\relax
+\PackageWarning{3dtools}{A face needs at least three vertices. However, only \the\c@pgf@counta\space vertices were specified.}%
+\else
+\edef\pgfutil@tmpO{\pgfkeysvalueof{/tikz/3d/polyhedron/O}}%
+\pgfmathsetmacro\pgfutil@tmpO{TD("\pgfutil@tmpO")}%
+\edef\pgfutil@tmpL{\pgfkeysvalueof{/tikz/3d/polyhedron/L}}%
+\pgfmathsetmacro\pgfutil@tmpL{TD("\pgfutil@tmpL")}%
+\pgfmathsetmacro{\pgfutil@tmpb}{TD("(\pgfutil@tmpB)-(\pgfutil@tmpA)x(\pgfutil@tmpC)-(\pgfutil@tmpA)")}% 
+\pgfmathsetmacro{\pgfutil@tmpc}{TD("(\pgfutil@tmpA)-(\pgfutil@tmpO)")}% 
+\pgfmathtruncatemacro{\pgfutil@tmpd}{sign(TD("(\pgfutil@tmpb)o(\pgfutil@tmpc)"))}%
+\ifnum\pgfutil@tmpd=-1\relax
+\pgfmathsetmacro{\pgfutil@tmpb}{TD("(\pgfutil@tmpB)-(\pgfutil@tmpA)x(\pgfutil@tmpA)-(\pgfutil@tmpC)")}% 
+\fi
+\pgfmathsetmacro{\pgfutil@tmpe}{screendepth(\pgfutil@tmpb)}%
+\pgfmathsetmacro{\pgfutil@tmpf}{sqrt(TD("(\pgfutil@tmpb)o(\pgfutil@tmpb)"))}%
+\pgfmathsetmacro{\pgfutil@tmpg}{sqrt(TD("(\pgfutil@tmpL)o(\pgfutil@tmpL)"))}%
+\pgfmathsetmacro{\pgfutil@tmph}{TD("(\pgfutil@tmpL)o(\pgfutil@tmpb)")/\pgfutil@tmpf/\pgfutil@tmpg}%
+\pgfmathtruncatemacro{\pgfutil@tmpi}{70+30*\pgfutil@tmph}%
+\pgfmathtruncatemacro{\pgfutil@tmpi}{\pgfkeysvalueof{/tikz/3d/polyhedron/shading function}(\pgfutil@tmph)}%
+\ifdim\pgfutil@tmpe pt<0pt\relax
+\begin{pgfonlayer}{\pgfkeysvalueof{/tikz/3d/polyhedron/back layer}}
+\tikzset{3d/polyhedron/before hidden,3d/polyhedron/back}%
+\if@tikz@td@complete@dashes
+\path[fill=tikz@td@face@color!\pgfutil@tmpi!black,3d/polyhedron/back,draw=none] 
+	\pgfutil@tmpl;
+\edef\pgfutil@tmplg{\pgfutil@tmple\space edge \pgfutil@tmplf}%
+\draw[3d/polyhedron/back,every edge/.append style={/tikz/3d/polyhedron/face edges}]
+	\pgfutil@tmplg;
+\else
+\draw[fill=tikz@td@face@color!\pgfutil@tmpi!black,3d/polyhedron/back] \pgfutil@tmpl ;
+\fi
+\tikzset{3d/polyhedron/after hidden}%
+\end{pgfonlayer}
+\else
+\begin{pgfonlayer}{\pgfkeysvalueof{/tikz/3d/polyhedron/fore layer}}
+\tikzset{3d/polyhedron/before visible,3d/polyhedron/fore}%
+\if@tikz@td@complete@dashes
+\path[fill=tikz@td@face@color!\pgfutil@tmpi!black,3d/polyhedron/fore,draw=none]
+ \pgfutil@tmpl ;
+\edef\pgfutil@tmplg{\pgfutil@tmple\space edge \pgfutil@tmplf}%
+\draw[3d/polyhedron/fore,every edge/.append style={/tikz/3d/polyhedron/face edges}]
+	\pgfutil@tmplg;
+\else
+\draw[fill=tikz@td@face@color!\pgfutil@tmpi!black,3d/polyhedron/fore] \pgfutil@tmpl;
+\fi
+\tikzset{3d/polyhedron/after visible}%
+\end{pgfonlayer}
+\fi
+\fi
+\endgroup
+},
 color/.code={\colorlet{tikz@td@face@color}{#1}},color=yellow,
 O/.initial={(0,0,0)},% point inside the polyhedron
 L/.initial={(1,1,1)},% "light source",

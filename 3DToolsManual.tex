@@ -40,7 +40,10 @@ projections of three-dimensional drawings. In addition there exist excellent
 packages like \href{https://ctan.org/pkg/tikz-3dplot?lang=en}{|tikz-3dplot|}.
 The purpose of this library is to provide some means to manipulate the
 coordinates. It supports linear combinations of vectors, vector products and
-scalar products. 
+scalar products. It also supports ``physical'' coordinates and means to
+transform coordinates from one orthonormal basis to another orthonormal basis. 
+
+\medskip
 
 \noindent\textbf{Note:} Hopefully this library is only temporary and its
 contents will be absorbed in slightly extended versions of the |3d| and |calc|
@@ -58,6 +61,8 @@ conceivable that the viewers in the future will be able to achieve 3d ordering,
 so, in a way, recording the screen depth (see the |screendepth| function below)
 will become almost mandatory at a given point. 
 
+\medskip
+
 \noindent\textbf{Filing a bug report or placing a feature request.} This library
 is currently hosted under
 \href{https://github.com/marmotghost/tikz-3dtools}{\texttt{https://github.com/marmotghost/tikz-3dtools}}.
@@ -66,6 +71,8 @@ The author is also active at the \emph{noncommercial} Q \& A site
 offers, apart from the possibility of asking questions and browsing through the
 posts a chat in which one can discuss problems. 
 
+\medskip
+
 \noindent\textbf{Why is this library not on CTAN?} First of all, ideally this
 library is only temporary. Secondly, it is also under construction. There are
 many things that users may want to be able to use, such as spherical
@@ -73,6 +80,8 @@ coordinates, and which are not supported at all. Adding support for such
 features my require syntax changes, thus making currently working code invalid.
 If this is the case, it would not be helpful if the library had already been
 made ``official''.
+
+\medskip
 
 \noindent\textbf{Code examples.} This manual contains a number of code examples.
 They do not consist of complete \LaTeX\ documents but only excerpts. Almost all of
@@ -126,8 +135,8 @@ Both keys support both symbolic and explicit coordinates.
 \end{codeexample}
 
 Notice that, as of now, only the syntax |\path (1,2,3) coordinate (A);| works,
-yet |\coordinate (A) at (1,2,3);| does \emph{not} work, but leads to error
-messages.
+yet the syntax |\coordinate (A) at (1,2,3);| does \emph{not} work, but leads to
+error messages.
 
 \begin{codeexample}[width=6cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}
@@ -143,12 +152,13 @@ messages.
 \end{tikzpicture}
 \end{codeexample}
 
-The actual parsing are done by the function |\pgfmathtdparse| that allows one
-to parse 3d expressions. The supported vector operations are |+| (addition $+$),
+The actual parsing are done by the function |\pgfmathtdparse| that allows one to
+parse 3d expressions. The supported vector operations are |+| (addition $+$),
 |-| (subtraction $-$), |*| (multiplication of the vector by a scalar), |x|
-(vector product $\times$) and |o| (scalar product). Admittedly, this function is
-currently very poor. Enhancing it will be a top priority if this is ever to
-become a CTAN library/package.
+(vector product $\times$) and |o| (scalar product). There is limited support for
+ordinary \pgfname\ parsings, which are to be wrapped into |[...]|.  Admittedly,
+this function is currently very poor. Enhancing it will be a top priority if
+this is ever to become a CTAN library/package.
 
 \begin{command}{\pgfmathtdparse{\marg{x}}}
    Parses 3d expressions.
@@ -1220,6 +1230,12 @@ systems such as spherical ones, all coordinates that are defined in
 		specify a point inside the corner. Then the outwards pointing normal of
 		the face can either have a negative projection on the screen, in which
 		case the face is hidden, or else it is visible.
+\end{key}
+
+
+\begin{key}{/tikz/3d/polyhedron/draw open face with corners=\meta{list of corners} (initially empty)}
+		Same as the previous key except it does not close the surface boundary
+		path.
 \end{key}
 
 \begin{key}{/tikz/3d/polyhedron/O=\meta{coordinate} (initially {(0,0,0)})}
