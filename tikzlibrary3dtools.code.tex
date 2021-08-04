@@ -299,7 +299,7 @@ dual ez/.initial={dualez},install dual basis/.code={%
 \expandafter\edef\expandafter\pgfutil@tmpz\expandafter{\csname tikz@td@physical@z@#1\endcsname}%
 \pgfmathparse@td@FPU{(\pgfutil@tmpx)*(\pgf@yx/1cm)+(\pgfutil@tmpy)*(\pgf@yy/1cm)+(\pgfutil@tmpz)*(nscreeny)}% 
 \else
-\PackageWarning{3dtools}{Physical x component of #1 not stored. Setting result to 0.}%
+\PackageWarning{3dtools}{Physical y component of #1 not stored. Setting result to 0.}%
 \edef\pgfmathresult{0}%
 \fi
 \pgfmathsmuggle\pgfmathresult\endgroup%
@@ -312,7 +312,7 @@ dual ez/.initial={dualez},install dual basis/.code={%
 \expandafter\edef\expandafter\pgfutil@tmpz\expandafter{\csname tikz@td@physical@z@#1\endcsname}%
 \pgfmathparse@td@FPU{(\pgfutil@tmpx)*(\pgf@zx/1cm)+(\pgfutil@tmpy)*(\pgf@zy/1cm)+(\pgfutil@tmpz)*(nscreenz)}% 
 \else
-\PackageWarning{3dtools}{Physical x component of #1 not stored. Setting result to 0.}%
+\PackageWarning{3dtools}{Physical z component of #1 not stored. Setting result to 0.}%
 \edef\pgfmathresult{0}%
 \fi
 \pgfmathsmuggle\pgfmathresult\endgroup%
@@ -328,7 +328,7 @@ dual ez/.initial={dualez},install dual basis/.code={%
 \pgfmathsetmacro@td@FPU{\pgfutil@tmpc}{(\pgfutil@tmpx)*(\pgf@zx/1cm)+(\pgfutil@tmpy)*(\pgf@zy/1cm)+(\pgfutil@tmpz)*(nscreenz)}% 
 \edef\pgfmathresult{\pgfutil@tmpa,\pgfutil@tmpb,\pgfutil@tmpc}%
 \else
-\PackageWarning{3dtools}{Physical x component of #1 not stored. Setting result to 0.}%
+\PackageWarning{3dtools}{Physical z component of #1 not stored. Setting result to 0.}%
 \edef\pgfmathresult{(0,0,0)}%
 \fi
 \pgfmathsmuggle\pgfmathresult\endgroup%
@@ -1165,42 +1165,38 @@ tmpcoord1/.initial=3dtoolstmp-1}
 % based on https://en.wikipedia.org/wiki/Circumscribed_circle
 \tikzset{pics/3d circle through 3 points/.style={code={%
  \tikzset{3d/circle through 3 points/.cd,#1}%
- \edef\temp{\noexpand\path[overlay,
+ \expanded{\noexpand\path[overlay,
 3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)=\pgfkeysvalueof{/tikz/3d/circle through 3 points/A}-\pgfkeysvalueof{/tikz/3d/circle through 3 points/C}},
  3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)=\pgfkeysvalueof{/tikz/3d/circle through 3 points/B}-\pgfkeysvalueof{/tikz/3d/circle through 3 points/C}},
  3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}c)=\pgfkeysvalueof{/tikz/3d/circle through 3 points/A}-\pgfkeysvalueof{/tikz/3d/circle through 3 points/B}},
  3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)=(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)x(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)}
  ];}%
- \temp    
- \pgfmathsetmacro{\lengthn}{sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)"))}
+ \pgfmathsetmacro@td@FPU{\lengthn}{sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)"))}
  \ifdim\lengthn pt<0.02pt
    \message{The points are (almost) on a line. Circle cannot be determined.}
   \else
-   \pgfmathsetmacro{\tmpradius}{sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)"))*%
+   \pgfmathsetmacro@td@FPU{\tmpradius}{sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)"))*%
    	sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)"))*sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}c)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}c)"))/%
 		(2*\lengthn)}
-   \pgfmathsetmacro{\coeffa}{-1*TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)")/(2*TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)"))}		
-   \pgfmathsetmacro{\coeffb}{TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)")/(2*TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)"))}
-   \edef\temp{%
+   \pgfmathsetmacro@td@FPU{\coeffa}{-1*TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)")/(2*TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)"))}		
+   \pgfmathsetmacro@td@FPU{\coeffb}{TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)")/(2*TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)"))}
+   \expanded{%
    \noexpand\path[overlay,3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}u)=\coeffa*(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)x(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)},
      3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}v)=\coeffb*(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)x(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)}];
    \noexpand\path[3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/center name})=\pgfkeysvalueof{/tikz/3d/circle through 3 points/C}+(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}u)+(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}v)}];
    }%
-   \temp
    \pgfmathsetmacro{\normalizationa}{1/sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)"))}
    \pgfmathsetmacro{\normalizationn}{1/sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)"))}
-   \edef\temp{%
+   \expanded{%
    \noexpand\path[overlay,3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)=\normalizationa*(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)},
    3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)=\normalizationn*(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)},
    3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}c)=(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)x(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)}];
    }%
-   \temp
-   \edef\temp{%
+   \expanded{%
 	\noexpand\begin{scope}[plane x={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)},plane y={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}c)},canvas is plane]
 	 \noexpand\draw[pic actions] (\pgfkeysvalueof{/tikz/3d/circle through 3 points/center name}) circle[radius=\tmpradius];
 	 \noexpand\pgfkeys{/tikz/3d/circle through 3 points/extra}
 	\noexpand\end{scope}}%
-   \temp	
   \fi 
 }},3d/circle through 3 points/.cd,A/.initial={(1,0,0)},B/.initial={(0,1,0)},
 C/.initial={(0,0,1)},
@@ -1215,19 +1211,23 @@ extra/.code={}}%
 \pgfmathsetmacro{\pgfutil@tmpc}{tddistance("\pgfkeysvalueof{/tikz/3d/incircle/A}","\pgfkeysvalueof{/tikz/3d/incircle/B}")}%
 \pgfmathsetmacro{\pgfutil@tmpd}{(\pgfutil@tmpa+\pgfutil@tmpb+\pgfutil@tmpc)/2}%
 \pgfmathsetmacro{\pgfutil@tmparea}{sqrt(\pgfutil@tmpd*(\pgfutil@tmpd-\pgfutil@tmpa)*(\pgfutil@tmpd-\pgfutil@tmpb)*(\pgfutil@tmpd-\pgfutil@tmpc))}%
+\typeout{\pgfutil@tmparea/\pgfutil@tmpd}%
 \pgfmathsetmacro{\pgfutil@tmpr}{\pgfutil@tmparea/\pgfutil@tmpd}%
-\edef\pgfutil@tmpt{\noexpand\tikz@td@parse@coord\pgfkeysvalueof{/tikz/3d/incircle/A}}%
-\pgfutil@tmpt
+%\edef\pgfutil@tmpt{\noexpand\tikz@td@parse@coord\pgfkeysvalueof{/tikz/3d/incircle/A}}%
+%\pgfutil@tmpt
+\expanded{\noexpand\tikz@td@parse@coord\pgfkeysvalueof{/tikz/3d/incircle/A}}%
 \pgfmathsetmacro{\pgfutil@tmp@Ax}{\pgf@X}%
 \pgfmathsetmacro{\pgfutil@tmp@Ay}{\pgf@Y}%
 \pgfmathsetmacro{\pgfutil@tmp@Az}{\pgf@Z}%
-\edef\pgfutil@tmpt{\noexpand\tikz@td@parse@coord\pgfkeysvalueof{/tikz/3d/incircle/B}}%
-\pgfutil@tmpt
+%\edef\pgfutil@tmpt{\noexpand\tikz@td@parse@coord\pgfkeysvalueof{/tikz/3d/incircle/B}}%
+%\pgfutil@tmpt
+\expanded{\noexpand\tikz@td@parse@coord\pgfkeysvalueof{/tikz/3d/incircle/B}}%
 \pgfmathsetmacro{\pgfutil@tmp@Bx}{\pgf@X}%
 \pgfmathsetmacro{\pgfutil@tmp@By}{\pgf@Y}%
 \pgfmathsetmacro{\pgfutil@tmp@Bz}{\pgf@Z}%
-\edef\pgfutil@tmpt{\noexpand\tikz@td@parse@coord\pgfkeysvalueof{/tikz/3d/incircle/C}}%
-\pgfutil@tmpt
+%\edef\pgfutil@tmpt{\noexpand\tikz@td@parse@coord\pgfkeysvalueof{/tikz/3d/incircle/C}}%
+%\pgfutil@tmpt
+\expanded{\noexpand\tikz@td@parse@coord\pgfkeysvalueof{/tikz/3d/incircle/C}}%
 \pgfmathsetmacro{\pgfutil@tmp@Cx}{\pgf@X}%
 \pgfmathsetmacro{\pgfutil@tmp@Cy}{\pgf@Y}%
 \pgfmathsetmacro{\pgfutil@tmp@Cz}{\pgf@Z}%
@@ -1842,7 +1842,7 @@ draw open face with corners/.code={\begingroup\c@pgf@counta0\relax
 \draw[3d/polyhedron/fore,every edge/.append style={/tikz/3d/polyhedron/face edges}]
 	\pgfutil@tmplg;
 \else
-\draw[fill=tikz@td@face@color!\pgfutil@tmpi!black,3d/polyhedron/fore] \pgfutil@tmpl;
+\draw[fill=tikz@td@face@color!\pgfutil@tmpi!black,3d/polyhedron/fore] \pgfutil@tmpl -- cycle;
 \fi
 \tikzset{3d/polyhedron/after visible}%
 \end{pgfonlayer}
