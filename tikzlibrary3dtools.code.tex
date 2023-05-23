@@ -163,12 +163,12 @@ install view/.style={/utils/exec=\tikzset{3d/.cd,#1}%
 \pgfmathdeclarefunction{TDunit}{1}{%normalized vector
 \begingroup% 
 \pgfmathsetmacro{\pgfutil@tmpv}{TD("#1")}%
-\pgfmathsetmacro{\pgfutil@tmpn}{sqrt(TD("(\pgfutil@tmpv)o(\pgfutil@tmpv)"))}%
+\pgfmathsetmacro@td@FPU{\pgfutil@tmpn}{min(1,sqrt(TD("(\pgfutil@tmpv)o(\pgfutil@tmpv)")))}% changed May 23 2023
 \ifdim\pgfutil@tmpn pt<0.002pt\relax
 \PackageWarning{3dtools}{Vector too short, cannot normalize it.}%
 \let\pgfmathresult\pgfutil@tmpv%
 \else
-\pgfmathsetmacro{\pgfutil@tmpn}{1/\pgfutil@tmpn}%
+\pgfmathsetmacro@td@FPU{\pgfutil@tmpn}{1/sqrt(TD("(\pgfutil@tmpv)o(\pgfutil@tmpv)"))}% % changed May 23 2023
 \pgfmathparse{TD("\pgfutil@tmpn*(\pgfutil@tmpv)")}%
 \fi
 \pgfmathsmuggle\pgfmathresult\endgroup}%
@@ -1133,15 +1133,13 @@ be determined.}%
 \pgfmathsetmacro{\pgfutil@tmpB}{TD("\pgfutil@tmpB-\pgfutil@tmpA")}%
 \pgfmathsetmacro{\pgfutil@tmpC}{TD("\pgfutil@tmpC-\pgfutil@tmpA")}%
 \pgfmathsetmacro{\pgfutil@tmpD}{TD("(\pgfutil@tmpB)x(\pgfutil@tmpC)")}%
-\pgfmathsetmacro{\pgfutil@tmpd}{TD("(\pgfutil@tmpD)o(\pgfutil@tmpD)")}%
+\pgfmathsetmacro@td@FPU{\pgfutil@tmpd}{min(1,TD("(\pgfutil@tmpD)o(\pgfutil@tmpD)"))}% changed May 23 2023
 \ifdim\pgfutil@tmpd pt<0.01pt\relax
 \PackageWarning{3dtools}{The vectors \pgfutil@tmpA, \pgfutil@tmpB\space and 
 \pgfutil@tmpC are too collinear. Cannot determine appropriate plane.}%
 \else
-\pgfmathsetmacro{\pgfutil@tmpb}{1/sqrt(TD("(\pgfutil@tmpB)o(\pgfutil@tmpB)"))}%
-\pgfmathsetmacro{\pgfutil@tmpd}{1/sqrt(TD("(\pgfutil@tmpD)o(\pgfutil@tmpD)"))}%
-\pgfmathsetmacro{\pgfutil@tmpB}{TD("\pgfutil@tmpb*(\pgfutil@tmpB)")}%
-\pgfmathsetmacro{\pgfutil@tmpD}{TD("\pgfutil@tmpd*(\pgfutil@tmpD)")}%
+\pgfmathsetmacro{\pgfutil@tmpB}{TDunit("(\pgfutil@tmpB)")}% changed May 23 2023
+\pgfmathsetmacro{\pgfutil@tmpD}{TDunit("(\pgfutil@tmpD)")}% changed May 23 2023
 \pgfmathsetmacro{\pgfutil@tmpC}{TD("(\pgfutil@tmpD)x(\pgfutil@tmpB)")}%
 % \typeout{3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ex}=(\pgfutil@tmpB)},
 % 	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ey}=(\pgfutil@tmpC)},
