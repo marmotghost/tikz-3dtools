@@ -97,7 +97,7 @@ compile a code example are indicated. Each code example can be embedded in a min
 example, which can have the form 
 \[\begin{minipage}{0.8\textwidth}
 \begin{tabular}{lp{1em}l}
-|\document[tikz]{standalone}| & & also loads \tikzname \\
+|\documentclass[tikz]{standalone}| & & also loads \tikzname \\
 |\usetikzlibrary{3dtools,|\dots|}| & & libraries as indicated\\
 |\begin{document}| & & \\
 \meta{code} & & code from the example\\
@@ -106,7 +106,7 @@ example, which can have the form
 \end{minipage}
 \]
 It should be also possible to embed the code in generic \LaTeX\ documents as long as
-in the preamble \tikzname\ gets loaded (e.g.\ with |\usepackage{tikz}}|)  and the
+in the preamble \tikzname\ gets loaded (e.g.\ with |\usepackage{tikz}|)  and the
 relevant libraries get also loaded. Note that although above |ConTeXt| gets
 mentioned this library has not been tested with |ConTeXt|. The only reason why
 |ConTeXt| gets mentioned is that this gets automatically added by
@@ -1446,6 +1446,30 @@ cylinders. They share a couple of common keys.
 \begin{tikzpicture}[3d/install view={phi=30,psi=0,theta=80}]
  \pic{ycylinder={r=0.4,h=3,
  top/.style={fill=blue}}};
+\end{tikzpicture}
+\end{codeexample}
+
+\begin{key}{/tikz/pics/3d/dim line (initially empty)}
+	Draws a line that allows users to annotate axes and/or indicate dimensions.
+	It expects the user to specify the start and end points, |A| and |B|, as well as the normal |n| of the plane the line is to be drawn. 
+	In addition, the |d| key, which can take negative values, determines the distance of the line from |A--B|.
+	The label is given by the |l| key, and  
+	the |dim label| style controls its appearance.
+	This |pic| requires the |calc| library. 
+\end{key}
+
+\begin{codeexample}[width=6cm,preamble={\usetikzlibrary{calc,3dtools}}]
+\begin{tikzpicture}[3d/install view={phi=110,theta=60},
+	declare function={a=4;rx=2.5;ry=3;rz=2.5;}]
+ \draw[gray,help lines] (0,0,0) coordinate (O) 
+ 	-- (a,0,0)  
+	(O) -- (0,a,0) (O) -- (0,0,a);
+ \path (rx,ry,rz) coordinate[circle,inner sep=1.5pt,
+			fill] (r);
+ \path pic{3d/dim line={A={(0,ry,0)},B={(rx,ry,0)},l={$x$}}}
+			pic{3d/dim line={A={(rx,0,0)},B={(rx,ry,0)},l={$y$},d=-2mm}}
+			pic{3d/dim line={A={(rx,ry,0)},B={(r)},n={(1,0,0)},l={$z$},
+			d=-2mm,dim label/.append style={rotate=90}}};
 \end{tikzpicture}
 \end{codeexample}
 

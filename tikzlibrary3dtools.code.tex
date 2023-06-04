@@ -1160,6 +1160,50 @@ tmpcoord1/.initial=3dtoolstmp-1}
 \tikzset{3d/screen coords/.style={x={(1cm,0cm)},y={(0cm,1cm)},z={(-1cm,-1cm)}}}%
 %%
 %% predefined pics
+\tikzset{pics/3d/dim line/.style={code={%
+  \tikzset{3d/dim line/.cd,#1}%
+  \pgfmathsetmacro{\pgfutil@tmpa}{tddistance("\pgfkeysvalueof{/tikz/3d/dim line/A}","\pgfkeysvalueof{/tikz/3d/dim line/B}")}%
+  \ifdim\pgfutil@tmpa pt<2pt\relax 
+   \message{The points A=\pgfkeysvalueof{/tikz/3d/dim line/A} and B=\pgfkeysvalueof{/tikz/3d/dim line/B} are too close. Cannot draw dim line.}%
+  \else 
+    \pgfmathsetmacro{\pgfutil@tmpa}{TD("\pgfkeysvalueof{/tikz/3d/dim line/A}-\pgfkeysvalueof{/tikz/3d/dim line/B}x\pgfkeysvalueof{/tikz/3d/dim line/n}")}%
+    \pgfmathsetmacro{\pgfutil@tmpb}{TD("(\pgfutil@tmpa)o(\pgfutil@tmpa)")}%
+    \ifdim\pgfutil@tmpb pt<0.02pt\relax
+      \message{The normal n=\pgfkeysvalueof{/tikz/3d/dim line/n} is either too short or too collinear with A-B=\pgfkeysvalueof{/tikz/3d/dim line/A}-\pgfkeysvalueof{/tikz/3d/dim line/B}. Cannot draw dim line.}%
+    \else 
+      \pgfmathsetmacro{\pgfutil@tmpa}{TDunit("(\pgfutil@tmpa)")}%
+      \pgfmathsetmacro{\pgfutil@tmpb}{\pgfkeysvalueof{/tikz/3d/dim line/d}/1cm}%
+      \pgfmathsetmacro{\pgfutil@tmpex}{TDunit("\pgfkeysvalueof{/tikz/3d/dim line/B}-\pgfkeysvalueof{/tikz/3d/dim line/A}")}%
+      \pgfmathsetmacro{\pgfutil@tmpey}{TDunit("\pgfkeysvalueof{/tikz/3d/dim line/n}x(\pgfutil@tmpex)")}%
+      \pgfmathsetmacro{\pgfutil@tmpez}{TDunit("\pgfkeysvalueof{/tikz/3d/dim line/n}")}%
+      \pgfmathsetmacro{\pgfutil@tmpA}{TD("\pgfkeysvalueof{/tikz/3d/dim line/A}+\pgfutil@tmpb*(\pgfutil@tmpa)")}%
+      \pgfmathsetmacro{\pgfutil@tmpB}{TD("\pgfkeysvalueof{/tikz/3d/dim line/B}+\pgfutil@tmpb*(\pgfutil@tmpa)")}%
+      \pgfmathsetmacro{\pgfutil@tmpC}{TD("0.5*\pgfkeysvalueof{/tikz/3d/dim line/A}+0.5*\pgfkeysvalueof{/tikz/3d/dim line/B}+\pgfutil@tmpb*(\pgfutil@tmpa)")}%
+      \expanded{\noexpand\path[overlay]
+      (\pgfutil@tmpa) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}D)
+      (\pgfutil@tmpex) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ex)
+      (\pgfutil@tmpey) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ey)
+      (\pgfutil@tmpez) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ez)
+      (\pgfutil@tmpA) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}A')
+      (\pgfutil@tmpB) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}B')
+      (\pgfutil@tmpC) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}AB')
+      ;}%
+      \begin{scope}[x={(\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ex)},
+          y={(\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ey)},
+          z={(\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ez)},canvas is xy plane at z=0]          
+          \path (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}AB') node[3d/dim line/dim label](\pgfkeysvalueof{/tikz/3d/dim line/node name}){\tikz@3d@dim@line@label};
+          \fill let \p1=($(\pgfkeysvalueof{/tikz/3d/dim line/node name}.west)-(\pgfkeysvalueof{/tikz/3d/dim line/node name}.east)$),\n1={0.5*sqrt((\x1)*(\x1)+(\y1)*(\y1))},\p2=($(\pgfkeysvalueof{/tikz/3d/dim line/node name})-(\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}A')$),\n2={sqrt((\x2)*(\x2)+(\y2)*(\y2))-\n1-0.4pt} in (\pgfkeysvalueof{/tikz/3d/dim line/node name}) ++ (\n1,0) -- ++ (0,0.2pt) -- ++ (\n2-3pt,0pt)
+          -- ++ (0pt,1.3pt) -- ++ (3pt,-1.5pt) -- ++ (-3pt,-1.5pt)  -- ++ (0pt,1.3pt) -- ++ (3pt-\n2,0pt) -- cycle
+          (\pgfkeysvalueof{/tikz/3d/dim line/node name}) ++ (-\n1,0) -- ++ (0,-0.2pt) -- ++ (3pt-\n2,0pt)
+          -- ++ (0pt,-1.3pt) -- ++ (-3pt,1.5pt) -- ++ (3pt,1.5pt)  -- ++ (0pt,-1.3pt) -- ++ (\n2-3pt,0pt) -- cycle
+          (\pgfkeysvalueof{/tikz/3d/dim line/node name}) ++ (\n1+\n2,1.5pt) -- ++ (0.4pt,0pt) -- ++ (0pt,-3pt) -- ++ (-0.4pt,0pt) -- cycle
+          (\pgfkeysvalueof{/tikz/3d/dim line/node name}) ++ (0pt-\n1-\n2,-1.5pt) -- ++ (-0.4pt,0pt) -- ++ (0pt,3pt) -- ++ (0.4pt,0pt) -- cycle;
+      \end{scope}
+    \fi 
+  \fi  
+}},3d/dim line/.cd,A/.initial={(0,0,0)},B/.initial={(1,0,0)},n/.initial={(0,0,1)},l/.store in=\tikz@3d@dim@line@label,l=\empty,auxiliary coordinate prefix/.initial=tmp,d/.initial=2mm,
+dim label/.style={transform shape,circle,inner sep=1pt},
+node name/.initial=dim label}
 % based on https://en.wikipedia.org/wiki/Circumscribed_circle
 \tikzset{pics/3d circle through 3 points/.style={code={%
  \tikzset{3d/circle through 3 points/.cd,#1}%
@@ -1170,7 +1214,7 @@ tmpcoord1/.initial=3dtoolstmp-1}
  3d coordinate={(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)=(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)x(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}b)}
  ];}%
  \pgfmathsetmacro@td@FPU{\lengthn}{sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}n)"))}
- \ifdim\lengthn pt<0.02pt
+ \ifdim\lengthn pt<0.02pt\relax
    \message{The points are (almost) on a line. Circle cannot be determined.}
   \else
    \pgfmathsetmacro@td@FPU{\tmpradius}{sqrt(TD("(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)o(\pgfkeysvalueof{/tikz/3d/circle through 3 points/auxiliary coordinate prefix}a)"))*%
@@ -1209,7 +1253,6 @@ extra/.code={}}%
 \pgfmathsetmacro{\pgfutil@tmpc}{tddistance("\pgfkeysvalueof{/tikz/3d/incircle/A}","\pgfkeysvalueof{/tikz/3d/incircle/B}")}%
 \pgfmathsetmacro{\pgfutil@tmpd}{(\pgfutil@tmpa+\pgfutil@tmpb+\pgfutil@tmpc)/2}%
 \pgfmathsetmacro{\pgfutil@tmparea}{sqrt(\pgfutil@tmpd*(\pgfutil@tmpd-\pgfutil@tmpa)*(\pgfutil@tmpd-\pgfutil@tmpb)*(\pgfutil@tmpd-\pgfutil@tmpc))}%
-\typeout{\pgfutil@tmparea/\pgfutil@tmpd}%
 \pgfmathsetmacro{\pgfutil@tmpr}{\pgfutil@tmparea/\pgfutil@tmpd}%
 %\edef\pgfutil@tmpt{\noexpand\tikz@td@parse@coord\pgfkeysvalueof{/tikz/3d/incircle/A}}%
 %\pgfutil@tmpt
