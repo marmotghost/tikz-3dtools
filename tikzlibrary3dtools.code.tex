@@ -1163,7 +1163,7 @@ tmpcoord1/.initial=3dtoolstmp-1}
 \tikzset{pics/3d/dim line/.style={code={%
   \tikzset{3d/dim line/.cd,#1}%
   \pgfmathsetmacro{\pgfutil@tmpa}{tddistance("\pgfkeysvalueof{/tikz/3d/dim line/A}","\pgfkeysvalueof{/tikz/3d/dim line/B}")}%
-  \ifdim\pgfutil@tmpa pt<2pt\relax 
+  \ifdim\pgfutil@tmpa pt<0.02pt\relax 
    \message{The points A=\pgfkeysvalueof{/tikz/3d/dim line/A} and B=\pgfkeysvalueof{/tikz/3d/dim line/B} are too close. Cannot draw dim line.}%
   \else 
     \pgfmathsetmacro{\pgfutil@tmpa}{TD("\pgfkeysvalueof{/tikz/3d/dim line/A}-\pgfkeysvalueof{/tikz/3d/dim line/B}x\pgfkeysvalueof{/tikz/3d/dim line/n}")}%
