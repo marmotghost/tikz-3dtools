@@ -1171,16 +1171,38 @@ tmpcoord1/.initial=3dtoolstmp-1}
     \ifdim\pgfutil@tmpb pt<0.02pt\relax
       \message{The normal n=\pgfkeysvalueof{/tikz/3d/dim line/n} is either too short or too collinear with A-B=\pgfkeysvalueof{/tikz/3d/dim line/A}-\pgfkeysvalueof{/tikz/3d/dim line/B}. Cannot draw dim line.}%
     \else 
+      % \pgfmathsetmacro{\pgfutil@tmpC}{TD("\pgfkeysvalueof{/tikz/3d/dim line/B}-\pgfkeysvalueof{/tikz/3d/dim line/A}x\pgfkeysvalueof{/tikz/3d/dim line/n}")}%
+      % \pgfmathsetmacro{\pgfutil@tmpC}{TD("\pgfkeysvalueof{/tikz/3d/dim line/B}+(\pgfutil@tmpC)")}%
+      % %\typeout{C=(\pgfutil@tmpC)}%
+      % \tikzset{3d/define orthonormal dreibein={%
+      %   A=\pgfkeysvalueof{/tikz/3d/dim line/A},%
+      %   B=\pgfkeysvalueof{/tikz/3d/dim line/B},%
+      %   C={(\pgfutil@tmpC)},%
+      %   ex={(\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ex)},%
+      %   ey={(\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ey)},%
+      %   ez={(\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ez)}%
+      % }}%
       \pgfmathsetmacro{\pgfutil@tmpa}{TDunit("(\pgfutil@tmpa)")}%
       \pgfmathsetmacro{\pgfutil@tmpb}{\pgfkeysvalueof{/tikz/3d/dim line/d}/1cm}%
       \pgfmathsetmacro{\pgfutil@tmpex}{TDunit("\pgfkeysvalueof{/tikz/3d/dim line/B}-\pgfkeysvalueof{/tikz/3d/dim line/A}")}%
+      \expanded{\noexpand\path[overlay]
+        (\pgfutil@tmpex) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ex);}
+      \pgfmathtruncatemacro{\pgfutil@tmpf}{ifthenelse(x2d("\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ex")<0,1,0)}%
+      \ifnum\pgfutil@tmpf=1\relax 
+        \pgfmathsetmacro{\pgfutil@tmpex}{TDunit("\pgfkeysvalueof{/tikz/3d/dim line/A}-\pgfkeysvalueof{/tikz/3d/dim line/B}")}%
+      \fi
       \pgfmathsetmacro{\pgfutil@tmpey}{TDunit("\pgfkeysvalueof{/tikz/3d/dim line/n}x(\pgfutil@tmpex)")}%
+      \expanded{\noexpand\path[overlay]
+        (\pgfutil@tmpey) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ey);}
+      \pgfmathtruncatemacro{\pgfutil@tmpf}{ifthenelse(y2d("\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ey")<0,1,0)}%
+      \ifnum\pgfutil@tmpf=1\relax 
+        \pgfmathsetmacro{\pgfutil@tmpey}{TDunit("(\pgfutil@tmpex)x\pgfkeysvalueof{/tikz/3d/dim line/n}")}%
+      \fi
       \pgfmathsetmacro{\pgfutil@tmpez}{TDunit("\pgfkeysvalueof{/tikz/3d/dim line/n}")}%
       \pgfmathsetmacro{\pgfutil@tmpA}{TD("\pgfkeysvalueof{/tikz/3d/dim line/A}+\pgfutil@tmpb*(\pgfutil@tmpa)")}%
       \pgfmathsetmacro{\pgfutil@tmpB}{TD("\pgfkeysvalueof{/tikz/3d/dim line/B}+\pgfutil@tmpb*(\pgfutil@tmpa)")}%
       \pgfmathsetmacro{\pgfutil@tmpC}{TD("0.5*\pgfkeysvalueof{/tikz/3d/dim line/A}+0.5*\pgfkeysvalueof{/tikz/3d/dim line/B}+\pgfutil@tmpb*(\pgfutil@tmpa)")}%
       \expanded{\noexpand\path[overlay]
-      (\pgfutil@tmpa) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}D)
       (\pgfutil@tmpex) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ex)
       (\pgfutil@tmpey) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ey)
       (\pgfutil@tmpez) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ez)
