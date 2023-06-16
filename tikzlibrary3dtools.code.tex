@@ -2027,13 +2027,19 @@ create faces from vertex list/.style={/tikz/3d/polyhedron/create face from verti
 }},pics/cylinder/.style={code={%
 % arbitrary cylinder
 \tikzset{3d/.cd,#1}%
-\pgfmathtruncatemacro{\tikz@td@i}{abs(TD("\pgfkeysvalueof{/tikz/3d/cylinder/axis}o(nscreenx,nscreeny,nscreenz)"))>0.01?1:0}%
+\pgfmathsetmacro{\tikz@td@v}{TD("\pgfkeysvalueof{/tikz/3d/cylinder/axis}x(nscreenx,nscreeny,nscreenz)")}%
+\pgfmathtruncatemacro{\tikz@td@i}{abs(TD("(\tikz@td@v)o(\tikz@td@v)"))>0.01?1:0}%
 \ifnum\tikz@td@i=0\relax 
   \path[3d/cylinder/top] circle[radius=\pgfkeysvalueof{/tikz/3d/r}];
 \else 
-  \pgfmathsetmacro{\tikz@td@ex}{TDunit("\pgfkeysvalueof{/tikz/3d/cylinder/axis}x(nscreenx,nscreeny,nscreenz)")}
-  \pgfmathsetmacro{\tikz@td@ey}{TDunit("(\tikz@td@ex)x\pgfkeysvalueof{/tikz/3d/cylinder/axis}")}
-  \pgfmathsetmacro{\tikz@td@ez}{TDunit("(\tikz@td@ex)x(\tikz@td@ey)")}
+  \pgfmathsetmacro{\tikz@td@ex}{TDunit("\pgfkeysvalueof{/tikz/3d/cylinder/axis}x(nscreenx,nscreeny,nscreenz)")}%
+  \pgfmathsetmacro{\tikz@td@ey}{TDunit("(\tikz@td@ex)x\pgfkeysvalueof{/tikz/3d/cylinder/axis}")}%
+  \pgfmathsetmacro{\tikz@td@ez}{TDunit("(\tikz@td@ex)x(\tikz@td@ey)")}%
+  \pgfmathtruncatemacro{\tikz@td@i}{TD("\pgfkeysvalueof{/tikz/3d/cylinder/axis}o(nscreenx,nscreeny,nscreenz)")>0?0:1}%
+  \ifnum\tikz@td@i=0\relax 
+    \pgfmathsetmacro{\tikz@td@ey}{TD("-1*(\tikz@td@ey)")}%
+    \typeout{ey adjusted at X=\X}
+  \fi
   \expanded{\noexpand\path[overlay,
 	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ex}=(\tikz@td@ex)},
 	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ey}=(\tikz@td@ey)},
