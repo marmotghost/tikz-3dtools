@@ -1203,6 +1203,7 @@ tmpcoord1/.initial=3dtoolstmp-1}
       \pgfmathsetmacro{\pgfutil@tmpB}{TD("\pgfkeysvalueof{/tikz/3d/dim line/B}+\pgfutil@tmpb*(\pgfutil@tmpa)")}%
       \pgfmathsetmacro{\pgfutil@tmpC}{TD("0.5*\pgfkeysvalueof{/tikz/3d/dim line/A}+0.5*\pgfkeysvalueof{/tikz/3d/dim line/B}+\pgfutil@tmpb*(\pgfutil@tmpa)")}%
       \expanded{\noexpand\path[overlay]
+      % (\pgfutil@tmpa) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}D)
       (\pgfutil@tmpex) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ex)
       (\pgfutil@tmpey) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ey)
       (\pgfutil@tmpez) coordinate (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ez)
@@ -1973,36 +1974,100 @@ create faces from vertex list/.style={/tikz/3d/polyhedron/create face from verti
    \end{scope}	
   \fi  
   },3d/ordered paths/.unknown/.code={}}
-% y cylinder, not yet in the manual
-\tikzset{pics/ycylinder/.style={code={
-\tikzset{3d/.cd,#1}
-\def\pv##1{\pgfkeysvalueof{/tikz/3d/##1}}
-\pgfmathsetmacro{\vmin}{atan2(sin(\pgfkeysvalueof{/tikz/3d/theta})*sin(\pgfkeysvalueof{/tikz/3d/phi}),%
-min(cos(\pgfkeysvalueof{/tikz/3d/phi}),-1/sqrt(2))*cos(\pgfkeysvalueof{/tikz/3d/theta}))}
-\pgfmathsetmacro{\vmax}{\vmin-180}
+% y cylinder
+\tikzset{pics/ycylinder/.style={code={%
+% old version
+% \tikzset{3d/.cd,#1}
+% \def\pv##1{\pgfkeysvalueof{/tikz/3d/##1}}
+% \pgfmathsetmacro{\vmin}{atan2(sin(\pgfkeysvalueof{/tikz/3d/theta})*sin(\pgfkeysvalueof{/tikz/3d/phi}),%
+% min(cos(\pgfkeysvalueof{/tikz/3d/phi}),-1/sqrt(2))*cos(\pgfkeysvalueof{/tikz/3d/theta}))}
+% \pgfmathsetmacro{\vmax}{\vmin-180}
+% \path[3d/cylinder/mantle]
+%   let \p1=($(0,1,0)-(0,0,0)$),\n1={atan2(\y1,\x1)+180} in
+%   [shading angle=\n1]
+%   plot[variable=\t,domain=\vmin:\vmax,smooth]
+%     ({\pv{r}*cos(\t)},0,{\pv{r}*sin(\t)})
+%     -- 
+%     plot[variable=\t,domain=\vmax:\vmin,smooth]
+%     ({\pv{r}*cos(\t)},\pv{h},{\pv{r}*sin(\t)})
+%     --cycle;
+% \pgfmathtruncatemacro{\itest}{sign(cos(\pgfkeysvalueof{/tikz/3d/phi}))}
+% \ifnum\itest=-1
+%     \path[3d/cylinder/top] plot[variable=\t,domain=0:360,smooth cycle]
+%     ({\pv{r}*cos(\t)},\pv{h},{\pv{r}*sin(\t)}) ;
+% \fi
+% \ifnum\itest=1
+%     \path[3d/cylinder/top] plot[variable=\t,domain=0:360,smooth cycle]
+%     ({\pv{r}*cos(\t)},0,{\pv{r}*sin(\t)}) ;
+% \fi
+% new version
+\tikzset{3d/.cd,#1}%
+%\def\pv##1{\pgfkeysvalueof{/tikz/3d/##1}}
+\pgfmathsetmacro{\tikz@td@vmin}{-atan2(sin(\pgfkeysvalueof{/tikz/3d/phi})*sin(\pgfkeysvalueof{/tikz/3d/theta}),cos(\pgfkeysvalueof{/tikz/3d/theta}))}%
+\pgfmathsetmacro{\tikz@td@vmax}{\tikz@td@vmin+180}%
 \path[3d/cylinder/mantle]
   let \p1=($(0,1,0)-(0,0,0)$),\n1={atan2(\y1,\x1)+180} in
   [shading angle=\n1]
-  plot[variable=\t,domain=\vmin:\vmax,smooth]
-    ({\pv{r}*cos(\t)},0,{\pv{r}*sin(\t)})
+  plot[variable=\tikz@td@t,domain=\tikz@td@vmin:\tikz@td@vmax,smooth]
+    ({\pgfkeysvalueof{/tikz/3d/r}*cos(\tikz@td@t)},0,{\pgfkeysvalueof{/tikz/3d/r}*sin(\tikz@td@t)})
     -- 
-    plot[variable=\t,domain=\vmax:\vmin,smooth]
-    ({\pv{r}*cos(\t)},\pv{h},{\pv{r}*sin(\t)})
+    plot[variable=\tikz@td@t,domain=\tikz@td@vmax:\tikz@td@vmin,smooth]
+    ({\pgfkeysvalueof{/tikz/3d/r}*cos(\tikz@td@t)},\pgfkeysvalueof{/tikz/3d/h},{\pgfkeysvalueof{/tikz/3d/r}*sin(\tikz@td@t)})
     --cycle;
-\pgfmathtruncatemacro{\itest}{sign(cos(\pgfkeysvalueof{/tikz/3d/phi}))}
-\ifnum\itest=-1
-    \path[3d/cylinder/top] plot[variable=\t,domain=0:360,smooth cycle]
-    ({\pv{r}*cos(\t)},\pv{h},{\pv{r}*sin(\t)}) ;
+\pgfmathtruncatemacro{\tikz@td@i}{sign(cos(\pgfkeysvalueof{/tikz/3d/phi}))}%
+\ifnum\tikz@td@i=-1\relax
+\pgfmathtruncatemacro{\tikz@td@i}{sign(cos(\pgfkeysvalueof{/tikz/3d/phi}))}%
+    \path[3d/cylinder/top] plot[variable=\tikz@td@t,domain=0:360,smooth cycle]
+    ({\pgfkeysvalueof{/tikz/3d/r}*cos(\tikz@td@t)},\pgfkeysvalueof{/tikz/3d/h},{\pgfkeysvalueof{/tikz/3d/r}*sin(\tikz@td@t)}) ;
 \fi
-\ifnum\itest=1
-    \path[3d/cylinder/top] plot[variable=\t,domain=0:360,smooth cycle]
-    ({\pv{r}*cos(\t)},0,{\pv{r}*sin(\t)}) ;
+\ifnum\tikz@td@i=1\relax
+    \path[3d/cylinder/top] plot[variable=\tikz@td@t,domain=0:360,smooth cycle]
+    ({\pgfkeysvalueof{/tikz/3d/r}*cos(\tikz@td@t)},0,{\pgfkeysvalueof{/tikz/3d/r}*sin(\tikz@td@t)}) ;
 \fi
-}},3d/.cd,cylinder/.cd,
+}},pics/cylinder/.style={code={%
+% arbitrary cylinder
+\tikzset{3d/.cd,#1}%
+\pgfmathtruncatemacro{\tikz@td@i}{abs(TD("\pgfkeysvalueof{/tikz/3d/cylinder/axis}o(nscreenx,nscreeny,nscreenz)"))>0.01?1:0}%
+\ifnum\tikz@td@i=0\relax 
+  \path[3d/cylinder/top] circle[radius=\pgfkeysvalueof{/tikz/3d/r}];
+\else 
+  \pgfmathsetmacro{\tikz@td@ex}{TDunit("\pgfkeysvalueof{/tikz/3d/cylinder/axis}x(nscreenx,nscreeny,nscreenz)")}
+  \pgfmathsetmacro{\tikz@td@ey}{TDunit("(\tikz@td@ex)x\pgfkeysvalueof{/tikz/3d/cylinder/axis}")}
+  \pgfmathsetmacro{\tikz@td@ez}{TDunit("(\tikz@td@ex)x(\tikz@td@ey)")}
+  \expanded{\noexpand\path[overlay,
+	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ex}=(\tikz@td@ex)},
+	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ey}=(\tikz@td@ey)},
+	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ez}=(\tikz@td@ez)}];}%
+  \begin{scope}[x/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ex}},
+    y/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ey}},
+    z/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ez}}]       
+    \pgfmathtruncatemacro{\tikz@td@i}{TD("\pgfkeysvalueof{/tikz/3d/cylinder/axis}o(nscreenx,nscreeny,nscreenz)")>0?1:0}%
+    \ifnum\tikz@td@i=0\relax 
+      \draw[3d/hidden] (\pgfkeysvalueof{/tikz/3d/r},0,0) arc[start angle=0,end angle=180,radius=\pgfkeysvalueof{/tikz/3d/r}];
+    \else 
+      \draw[3d/hidden] (\pgfkeysvalueof{/tikz/3d/r},0,\pgfkeysvalueof{/tikz/3d/h}) arc[start angle=0,end angle=180,radius=\pgfkeysvalueof{/tikz/3d/r}];
+    \fi
+    \path[3d/cylinder/mantle]
+      let \p1=($(0,1,0)-(0,0,0)$),\n1={atan2(\y1,\x1)+180} in
+      [shading angle=\n1]
+      (\pgfkeysvalueof{/tikz/3d/r},0,0) arc[start angle=0,end angle=-180,radius=\pgfkeysvalueof{/tikz/3d/r}]
+        -- 
+      ({-1*(\pgfkeysvalueof{/tikz/3d/r})},0,\pgfkeysvalueof{/tikz/3d/h}) arc[start angle=-180,end angle=0,radius=\pgfkeysvalueof{/tikz/3d/r}]
+      -- cycle;
+    \ifnum\tikz@td@i=0\relax 
+      \path[3d/cylinder/top] (0,0,\pgfkeysvalueof{/tikz/3d/h}) circle[radius=\pgfkeysvalueof{/tikz/3d/r}];
+    \else 
+      \path[3d/cylinder/top] (0,0,0) circle[radius=\pgfkeysvalueof{/tikz/3d/r}];
+    \fi
+  \end{scope}  
+\fi
+}},%
+3d/.cd,cylinder/.cd,
 mantle/.style={draw},top/.style={draw}}
 \tikzset{3d/.cd,visible/.style={draw,solid},
 	hidden/.style={draw,very thin,cheating dash},
-	r/.initial=1,h/.initial=1,R/.initial=2}
+	r/.initial=1,h/.initial=1,R/.initial=2,
+  cylinder/axis/.initial={(0,0,1)}}
 %%
 %% decorations
 %% 

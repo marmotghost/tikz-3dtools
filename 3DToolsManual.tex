@@ -1431,12 +1431,22 @@ cylinders. They share a couple of common keys.
 
 \begin{key}{/tikz/pics/ycylinder (initially empty)}
  A cylinder in the $y$-direction. This pic requires the |calc| library. 
- As of now it does only work for |psi=0|.
+ As of now it does only work for |psi=0|. 
+ This key is obsolete because of the |cylinder| pic which allows the user to dial an arbitrary axis.
 \end{key}
-\begin{key}{/tikz/pics/3d/mantle (initially draw)}
+\begin{key}{/tikz/pics/cylinder (initially empty)}
+	A cylinder with an arbitrary axis. 
+	This pic requires the |calc| library. 
+\end{key}
+   
+\begin{key}{/tikz/pics/3d/cylinder/axis (initially {(0,0,1)})}
+	Axis of cylinder.
+\end{key}
+   
+\begin{key}{/tikz/pics/3d/cylinder/mantle (initially empty)}
  Style for cylinder mantle. If no fill option is specified, it will be shaded.
 \end{key}
-\begin{key}{/tikz/pics/3d/top (initially draw)}
+\begin{key}{/tikz/pics/3d/cylinder/top (initially draw)}
  Style for cylinder top. 
 \end{key}
 
@@ -1444,8 +1454,9 @@ cylinders. They share a couple of common keys.
 
 \begin{codeexample}[width=3cm,preamble={\usetikzlibrary{3dtools}}]
 \begin{tikzpicture}[3d/install view={phi=30,psi=0,theta=80}]
- \pic{ycylinder={r=0.4,h=3,
- top/.style={fill=blue}}};
+ \pic{cylinder={r=0.4,h=3,
+ cylinder/axis={(1,0,1)},
+ cylinder/top/.style={fill=blue}}};
 \end{tikzpicture}
 \end{codeexample}
 
