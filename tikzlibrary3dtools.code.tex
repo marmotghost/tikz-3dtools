@@ -2034,12 +2034,13 @@ create faces from vertex list/.style={/tikz/3d/polyhedron/create face from verti
 \else 
   \pgfmathsetmacro{\tikz@td@ex}{TDunit("\pgfkeysvalueof{/tikz/3d/cylinder/axis}x(nscreenx,nscreeny,nscreenz)")}%
   \pgfmathsetmacro{\tikz@td@ey}{TDunit("(\tikz@td@ex)x\pgfkeysvalueof{/tikz/3d/cylinder/axis}")}%
-  \pgfmathsetmacro{\tikz@td@ez}{TDunit("(\tikz@td@ex)x(\tikz@td@ey)")}%
   \pgfmathtruncatemacro{\tikz@td@i}{TD("\pgfkeysvalueof{/tikz/3d/cylinder/axis}o(nscreenx,nscreeny,nscreenz)")>0?0:1}%
   \ifnum\tikz@td@i=0\relax 
     \pgfmathsetmacro{\tikz@td@ey}{TD("-1*(\tikz@td@ey)")}%
-    \typeout{ey adjusted at X=\X}
+  \else
+    %\pgfmathsetmacro{\tikz@td@ex}{TD("-1*(\tikz@td@ex)")}%
   \fi
+  \pgfmathsetmacro{\tikz@td@ez}{TDunit("(\tikz@td@ex)x(\tikz@td@ey)")}%
   \expanded{\noexpand\path[overlay,
 	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ex}=(\tikz@td@ex)},
 	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ey}=(\tikz@td@ey)},
