@@ -2034,22 +2034,22 @@ create faces from vertex list/.style={/tikz/3d/polyhedron/create face from verti
 \else 
   \pgfmathsetmacro{\tikz@td@ex}{TDunit("\pgfkeysvalueof{/tikz/3d/cylinder/axis}x(nscreenx,nscreeny,nscreenz)")}%
   \pgfmathsetmacro{\tikz@td@ey}{TDunit("(\tikz@td@ex)x\pgfkeysvalueof{/tikz/3d/cylinder/axis}")}%
-  \pgfmathtruncatemacro{\tikz@td@i}{TD("\pgfkeysvalueof{/tikz/3d/cylinder/axis}o(nscreenx,nscreeny,nscreenz)")>0?0:1}%
-  \ifnum\tikz@td@i=0\relax 
+  \pgfmathtruncatemacro{\tikz@td@i}{TD("\pgfkeysvalueof{/tikz/3d/cylinder/axis}o(nscreenx,nscreeny,nscreenz)")>0?1:0}%
+  \ifnum\tikz@td@i=1\relax 
     \pgfmathsetmacro{\tikz@td@ey}{TD("-1*(\tikz@td@ey)")}%
   \else
     %\pgfmathsetmacro{\tikz@td@ex}{TD("-1*(\tikz@td@ex)")}%
   \fi
-  \pgfmathsetmacro{\tikz@td@ez}{TDunit("(\tikz@td@ex)x(\tikz@td@ey)")}%
+  \pgfmathsetmacro{\tikz@td@ez}{TDunit("\pgfkeysvalueof{/tikz/3d/cylinder/axis}")}%
   \expanded{\noexpand\path[overlay,
 	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ex}=(\tikz@td@ex)},
 	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ey}=(\tikz@td@ey)},
 	3d coordinate={\pgfkeysvalueof{/tikz/3d/aux keys/ez}=(\tikz@td@ez)}];}%
+  \pgfmathtruncatemacro{\tikz@td@i}{TD("\pgfkeysvalueof{/tikz/3d/cylinder/axis}o(nscreenx,nscreeny,nscreenz)")>0?1:0}%
   \begin{scope}[x/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ex}},
     y/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ey}},
     z/.expanded={\pgfkeysvalueof{/tikz/3d/aux keys/ez}}]       
-    \pgfmathtruncatemacro{\tikz@td@i}{TD("\pgfkeysvalueof{/tikz/3d/cylinder/axis}o(nscreenx,nscreeny,nscreenz)")>0?1:0}%
-    \ifnum\tikz@td@i=0\relax 
+    \ifnum\tikz@td@i=1\relax 
       \draw[3d/hidden] (\pgfkeysvalueof{/tikz/3d/r},0,0) arc[start angle=0,end angle=180,radius=\pgfkeysvalueof{/tikz/3d/r}];
     \else 
       \draw[3d/hidden] (\pgfkeysvalueof{/tikz/3d/r},0,\pgfkeysvalueof{/tikz/3d/h}) arc[start angle=0,end angle=180,radius=\pgfkeysvalueof{/tikz/3d/r}];
@@ -2061,7 +2061,7 @@ create faces from vertex list/.style={/tikz/3d/polyhedron/create face from verti
         -- 
       ({-1*(\pgfkeysvalueof{/tikz/3d/r})},0,\pgfkeysvalueof{/tikz/3d/h}) arc[start angle=-180,end angle=0,radius=\pgfkeysvalueof{/tikz/3d/r}]
       -- cycle;
-    \ifnum\tikz@td@i=0\relax 
+    \ifnum\tikz@td@i=1\relax 
       \path[3d/cylinder/top] (0,0,\pgfkeysvalueof{/tikz/3d/h}) circle[radius=\pgfkeysvalueof{/tikz/3d/r}];
     \else 
       \path[3d/cylinder/top] (0,0,0) circle[radius=\pgfkeysvalueof{/tikz/3d/r}];
