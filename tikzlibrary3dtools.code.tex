@@ -31,13 +31,13 @@
 version 3.1.1 to use the features of this library.}%
 \fi
 \edef\pgfutil@tmpd{\expandafter\@firstoftwo\pgfutil@tmpc\empty}%
-\pgfmathtruncatemacro{\pgfutil@tmpe}{ifthenelse(100*\pgfutil@tmpa+10*\pgfutil@tmpb+\pgfutil@tmpd<313,0,1)}%
+\pgfmathtruncatemacro{\pgfutil@tmpe}{ifthenelse(100*\pgfutil@tmpa+10*\pgfutil@tmpb+\pgfutil@tmpc<313,0,1)}%
 \ifnum\pgfutil@tmpe=0%
 \message{Some routines of 3dtools may not work because they rely on the pushing
 and popping techniques that were added in version 3.1.3 (but the current version
 is \pgfversion).^^J}%
 \fi
-\pgfmathtruncatemacro{\pgfutil@tmpe}{ifthenelse(100*\pgfutil@tmpa+10*\pgfutil@tmpb+\pgfutil@tmpd<316,0,1)}%
+\pgfmathtruncatemacro{\pgfutil@tmpe}{ifthenelse(100*\pgfutil@tmpa+10*\pgfutil@tmpb+\pgfutil@tmpc<316,0,1)}%
 \ifnum\pgfutil@tmpe=0%
 \def\pgfutil@pushmacro##1{%
     \xdef\pgfutil@pushmacro@string{\string##1}%
@@ -668,7 +668,6 @@ x2d("\pgfutil@tmpa")-x2d("\pgfutil@tmpd"))+\pgfutil@tmpe,360)}%
 %\typeout{Got #1 to parse.}%
 \tikz@td@cc@parse+#1% 
 }% 
-
 \def\tikz@td@cc@parse{% 
 \pgfutil@ifnextchar>{% 
 % Ok, we found the end... 
@@ -1086,7 +1085,8 @@ be determined.}%
 \pgfmathsetmacro{\pgfutil@tmpI}{TD("\pgfutil@tmpA+\pgfutil@tmpnB*(\pgfutil@tmpCxD)+\pgfutil@tmpnC*(\pgfutil@tmpDxB)+\pgfutil@tmpnD*(\pgfutil@tmpBxC)")}%
 \tikzset{insert path={(\pgfutil@tmpI)}}%
 \fi
-},3d/circumcircle center/.code={%
+}}%
+\tikzset{3d/circumcircle center/.code={%
 \tikzset{3d/aux keys/.cd,#1}%
 \edef\pgfutil@tmpA{\pgfkeysvalueof{/tikz/3d/aux keys/A}}%
 \edef\pgfutil@tmpB{\pgfkeysvalueof{/tikz/3d/aux keys/B}}%
@@ -1125,7 +1125,8 @@ be determined.}%
 %\typeout{debug: (I)=((\pgfutil@tmpI))}%
 \tikzset{insert path={(\pgfutil@tmpI)}}%
 \fi
-},3d/define orthonormal dreibein/.code={%
+}}%
+\tikzset{3d/define orthonormal dreibein/.code={%
 \tikzset{3d/aux keys/.cd,#1}%
 \edef\pgfutil@tmpA{\pgfkeysvalueof{/tikz/3d/aux keys/A}}%
 \edef\pgfutil@tmpB{\pgfkeysvalueof{/tikz/3d/aux keys/B}}%
@@ -1160,6 +1161,7 @@ tmpcoord1/.initial=3dtoolstmp-1}
 \tikzset{3d/screen coords/.style={x={(1cm,0cm)},y={(0cm,1cm)},z={(-1cm,-1cm)}}}%
 %%
 %% predefined pics
+\makeatletter
 \tikzset{pics/3d/dim line/.style={code={%
   \tikzset{3d/dim line/.cd,#1}%
   \pgfmathsetmacro{\pgfutil@tmpa}{tddistance("\pgfkeysvalueof{/tikz/3d/dim line/A}","\pgfkeysvalueof{/tikz/3d/dim line/B}")}%
@@ -1214,7 +1216,7 @@ tmpcoord1/.initial=3dtoolstmp-1}
       \begin{scope}[x={(\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ex)},
           y={(\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ey)},
           z={(\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}ez)},canvas is xy plane at z=0]          
-          \path (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}AB') node[3d/dim line/dim label](\pgfkeysvalueof{/tikz/3d/dim line/node name}){\tikz@3d@dim@line@label};
+          \path (\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}AB') node[3d/dim line/dim label](\pgfkeysvalueof{/tikz/3d/dim line/node name}){\tikz@td@dim@line@label};
           \fill let \p1=($(\pgfkeysvalueof{/tikz/3d/dim line/node name}.west)-(\pgfkeysvalueof{/tikz/3d/dim line/node name}.east)$),\n1={0.5*sqrt((\x1)*(\x1)+(\y1)*(\y1))},\p2=($(\pgfkeysvalueof{/tikz/3d/dim line/node name})-(\pgfkeysvalueof{/tikz/3d/dim line/auxiliary coordinate prefix}A')$),\n2={sqrt((\x2)*(\x2)+(\y2)*(\y2))-\n1-0.4pt} in (\pgfkeysvalueof{/tikz/3d/dim line/node name}) ++ (\n1,0) -- ++ (0,0.2pt) -- ++ (\n2-3pt,0pt)
           -- ++ (0pt,1.3pt) -- ++ (3pt,-1.5pt) -- ++ (-3pt,-1.5pt)  -- ++ (0pt,1.3pt) -- ++ (3pt-\n2,0pt) -- cycle
           (\pgfkeysvalueof{/tikz/3d/dim line/node name}) ++ (-\n1,0) -- ++ (0,-0.2pt) -- ++ (3pt-\n2,0pt)
@@ -1224,7 +1226,10 @@ tmpcoord1/.initial=3dtoolstmp-1}
       \end{scope}
     \fi 
   \fi  
-}},3d/dim line/.cd,A/.initial={(0,0,0)},B/.initial={(1,0,0)},n/.initial={(0,0,1)},l/.store in=\tikz@3d@dim@line@label,l=\empty,auxiliary coordinate prefix/.initial=tmp,d/.initial=2mm,
+}},3d/dim line/.cd,A/.initial={(0,0,0)},B/.initial={(1,0,0)},n/.initial={(0,0,1)},
+l/.store in=\tikz@td@dim@line@label,
+l=\empty,
+auxiliary coordinate prefix/.initial=tmp,d/.initial=2mm,
 dim label/.style={transform shape,circle,inner sep=1pt},
 node name/.initial=dim label}
 % based on https://en.wikipedia.org/wiki/Circumscribed_circle
